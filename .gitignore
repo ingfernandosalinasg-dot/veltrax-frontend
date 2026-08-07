@@ -1,0 +1,24 @@
+# Dependencias (se reinstalan con npm install, nunca se suben)
+node_modules/
+
+# Build de producción
+dist/
+dist-ssr/
+
+# Archivos de entorno con configuración sensible
+.env
+.env.local
+.env.production
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
