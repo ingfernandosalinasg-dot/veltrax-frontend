@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+﻿import { useState, useEffect, useCallback, useRef } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import {
@@ -6,19 +6,19 @@ import {
     FaExclamationTriangle, FaTruck, FaMapMarkerAlt, FaUser, FaBox, FaSearch
 } from "react-icons/fa";
 
-const API = "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
 
 const estadoColor = {
     "Activa":      "text-cyan-300 bg-cyan-500/10 border-cyan-400/30",
-    "En Tránsito": "text-blue-300 bg-blue-500/10 border-blue-400/30",
+    "En Tr谩nsito": "text-blue-300 bg-blue-500/10 border-blue-400/30",
     "Entregada":   "text-green-300 bg-green-500/10 border-green-400/30",
     "Cancelada":   "text-red-300 bg-red-500/10 border-red-400/30",
 };
 
-const TIPOS_CARTA  = ["CMR - Carretera Internacional","CIM - Ferroviario","AWB - Aéreo","Bill of Lading - Marítimo","Nacional"];
-const FORMAS_PAGO  = ["Contado","Crédito 30 días","Crédito 60 días","Contra entrega"];
+const TIPOS_CARTA  = ["CMR - Carretera Internacional","CIM - Ferroviario","AWB - A茅reo","Bill of Lading - Mar铆timo","Nacional"];
+const FORMAS_PAGO  = ["Contado","Cr茅dito 30 d铆as","Cr茅dito 60 d铆as","Contra entrega"];
 const MONEDAS      = ["MXN","USD","EUR"];
-const ESTADOS_MERC = ["Bueno","Regular","Con daños visibles"];
+const ESTADOS_MERC = ["Bueno","Regular","Con da帽os visibles"];
 
 const TABS = [
     { id:"encabezado",    label:"Encabezado",    icon:<FaFileAlt /> },
@@ -26,7 +26,7 @@ const TABS = [
     { id:"destinatario",  label:"Destinatario",  icon:<FaMapMarkerAlt /> },
     { id:"transportista", label:"Transportista", icon:<FaTruck /> },
     { id:"ruta",          label:"Ruta",          icon:<FaMapMarkerAlt /> },
-    { id:"mercancias",    label:"Mercancías",    icon:<FaBox /> },
+    { id:"mercancias",    label:"Mercanc铆as",    icon:<FaBox /> },
     { id:"condiciones",   label:"Condiciones",   icon:<FaFileAlt /> },
     { id:"obs",           label:"Observaciones", icon:<FaFileAlt /> },
 ];
@@ -42,10 +42,10 @@ const emptyForm = {
     folio:"", tipoCarta:"CMR - Carretera Internacional", fechaEmision:"", lugarEmision:"", moneda:"MXN",
     remitenteId:"",
     remitenteNombre:"", remitenteRFC:"", remitenteDireccion:"", remitenteCiudad:"",
-    remitenteEstado:"", remitentePais:"México", remitenteTelefono:"", remitenteEmail:"",
+    remitenteEstado:"", remitentePais:"M茅xico", remitenteTelefono:"", remitenteEmail:"",
     destinatarioId:"",
     destinatarioNombre:"", destinatarioRFC:"", destinatarioDireccion:"", destinatarioCiudad:"",
-    destinatarioEstado:"", destinatarioPais:"México", destinatarioTelefono:"", destinatarioEmail:"",
+    destinatarioEstado:"", destinatarioPais:"M茅xico", destinatarioTelefono:"", destinatarioEmail:"",
     transportistaNombre:"", transportistaLicencia:"",
     configAutotransporte:"", configAutotransporteDesc:"",
     tipoPermiso:"", tipoPermisoDesc:"",
@@ -72,9 +72,9 @@ function Field({ label, children, span2 = false }) {
     );
 }
 
-// Buscador de catálogos SAT en tiempo real
+// Buscador de cat谩logos SAT en tiempo real
 function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2 = false }) {
-    const [query,     setQuery]     = useState(value ? `${value} — ${valueDesc || ""}` : "");
+    const [query,     setQuery]     = useState(value ? `${value} 鈥?${valueDesc || ""}` : "");
     const [results,   setResults]   = useState([]);
     const [open,      setOpen]      = useState(false);
     const [loading,   setLoading]   = useState(false);
@@ -102,7 +102,7 @@ function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2
     };
 
     const seleccionar = (item) => {
-        setQuery(`${item.clave} — ${item.descripcion}`);
+        setQuery(`${item.clave} 鈥?${item.descripcion}`);
         setOpen(false);
         setResults([]);
         onChange(item.clave, item.descripcion);
@@ -138,7 +138,7 @@ function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2
                 {value && (
                     <div className="mt-1 px-3 py-1 rounded-lg bg-cyan-500/10 border border-cyan-400/20 text-xs text-cyan-300 flex items-center gap-2">
                         <span className="font-mono font-bold">{value}</span>
-                        <span className="text-gray-400">—</span>
+                        <span className="text-gray-400">鈥?/span>
                         <span className="truncate">{valueDesc}</span>
                     </div>
                 )}
@@ -163,7 +163,7 @@ function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2
     );
 }
 
-// Selector de catálogo de remitentes/destinatarios (sin cambios)
+// Selector de cat谩logo de remitentes/destinatarios (sin cambios)
 function CatalogPicker({ label, placeholder, items, selectedId, onSelect, onClear }) {
     const [open,  setOpen]  = useState(false);
     const [query, setQuery] = useState("");
@@ -184,13 +184,13 @@ function CatalogPicker({ label, placeholder, items, selectedId, onSelect, onClea
                 <span className="flex items-center gap-3">
                     <FaSearch className="text-xs opacity-50" />
                     {selected
-                        ? <><span className="font-bold">{selected.nombre}</span><span className="text-xs opacity-60 ml-2">{[selected.rfc, selected.ciudad, selected.estado].filter(Boolean).join(" · ")}</span></>
+                        ? <><span className="font-bold">{selected.nombre}</span><span className="text-xs opacity-60 ml-2">{[selected.rfc, selected.ciudad, selected.estado].filter(Boolean).join(" 路 ")}</span></>
                         : placeholder}
                 </span>
                 {selected && (
                     <span onClick={e => { e.stopPropagation(); onClear(); setOpen(false); }}
                         className="text-xs text-gray-500 hover:text-red-400 border border-white/10 rounded px-2 py-0.5 transition-colors">
-                        ✕ Limpiar
+                        鉁?Limpiar
                     </span>
                 )}
             </button>
@@ -209,7 +209,7 @@ function CatalogPicker({ label, placeholder, items, selectedId, onSelect, onClea
                                     onClick={() => { setOpen(false); setQuery(""); setTimeout(() => onSelect(item), 0); }}
                                     className="w-full text-left px-5 py-3 hover:bg-cyan-500/10 transition-all border-b border-white/5 last:border-0">
                                     <p className="text-white font-semibold text-sm">{item.nombre}</p>
-                                    <p className="text-gray-500 text-xs mt-0.5">{[item.rfc, item.ciudad, item.estado, item.telefono].filter(Boolean).join(" · ")}</p>
+                                    <p className="text-gray-500 text-xs mt-0.5">{[item.rfc, item.ciudad, item.estado, item.telefono].filter(Boolean).join(" 路 ")}</p>
                                 </button>
                             ))
                         }
@@ -230,11 +230,11 @@ function generarPDF(carta, mercancias = []) {
             <td>${i+1}</td>
             <td>${m.claveProdServ ? `<span style="font-family:monospace;color:#0891b2">${m.claveProdServ}</span><br/>` : ""}${m.descripcion}</td>
             <td>${m.cantidad} ${m.claveUnidad || ""}</td>
-            <td>${m.peso} kg</td><td>${m.volumen||"-"} m³</td>
+            <td>${m.peso} kg</td><td>${m.volumen||"-"} m鲁</td>
             <td>$${Number(m.valor||0).toLocaleString()} ${carta.moneda}</td>
-            <td>${m.claveEmbalaje ? m.claveEmbalaje+" — " : ""}${m.claveEmbalajeDesc||"-"}</td>
+            <td>${m.claveEmbalaje ? m.claveEmbalaje+" 鈥?" : ""}${m.claveEmbalajeDesc||"-"}</td>
             <td>${m.marcas||"-"}</td><td>${m.estadoMercancia}</td>
-            <td>${m.esPeligrosa ? "⚠️ "+m.claseONU : "No"}</td>
+            <td>${m.esPeligrosa ? "鈿狅笍 "+m.claseONU : "No"}</td>
         </tr>`).join("");
 
     const html = `<html><head><meta charset="UTF-8"/><title>Carta Porte ${carta.folio}</title>
@@ -256,20 +256,20 @@ function generarPDF(carta, mercancias = []) {
     </style></head><body>
     <div class="header"><div class="logo">VELTRAX</div><div>
         <div style="font-size:16px;font-weight:bold">Folio: ${carta.folio}</div>
-        <div style="color:#888">Tipo: ${carta.tipoCarta} &nbsp;|&nbsp; Emisión: ${carta.fechaEmision} &nbsp;${carta.lugarEmision||""}</div>
+        <div style="color:#888">Tipo: ${carta.tipoCarta} &nbsp;|&nbsp; Emisi贸n: ${carta.fechaEmision} &nbsp;${carta.lugarEmision||""}</div>
         <div style="margin-top:6px"><span class="estado">${carta.status}</span></div>
     </div></div>
-    <div class="titulo">Carta de Porte — Documento de Transporte</div>
+    <div class="titulo">Carta de Porte 鈥?Documento de Transporte</div>
     <div class="grid2">
         <div class="sec"><h3>Remitente</h3>
             <div class="campo"><label>Nombre/Empresa</label><span>${carta.remitenteNombre||"-"}</span></div>
             <div class="campo"><label>RFC</label><span>${carta.remitenteRFC||"-"}</span></div>
-            <div class="campo"><label>Dirección</label><span>${[carta.remitenteDireccion,carta.remitenteCiudad,carta.remitenteEstado,carta.remitentePais].filter(Boolean).join(", ")}</span></div>
+            <div class="campo"><label>Direcci贸n</label><span>${[carta.remitenteDireccion,carta.remitenteCiudad,carta.remitenteEstado,carta.remitentePais].filter(Boolean).join(", ")}</span></div>
         </div>
         <div class="sec"><h3>Destinatario</h3>
             <div class="campo"><label>Nombre/Empresa</label><span>${carta.destinatarioNombre||"-"}</span></div>
             <div class="campo"><label>RFC</label><span>${carta.destinatarioRFC||"-"}</span></div>
-            <div class="campo"><label>Dirección</label><span>${[carta.destinatarioDireccion,carta.destinatarioCiudad,carta.destinatarioEstado,carta.destinatarioPais].filter(Boolean).join(", ")}</span></div>
+            <div class="campo"><label>Direcci贸n</label><span>${[carta.destinatarioDireccion,carta.destinatarioCiudad,carta.destinatarioEstado,carta.destinatarioPais].filter(Boolean).join(", ")}</span></div>
         </div>
     </div>
     <div class="grid2">
@@ -277,18 +277,18 @@ function generarPDF(carta, mercancias = []) {
             <div class="campo"><label>Empresa</label><span>${carta.transportistaNombre||"-"}</span></div>
             <div class="campo"><label>Conductor</label><span>${carta.conductorNombre||"-"}</span></div>
             <div class="campo"><label>Licencia</label><span>${carta.conductorLicencia||"-"}</span></div>
-            <div class="campo"><label>Vehículo / Placas</label><span>${[carta.vehiculoTipo,carta.vehiculoPlacas].filter(Boolean).join(" — ")}</span></div>
+            <div class="campo"><label>Veh铆culo / Placas</label><span>${[carta.vehiculoTipo,carta.vehiculoPlacas].filter(Boolean).join(" 鈥?")}</span></div>
             ${carta.configAutotransporte ? `<div class="campo"><label>Config. Autotransporte (SAT)</label><span style="font-family:monospace;color:#0891b2">${carta.configAutotransporte}</span> ${carta.configAutotransporteDesc||""}</div>` : ""}
             ${carta.tipoPermiso ? `<div class="campo"><label>Tipo Permiso SCT (SAT)</label><span style="font-family:monospace;color:#0891b2">${carta.tipoPermiso}</span> ${carta.tipoPermisoDesc||""}</div>` : ""}
             ${carta.figuraTransporte ? `<div class="campo"><label>Figura Transporte (SAT)</label><span style="font-family:monospace;color:#0891b2">${carta.figuraTransporte}</span> ${carta.figuraTransporteDesc||""}</div>` : ""}
         </div>
         <div class="sec"><h3>Ruta</h3>
-            <div class="campo"><label>Origen</label><span>${carta.lugarCarga||"-"} ${carta.fechaCarga ? "— "+carta.fechaCarga : ""}</span></div>
-            <div class="campo"><label>Destino</label><span>${carta.lugarDescarga||"-"} ${carta.fechaDescarga ? "— "+carta.fechaDescarga : ""}</span></div>
+            <div class="campo"><label>Origen</label><span>${carta.lugarCarga||"-"} ${carta.fechaCarga ? "鈥?"+carta.fechaCarga : ""}</span></div>
+            <div class="campo"><label>Destino</label><span>${carta.lugarDescarga||"-"} ${carta.fechaDescarga ? "鈥?"+carta.fechaDescarga : ""}</span></div>
         </div>
     </div>
-    <div class="sec" style="margin-bottom:18px"><h3>Mercancías</h3>
-        <table><thead><tr><th>#</th><th>Descripción / Clave SAT</th><th>Cantidad</th><th>Peso</th><th>Volumen</th><th>Valor</th><th>Embalaje</th><th>Marcas</th><th>Estado</th><th>Peligrosa</th></tr></thead>
+    <div class="sec" style="margin-bottom:18px"><h3>Mercanc铆as</h3>
+        <table><thead><tr><th>#</th><th>Descripci贸n / Clave SAT</th><th>Cantidad</th><th>Peso</th><th>Volumen</th><th>Valor</th><th>Embalaje</th><th>Marcas</th><th>Estado</th><th>Peligrosa</th></tr></thead>
         <tbody>${filas}</tbody></table>
     </div>
     <div class="grid3">
@@ -298,7 +298,7 @@ function generarPDF(carta, mercancias = []) {
         </div>
         <div class="sec"><h3>Seguro</h3>
             <div class="campo"><label>Valor asegurado</label><span>${carta.moneda} $${Number(carta.seguroValor||0).toLocaleString()}</span></div>
-            <div class="campo"><label>Póliza</label><span>${carta.seguroPoliza||"-"}</span></div>
+            <div class="campo"><label>P贸liza</label><span>${carta.seguroPoliza||"-"}</span></div>
         </div>
         <div class="sec"><h3>Instrucciones</h3><p>${carta.instruccionesEspeciales||"Ninguna"}</p></div>
     </div>
@@ -369,7 +369,7 @@ export default function CartaPortePage() {
     const setSat = (claveField, descField) => (clave, desc) =>
         setForm(f => ({ ...f, [claveField]: clave, [descField]: desc }));
 
-    // Auto-llena las claves SAT del vehículo seleccionado
+    // Auto-llena las claves SAT del veh铆culo seleccionado
     const aplicarVehiculo = (v) => {
         if (!v) {
             setForm(f => ({ ...f,
@@ -412,13 +412,13 @@ export default function CartaPortePage() {
         if (!rem) {
             setForm(f => ({ ...f, remitenteId:"", remitenteNombre:"", remitenteRFC:"",
                 remitenteDireccion:"", remitenteCiudad:"", remitenteEstado:"",
-                remitentePais:"México", remitenteTelefono:"", remitenteEmail:"" }));
+                remitentePais:"M茅xico", remitenteTelefono:"", remitenteEmail:"" }));
             return;
         }
         setForm(f => ({ ...f,
             remitenteId: rem.id, remitenteNombre: rem.nombre||"", remitenteRFC: rem.rfc||"",
             remitenteDireccion: rem.direccion||"", remitenteCiudad: rem.ciudad||"",
-            remitenteEstado: rem.estado||"", remitentePais: rem.pais||"México",
+            remitenteEstado: rem.estado||"", remitentePais: rem.pais||"M茅xico",
             remitenteTelefono: rem.telefono||"", remitenteEmail: rem.email||"",
             lugarCarga: rem.ciudad ? `${rem.ciudad}${rem.estado ? ", "+rem.estado : ""}` : f.lugarCarga,
             direccionCarga: rem.direccion || f.direccionCarga,
@@ -429,13 +429,13 @@ export default function CartaPortePage() {
         if (!dest) {
             setForm(f => ({ ...f, destinatarioId:"", destinatarioNombre:"", destinatarioRFC:"",
                 destinatarioDireccion:"", destinatarioCiudad:"", destinatarioEstado:"",
-                destinatarioPais:"México", destinatarioTelefono:"", destinatarioEmail:"" }));
+                destinatarioPais:"M茅xico", destinatarioTelefono:"", destinatarioEmail:"" }));
             return;
         }
         setForm(f => ({ ...f,
             destinatarioId: dest.id, destinatarioNombre: dest.nombre||"", destinatarioRFC: dest.rfc||"",
             destinatarioDireccion: dest.direccion||"", destinatarioCiudad: dest.ciudad||"",
-            destinatarioEstado: dest.estado||"", destinatarioPais: dest.pais||"México",
+            destinatarioEstado: dest.estado||"", destinatarioPais: dest.pais||"M茅xico",
             destinatarioTelefono: dest.telefono||"", destinatarioEmail: dest.email||"",
             lugarDescarga: dest.ciudad ? `${dest.ciudad}${dest.estado ? ", "+dest.estado : ""}` : f.lugarDescarga,
             direccionDescarga: dest.direccion || f.direccionDescarga,
@@ -481,13 +481,13 @@ export default function CartaPortePage() {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm("¿Eliminar esta Carta Porte?")) return;
+        if (!confirm("驴Eliminar esta Carta Porte?")) return;
         try { await fetch(`${API}/cartas-porte/${id}`, { method:"DELETE", headers }); fetchAll(); }
         catch(e) { console.error(e); }
     };
 
     const activas    = cartas.filter(c => c.status === "Activa").length;
-    const enTransito = cartas.filter(c => c.status === "En Tránsito").length;
+    const enTransito = cartas.filter(c => c.status === "En Tr谩nsito").length;
     const entregadas = cartas.filter(c => c.status === "Entregada").length;
 
     return (
@@ -511,7 +511,7 @@ export default function CartaPortePage() {
                     {[
                         { label:"Total",       value:cartas.length, color:"text-cyan-400",  border:"border-cyan-500/20" },
                         { label:"Activas",     value:activas,       color:"text-cyan-300",  border:"border-cyan-500/20" },
-                        { label:"En Tránsito", value:enTransito,    color:"text-blue-400",  border:"border-blue-500/20" },
+                        { label:"En Tr谩nsito", value:enTransito,    color:"text-blue-400",  border:"border-blue-500/20" },
                         { label:"Entregadas",  value:entregadas,    color:"text-green-400", border:"border-green-500/20" },
                     ].map((s, i) => (
                         <div key={i} className={`rounded-3xl bg-white/5 border ${s.border} p-6 flex items-center gap-5`}>
@@ -528,14 +528,14 @@ export default function CartaPortePage() {
                     <select value={filtroStatus} onChange={e => setFiltroStatus(e.target.value)}
                         className="bg-[#020617] border border-cyan-400/10 rounded-2xl px-5 py-3 text-white outline-none">
                         <option value="">Todos los estados</option>
-                        <option>Activa</option><option>En Tránsito</option><option>Entregada</option><option>Cancelada</option>
+                        <option>Activa</option><option>En Tr谩nsito</option><option>Entregada</option><option>Cancelada</option>
                     </select>
                     <input type="month" value={filtroFecha} onChange={e => setFiltroFecha(e.target.value)}
                         className="bg-[#020617] border border-cyan-400/10 rounded-2xl px-5 py-3 text-white outline-none" />
                     {(filtroStatus || filtroBusq || filtroFecha) && (
                         <button onClick={() => { setFiltroStatus(""); setFiltroBusq(""); setFiltroFecha(""); }}
                             className="px-5 py-3 rounded-2xl border border-red-400/20 text-red-400 hover:bg-red-500/10 transition-all text-sm font-bold">
-                            ✕ Limpiar filtros
+                            鉁?Limpiar filtros
                         </button>
                     )}
                 </div>
@@ -547,7 +547,7 @@ export default function CartaPortePage() {
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="text-gray-400 border-b border-cyan-400/10 text-sm">
-                                    {["Folio","Tipo","Remitente","Destinatario","Ruta","Conductor","Vehículo","Emisión","Entrega","Estado","Acciones"]
+                                    {["Folio","Tipo","Remitente","Destinatario","Ruta","Conductor","Veh铆culo","Emisi贸n","Entrega","Estado","Acciones"]
                                         .map(h => <th key={h} className="pb-4 pr-4">{h}</th>)}
                                 </tr>
                             </thead>
@@ -560,14 +560,14 @@ export default function CartaPortePage() {
                                 {cartasFiltradas.map(c => (
                                     <tr key={c.id} className="border-b border-cyan-400/5 hover:bg-cyan-500/5 transition-all">
                                         <td className="py-4 pr-4 font-bold text-cyan-300">{c.folio}</td>
-                                        <td className="py-4 pr-4 text-gray-400 text-xs">{c.tipoCarta?.split(" ")[0]||"—"}</td>
-                                        <td className="py-4 pr-4">{c.remitenteNombre||"—"}</td>
-                                        <td className="py-4 pr-4">{c.destinatarioNombre||"—"}</td>
-                                        <td className="py-4 pr-4 text-gray-400 text-sm">{c.lugarCarga||"—"} → {c.lugarDescarga||"—"}</td>
-                                        <td className="py-4 pr-4">{c.conductorNombre||"—"}</td>
-                                        <td className="py-4 pr-4 text-gray-400">{c.vehiculoPlacas||"—"}</td>
-                                        <td className="py-4 pr-4 text-gray-400">{c.fechaEmision||"—"}</td>
-                                        <td className="py-4 pr-4 text-gray-400">{c.fechaDescarga||"—"}</td>
+                                        <td className="py-4 pr-4 text-gray-400 text-xs">{c.tipoCarta?.split(" ")[0]||"鈥?}</td>
+                                        <td className="py-4 pr-4">{c.remitenteNombre||"鈥?}</td>
+                                        <td className="py-4 pr-4">{c.destinatarioNombre||"鈥?}</td>
+                                        <td className="py-4 pr-4 text-gray-400 text-sm">{c.lugarCarga||"鈥?} 鈫?{c.lugarDescarga||"鈥?}</td>
+                                        <td className="py-4 pr-4">{c.conductorNombre||"鈥?}</td>
+                                        <td className="py-4 pr-4 text-gray-400">{c.vehiculoPlacas||"鈥?}</td>
+                                        <td className="py-4 pr-4 text-gray-400">{c.fechaEmision||"鈥?}</td>
+                                        <td className="py-4 pr-4 text-gray-400">{c.fechaDescarga||"鈥?}</td>
                                         <td className="py-4 pr-4">
                                             <span className={`px-3 py-1 rounded-full border text-sm font-bold ${estadoColor[c.status]||"text-gray-300 bg-white/5 border-white/10"}`}>
                                                 {c.status}
@@ -628,15 +628,15 @@ export default function CartaPortePage() {
                                             {MONEDAS.map(m => <option key={m}>{m}</option>)}
                                         </select>
                                     </Field>
-                                    <Field label="Fecha de Emisión">
+                                    <Field label="Fecha de Emisi贸n">
                                         <input type="date" value={form.fechaEmision} onChange={set("fechaEmision")} className={inputCls} />
                                     </Field>
-                                    <Field label="Lugar de Emisión">
-                                        <input value={form.lugarEmision} onChange={set("lugarEmision")} placeholder="Ciudad, País" className={inputCls} />
+                                    <Field label="Lugar de Emisi贸n">
+                                        <input value={form.lugarEmision} onChange={set("lugarEmision")} placeholder="Ciudad, Pa铆s" className={inputCls} />
                                     </Field>
                                     <Field label="Estado">
                                         <select value={form.status} onChange={set("status")} className={selectCls}>
-                                            <option>Activa</option><option>En Tránsito</option><option>Entregada</option><option>Cancelada</option>
+                                            <option>Activa</option><option>En Tr谩nsito</option><option>Entregada</option><option>Cancelada</option>
                                         </select>
                                     </Field>
                                 </div>
@@ -644,19 +644,19 @@ export default function CartaPortePage() {
 
                             {activeTab === "remitente" && (
                                 <div className="grid grid-cols-2 gap-5">
-                                    <CatalogPicker label="📦 Seleccionar del catálogo de Remitentes" placeholder="Buscar remitente registrado..."
+                                    <CatalogPicker label="馃摝 Seleccionar del cat谩logo de Remitentes" placeholder="Buscar remitente registrado..."
                                         items={remitentes.filter(r => r.status === "Activo")} selectedId={form.remitenteId}
                                         onSelect={aplicarRemitente} onClear={() => aplicarRemitente(null)} />
                                     <div className="col-span-2 border-t border-cyan-400/10 pt-4">
                                         <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-4">Datos del remitente</p>
                                     </div>
-                                    <Field label="Nombre / Razón Social">
+                                    <Field label="Nombre / Raz贸n Social">
                                         <input value={form.remitenteNombre} onChange={set("remitenteNombre")} placeholder="Empresa S.A. de C.V." className={inputCls} />
                                     </Field>
                                     <Field label="RFC / NIF">
                                         <input value={form.remitenteRFC} onChange={set("remitenteRFC")} placeholder="RFC000000XXX" className={inputCls} />
                                     </Field>
-                                    <Field label="Dirección">
+                                    <Field label="Direcci贸n">
                                         <input value={form.remitenteDireccion} onChange={set("remitenteDireccion")} className={inputCls} />
                                     </Field>
                                     <Field label="Ciudad">
@@ -665,10 +665,10 @@ export default function CartaPortePage() {
                                     <Field label="Estado">
                                         <input value={form.remitenteEstado} onChange={set("remitenteEstado")} className={inputCls} />
                                     </Field>
-                                    <Field label="País">
+                                    <Field label="Pa铆s">
                                         <input value={form.remitentePais} onChange={set("remitentePais")} className={inputCls} />
                                     </Field>
-                                    <Field label="Teléfono">
+                                    <Field label="Tel茅fono">
                                         <input value={form.remitenteTelefono} onChange={set("remitenteTelefono")} className={inputCls} />
                                     </Field>
                                     <Field label="Email">
@@ -679,19 +679,19 @@ export default function CartaPortePage() {
 
                             {activeTab === "destinatario" && (
                                 <div className="grid grid-cols-2 gap-5">
-                                    <CatalogPicker label="📍 Seleccionar del catálogo de Destinatarios" placeholder="Buscar destinatario registrado..."
+                                    <CatalogPicker label="馃搷 Seleccionar del cat谩logo de Destinatarios" placeholder="Buscar destinatario registrado..."
                                         items={destinatarios.filter(d => d.status === "Activo")} selectedId={form.destinatarioId}
                                         onSelect={aplicarDestinatario} onClear={() => aplicarDestinatario(null)} />
                                     <div className="col-span-2 border-t border-cyan-400/10 pt-4">
                                         <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-4">Datos del destinatario</p>
                                     </div>
-                                    <Field label="Nombre / Razón Social">
+                                    <Field label="Nombre / Raz贸n Social">
                                         <input value={form.destinatarioNombre} onChange={set("destinatarioNombre")} className={inputCls} />
                                     </Field>
                                     <Field label="RFC / NIF">
                                         <input value={form.destinatarioRFC} onChange={set("destinatarioRFC")} className={inputCls} />
                                     </Field>
-                                    <Field label="Dirección">
+                                    <Field label="Direcci贸n">
                                         <input value={form.destinatarioDireccion} onChange={set("destinatarioDireccion")} className={inputCls} />
                                     </Field>
                                     <Field label="Ciudad">
@@ -700,10 +700,10 @@ export default function CartaPortePage() {
                                     <Field label="Estado">
                                         <input value={form.destinatarioEstado} onChange={set("destinatarioEstado")} className={inputCls} />
                                     </Field>
-                                    <Field label="País">
+                                    <Field label="Pa铆s">
                                         <input value={form.destinatarioPais} onChange={set("destinatarioPais")} className={inputCls} />
                                     </Field>
-                                    <Field label="Teléfono">
+                                    <Field label="Tel茅fono">
                                         <input value={form.destinatarioTelefono} onChange={set("destinatarioTelefono")} className={inputCls} />
                                     </Field>
                                     <Field label="Email">
@@ -718,27 +718,27 @@ export default function CartaPortePage() {
                                         <input value={form.transportistaNombre} onChange={set("transportistaNombre")} placeholder="Transportes S.A. de C.V." className={inputCls} />
                                     </Field>
 
-                                    {/* Selector de vehículo del catálogo */}
+                                    {/* Selector de veh铆culo del cat谩logo */}
                                     <div className="col-span-2 p-4 rounded-2xl bg-white/5 border border-cyan-400/10">
-                                        <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-3">🚛 Seleccionar vehículo del catálogo</p>
+                                        <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-3">馃殯 Seleccionar veh铆culo del cat谩logo</p>
                                         <select onChange={e => {
                                             const v = vehiculos.find(x => String(x.id) === e.target.value);
                                             aplicarVehiculo(v || null);
                                         }} className={selectCls} defaultValue="">
-                                            <option value="">Seleccionar vehículo registrado...</option>
+                                            <option value="">Seleccionar veh铆culo registrado...</option>
                                             {vehiculos.map(v => (
                                                 <option key={v.id} value={v.id}>
-                                                    {v.plate} — {v.brand} {v.model} {v.year}
+                                                    {v.plate} 鈥?{v.brand} {v.model} {v.year}
                                                     {v.configAutotransporte ? ` | Config: ${v.configAutotransporte}` : ""}
                                                 </option>
                                             ))}
                                         </select>
-                                        <p className="text-gray-600 text-xs mt-2">Al seleccionar un vehículo se llenan automáticamente las placas y claves SAT registradas.</p>
+                                        <p className="text-gray-600 text-xs mt-2">Al seleccionar un veh铆culo se llenan autom谩ticamente las placas y claves SAT registradas.</p>
                                     </div>
 
-                                    {/* Selector de operador del catálogo */}
+                                    {/* Selector de operador del cat谩logo */}
                                     <div className="col-span-2 p-4 rounded-2xl bg-white/5 border border-cyan-400/10">
-                                        <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-3">👤 Seleccionar operador del catálogo</p>
+                                        <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-3">馃懁 Seleccionar operador del cat谩logo</p>
                                         <select onChange={e => {
                                             const o = operadores.find(x => String(x.id) === e.target.value);
                                             aplicarOperador(o || null);
@@ -746,17 +746,17 @@ export default function CartaPortePage() {
                                             <option value="">Seleccionar operador registrado...</option>
                                             {operadores.map(o => (
                                                 <option key={o.id} value={o.id}>
-                                                    {o.name} {o.apellidos} — Lic: {o.licenseNumber || "—"}
+                                                    {o.name} {o.apellidos} 鈥?Lic: {o.licenseNumber || "鈥?}
                                                     {o.figuraTransporte ? ` | Figura: ${o.figuraTransporte}` : ""}
                                                 </option>
                                             ))}
                                         </select>
-                                        <p className="text-gray-600 text-xs mt-2">Al seleccionar un operador se llenan automáticamente el nombre, licencia y figura transporte SAT.</p>
+                                        <p className="text-gray-600 text-xs mt-2">Al seleccionar un operador se llenan autom谩ticamente el nombre, licencia y figura transporte SAT.</p>
                                     </div>
 
                                     <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-1">Claves SAT del transportista</p>
 
-                                    <SatPicker label="Configuración Autotransporte (SAT)" tipo="c_ConfigAutotransporte"
+                                    <SatPicker label="Configuraci贸n Autotransporte (SAT)" tipo="c_ConfigAutotransporte"
                                         value={form.configAutotransporte} valueDesc={form.configAutotransporteDesc}
                                         onChange={setSat("configAutotransporte","configAutotransporteDesc")}
                                         placeholder="Ej: C2, C3, T3S2..." />
@@ -769,18 +769,18 @@ export default function CartaPortePage() {
                                         onChange={setSat("figuraTransporte","figuraTransporteDesc")}
                                         placeholder="Ej: 01 Operador..." span2={false} />
 
-                                    <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-3">Datos del conductor y vehículo</p>
+                                    <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-3">Datos del conductor y veh铆culo</p>
 
                                     <Field label="Nombre del Conductor">
-                                        <input value={form.conductorNombre} onChange={set("conductorNombre")} placeholder="Juan Pérez García" className={inputCls} />
+                                        <input value={form.conductorNombre} onChange={set("conductorNombre")} placeholder="Juan P茅rez Garc铆a" className={inputCls} />
                                     </Field>
                                     <Field label="Licencia de Conducir">
                                         <input value={form.conductorLicencia} onChange={set("conductorLicencia")} placeholder="D00001234" className={inputCls} />
                                     </Field>
-                                    <Field label="Tipo / Modelo de Vehículo">
+                                    <Field label="Tipo / Modelo de Veh铆culo">
                                         <input value={form.vehiculoTipo} onChange={set("vehiculoTipo")} placeholder="Torton 3 ejes, Trailer..." className={inputCls} />
                                     </Field>
-                                    <Field label="Placas del Vehículo">
+                                    <Field label="Placas del Veh铆culo">
                                         <input value={form.vehiculoPlacas} onChange={set("vehiculoPlacas")} placeholder="ABC-1234" className={inputCls} />
                                     </Field>
                                     <Field label="Licencia / Permiso SCT (texto libre)">
@@ -792,11 +792,11 @@ export default function CartaPortePage() {
                             {activeTab === "ruta" && (
                                 <div className="space-y-5">
                                     <div className="grid grid-cols-2 gap-4 p-5 rounded-2xl border border-cyan-500/20 bg-cyan-500/5">
-                                        <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest">Origen — Punto de Carga</p>
+                                        <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest">Origen 鈥?Punto de Carga</p>
                                         <Field label="Lugar de Carga">
                                             <input value={form.lugarCarga} onChange={set("lugarCarga")} placeholder="Ciudad de origen" className={inputCls} />
                                         </Field>
-                                        <Field label="Dirección Exacta">
+                                        <Field label="Direcci贸n Exacta">
                                             <input value={form.direccionCarga} onChange={set("direccionCarga")} placeholder="Calle, No., Col., CP" className={inputCls} />
                                         </Field>
                                         <Field label="Fecha de Carga">
@@ -807,11 +807,11 @@ export default function CartaPortePage() {
                                         </Field>
                                     </div>
                                     <div className="grid grid-cols-2 gap-4 p-5 rounded-2xl border border-green-500/20 bg-green-500/5">
-                                        <p className="col-span-2 text-green-400 text-xs font-bold uppercase tracking-widest">Destino — Punto de Descarga</p>
+                                        <p className="col-span-2 text-green-400 text-xs font-bold uppercase tracking-widest">Destino 鈥?Punto de Descarga</p>
                                         <Field label="Lugar de Descarga">
                                             <input value={form.lugarDescarga} onChange={set("lugarDescarga")} placeholder="Ciudad de destino" className={inputCls} />
                                         </Field>
-                                        <Field label="Dirección Exacta">
+                                        <Field label="Direcci贸n Exacta">
                                             <input value={form.direccionDescarga} onChange={set("direccionDescarga")} placeholder="Calle, No., Col., CP" className={inputCls} />
                                         </Field>
                                         <Field label="Fecha de Entrega">
@@ -821,7 +821,7 @@ export default function CartaPortePage() {
                                             <input type="time" value={form.horaDescarga} onChange={set("horaDescarga")} className={inputCls} />
                                         </Field>
                                     </div>
-                                    <Field label="Descripción de la Ruta">
+                                    <Field label="Descripci贸n de la Ruta">
                                         <textarea value={form.rutaDescripcion} onChange={set("rutaDescripcion")}
                                             placeholder="Ruta a seguir, aduanas, puntos de parada..." rows={3}
                                             className={inputCls + " resize-none"} />
@@ -836,12 +836,12 @@ export default function CartaPortePage() {
                                             <div className="flex items-center justify-between">
                                                 <span className="text-cyan-300 font-bold text-sm flex items-center gap-2">
                                                     <span className="w-6 h-6 rounded-full bg-cyan-500/20 border border-cyan-400/30 flex items-center justify-center text-xs">{idx+1}</span>
-                                                    Mercancía #{idx+1}{m.descripcion ? ` — ${m.descripcion}` : ""}
+                                                    Mercanc铆a #{idx+1}{m.descripcion ? ` 鈥?${m.descripcion}` : ""}
                                                 </span>
                                                 {mercancias.length > 1 && (
                                                     <button onClick={() => setMercancias(ms => ms.filter((_,i) => i !== idx))}
                                                         className="px-3 py-1 rounded-lg bg-red-500/10 border border-red-400/20 text-red-400 text-xs font-bold hover:bg-red-500/20 transition-all">
-                                                        ✕ Eliminar
+                                                        鉁?Eliminar
                                                     </button>
                                                 )}
                                             </div>
@@ -858,8 +858,8 @@ export default function CartaPortePage() {
                                                     span2={true}
                                                 />
 
-                                                <Field label="Descripción adicional" span2>
-                                                    <input value={m.descripcion} onChange={setMerc(idx,"descripcion")} placeholder="Descripción complementaria" className={inputCls} />
+                                                <Field label="Descripci贸n adicional" span2>
+                                                    <input value={m.descripcion} onChange={setMerc(idx,"descripcion")} placeholder="Descripci贸n complementaria" className={inputCls} />
                                                 </Field>
 
                                                 <Field label="Cantidad">
@@ -879,7 +879,7 @@ export default function CartaPortePage() {
                                                 <Field label="Peso (kg)">
                                                     <input type="number" value={m.peso} onChange={setMerc(idx,"peso")} placeholder="0.00" className={inputCls} />
                                                 </Field>
-                                                <Field label="Volumen (m³)">
+                                                <Field label="Volumen (m鲁)">
                                                     <input type="number" value={m.volumen} onChange={setMerc(idx,"volumen")} placeholder="0.00" className={inputCls} />
                                                 </Field>
                                                 <Field label="Valor Declarado ($)">
@@ -897,9 +897,9 @@ export default function CartaPortePage() {
                                                 />
 
                                                 <Field label="Marcas Identificativas">
-                                                    <input value={m.marcas} onChange={setMerc(idx,"marcas")} placeholder="Ref., lote, código..." className={inputCls} />
+                                                    <input value={m.marcas} onChange={setMerc(idx,"marcas")} placeholder="Ref., lote, c贸digo..." className={inputCls} />
                                                 </Field>
-                                                <Field label="Estado de la Mercancía">
+                                                <Field label="Estado de la Mercanc铆a">
                                                     <select value={m.estadoMercancia} onChange={setMerc(idx,"estadoMercancia")} className={selectCls}>
                                                         {ESTADOS_MERC.map(e => <option key={e}>{e}</option>)}
                                                     </select>
@@ -911,14 +911,14 @@ export default function CartaPortePage() {
                                                         <input type="checkbox" checked={m.esPeligrosa} onChange={setMerc(idx,"esPeligrosa")} className="w-4 h-4 cursor-pointer" />
                                                         <span className={`text-sm font-bold ${m.esPeligrosa ? "text-yellow-300" : "text-gray-400"}`}>
                                                             <FaExclamationTriangle className="inline mr-2" />
-                                                            Mercancía peligrosa (requiere documentación ADR)
+                                                            Mercanc铆a peligrosa (requiere documentaci贸n ADR)
                                                         </span>
                                                     </label>
                                                 </div>
                                                 {m.esPeligrosa && (
-                                                    <Field label="Clase / Número ONU" span2>
+                                                    <Field label="Clase / N煤mero ONU" span2>
                                                         <input value={m.claseONU} onChange={setMerc(idx,"claseONU")}
-                                                            placeholder="Ej: Clase 3 — Líquidos inflamables, UN1203" className={inputCls} />
+                                                            placeholder="Ej: Clase 3 鈥?L铆quidos inflamables, UN1203" className={inputCls} />
                                                     </Field>
                                                 )}
                                             </div>
@@ -926,7 +926,7 @@ export default function CartaPortePage() {
                                     ))}
                                     <button onClick={() => setMercancias(ms => [...ms, { ...emptyMerc }])}
                                         className="w-full py-3 rounded-2xl border-2 border-dashed border-cyan-400/20 text-gray-500 hover:border-cyan-400/40 hover:text-cyan-400 transition-all font-bold text-sm">
-                                        + Agregar otra mercancía
+                                        + Agregar otra mercanc铆a
                                     </button>
                                 </div>
                             )}
@@ -946,18 +946,18 @@ export default function CartaPortePage() {
                                             {FORMAS_PAGO.map(f => <option key={f}>{f}</option>)}
                                         </select>
                                     </Field>
-                                    <Field label="Plazo de Entrega (días)">
+                                    <Field label="Plazo de Entrega (d铆as)">
                                         <input type="number" value={form.plazoEntrega} onChange={set("plazoEntrega")} placeholder="1" className={inputCls} />
                                     </Field>
                                     <Field label="Valor Asegurado">
                                         <input type="number" value={form.seguroValor} onChange={set("seguroValor")} placeholder="0.00" className={inputCls} />
                                     </Field>
-                                    <Field label="Número de Póliza de Seguro">
+                                    <Field label="N煤mero de P贸liza de Seguro">
                                         <input value={form.seguroPoliza} onChange={set("seguroPoliza")} placeholder="POL-2026-XXXXX" className={inputCls} />
                                     </Field>
                                     <Field label="Instrucciones Especiales" span2>
                                         <textarea value={form.instruccionesEspeciales} onChange={set("instruccionesEspeciales")}
-                                            placeholder="Temperatura requerida, frágil, no apilar..." rows={3}
+                                            placeholder="Temperatura requerida, fr谩gil, no apilar..." rows={3}
                                             className={inputCls + " resize-none"} />
                                     </Field>
                                 </div>
@@ -973,12 +973,12 @@ export default function CartaPortePage() {
                                     </Field>
                                     <div className="p-5 rounded-2xl border border-cyan-400/10 bg-white/5 grid grid-cols-3 gap-4">
                                         {[
-                                            { label:"Folio",        value: form.folio||"—" },
-                                            { label:"Remitente",    value: form.remitenteNombre||"—" },
-                                            { label:"Destinatario", value: form.destinatarioNombre||"—" },
-                                            { label:"Origen",       value: form.lugarCarga||"—" },
-                                            { label:"Destino",      value: form.lugarDescarga||"—" },
-                                            { label:"Mercancías",   value: `${mercancias.length} partida(s)` },
+                                            { label:"Folio",        value: form.folio||"鈥? },
+                                            { label:"Remitente",    value: form.remitenteNombre||"鈥? },
+                                            { label:"Destinatario", value: form.destinatarioNombre||"鈥? },
+                                            { label:"Origen",       value: form.lugarCarga||"鈥? },
+                                            { label:"Destino",      value: form.lugarDescarga||"鈥? },
+                                            { label:"Mercanc铆as",   value: `${mercancias.length} partida(s)` },
                                         ].map(s => (
                                             <div key={s.label}>
                                                 <p className="text-gray-500 text-xs uppercase tracking-widest">{s.label}</p>

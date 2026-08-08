@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import { FaRoute, FaPlus, FaTrash, FaEdit, FaTimes, FaCheck, FaArrowRight, FaSearch } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
 
 const emptyForm = {
     clienteId: "", remitenteId: "", destinatarioId: "",
@@ -25,8 +25,8 @@ function Field({ label, children, span2 = false }) {
 }
 
 function RutaTag({ ruta }) {
-    const origen  = ruta.remitente?.ciudad  || ruta.remitente?.nombre  || "—";
-    const destino = ruta.destinatario?.ciudad || ruta.destinatario?.nombre || "—";
+    const origen  = ruta.remitente?.ciudad  || ruta.remitente?.nombre  || "鈥?;
+    const destino = ruta.destinatario?.ciudad || ruta.destinatario?.nombre || "鈥?;
     return (
         <div className="flex items-center gap-2 text-sm">
             <span className="text-cyan-300 font-bold">{origen}</span>
@@ -127,7 +127,7 @@ export default function RutasPage() {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm("¿Eliminar esta ruta?")) return;
+        if (!confirm("驴Eliminar esta ruta?")) return;
         try { await fetch(`${API}/rutas/${id}`, { method: "DELETE", headers }); fetchAll(); }
         catch (e) { console.error(e); }
     };
@@ -197,7 +197,7 @@ export default function RutasPage() {
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="text-gray-400 border-b border-cyan-400/10 text-sm">
-                                    {["#", "Ruta (Origen → Destino)", "Cliente", "Distancia", "Tiempo", "Tarifa", "Status", "Acciones"]
+                                    {["#", "Ruta (Origen 鈫?Destino)", "Cliente", "Distancia", "Tiempo", "Tarifa", "Status", "Acciones"]
                                         .map(h => <th key={h} className="pb-4 pr-4">{h}</th>)}
                                 </tr>
                             </thead>
@@ -210,10 +210,10 @@ export default function RutasPage() {
                                         className="border-b border-cyan-400/5 hover:bg-cyan-500/5 transition-all">
                                         <td className="py-4 pr-4 font-bold text-cyan-300">#{r.id}</td>
                                         <td className="py-4 pr-4"><RutaTag ruta={r} /></td>
-                                        <td className="py-4 pr-4 text-gray-300 text-sm">{r.cliente?.name || "—"}</td>
-                                        <td className="py-4 pr-4 text-gray-300 text-sm">{r.distanciaKm ? `${r.distanciaKm} km` : "—"}</td>
-                                        <td className="py-4 pr-4 text-gray-300 text-sm">{r.tiempoEstimado || "—"}</td>
-                                        <td className="py-4 pr-4 text-green-300 font-bold">{r.tarifa ? `$${r.tarifa.toLocaleString()}` : "—"}</td>
+                                        <td className="py-4 pr-4 text-gray-300 text-sm">{r.cliente?.name || "鈥?}</td>
+                                        <td className="py-4 pr-4 text-gray-300 text-sm">{r.distanciaKm ? `${r.distanciaKm} km` : "鈥?}</td>
+                                        <td className="py-4 pr-4 text-gray-300 text-sm">{r.tiempoEstimado || "鈥?}</td>
+                                        <td className="py-4 pr-4 text-green-300 font-bold">{r.tarifa ? `$${r.tarifa.toLocaleString()}` : "鈥?}</td>
                                         <td className="py-4 pr-4">
                                             <span className={`px-3 py-1 rounded-full border text-xs font-bold ${
                                                 r.status === "Activa"
@@ -256,7 +256,7 @@ export default function RutasPage() {
                                             <div className="text-center">
                                                 <p className="text-gray-500 text-xs mb-1">ORIGEN</p>
                                                 <p className="text-cyan-300 font-black text-lg">
-                                                    {remitenteSeleccionado?.ciudad || remitenteSeleccionado?.nombre || "—"}
+                                                    {remitenteSeleccionado?.ciudad || remitenteSeleccionado?.nombre || "鈥?}
                                                 </p>
                                                 <p className="text-gray-500 text-xs">{remitenteSeleccionado?.nombre}</p>
                                             </div>
@@ -264,7 +264,7 @@ export default function RutasPage() {
                                             <div className="text-center">
                                                 <p className="text-gray-500 text-xs mb-1">DESTINO</p>
                                                 <p className="text-purple-300 font-black text-lg">
-                                                    {destinatarioSeleccionado?.ciudad || destinatarioSeleccionado?.nombre || "—"}
+                                                    {destinatarioSeleccionado?.ciudad || destinatarioSeleccionado?.nombre || "鈥?}
                                                 </p>
                                                 <p className="text-gray-500 text-xs">{destinatarioSeleccionado?.nombre}</p>
                                             </div>
@@ -278,7 +278,7 @@ export default function RutasPage() {
                                             <option value="">Seleccionar remitente...</option>
                                             {remitentes.map(r => (
                                                 <option key={r.id} value={r.id}>
-                                                    {r.nombre} {r.ciudad ? `— ${r.ciudad}` : ""}
+                                                    {r.nombre} {r.ciudad ? `鈥?${r.ciudad}` : ""}
                                                 </option>
                                             ))}
                                         </select>
@@ -288,7 +288,7 @@ export default function RutasPage() {
                                             <option value="">Seleccionar destinatario...</option>
                                             {destinatarios.map(d => (
                                                 <option key={d.id} value={d.id}>
-                                                    {d.nombre} {d.ciudad ? `— ${d.ciudad}` : ""}
+                                                    {d.nombre} {d.ciudad ? `鈥?${d.ciudad}` : ""}
                                                 </option>
                                             ))}
                                         </select>
@@ -296,7 +296,7 @@ export default function RutasPage() {
 
                                     <Field label="Cliente (opcional)" span2>
                                         <select value={form.clienteId} onChange={set("clienteId")} className={selectCls}>
-                                            <option value="">Sin cliente específico</option>
+                                            <option value="">Sin cliente espec铆fico</option>
                                             {clientes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                         </select>
                                     </Field>
@@ -307,7 +307,7 @@ export default function RutasPage() {
                                         <input type="number" value={form.distanciaKm} onChange={set("distanciaKm")} placeholder="850" className={inputCls} />
                                     </Field>
                                     <Field label="Tiempo estimado">
-                                        <input type="text" value={form.tiempoEstimado} onChange={set("tiempoEstimado")} placeholder="8 horas / 2 días" className={inputCls} />
+                                        <input type="text" value={form.tiempoEstimado} onChange={set("tiempoEstimado")} placeholder="8 horas / 2 d铆as" className={inputCls} />
                                     </Field>
                                     <Field label="Tarifa ($)">
                                         <input type="number" value={form.tarifa} onChange={set("tarifa")} placeholder="0.00" className={inputCls} />
@@ -346,3 +346,4 @@ export default function RutasPage() {
         </div>
     );
 }
+

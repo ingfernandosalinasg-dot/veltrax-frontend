@@ -3,7 +3,7 @@ import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import { FaBuilding, FaSave, FaKey, FaPlug, FaUpload, FaFileAlt, FaTrash } from "react-icons/fa";
 
-const API = "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
 const inputCls = "w-full bg-white/5 border border-cyan-400/10 rounded-xl px-4 py-3 text-white outline-none focus:border-cyan-400/40 transition-all text-sm";
 const selectCls = "w-full bg-[#020617] border border-cyan-400/10 rounded-xl px-4 py-3 text-white outline-none focus:border-cyan-400/40 transition-all text-sm";
 

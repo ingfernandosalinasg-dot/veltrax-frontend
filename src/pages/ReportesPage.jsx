@@ -1,24 +1,24 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import { FaFilePdf, FaFileExcel, FaFilter, FaSyncAlt } from "react-icons/fa";
 import { motion } from "framer-motion";
 
-const API = "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
 
 const MODULOS = [
     {
-        key: "orders", label: "Viajes", icon: "🚛",
+        key: "orders", label: "Viajes", icon: "馃殯",
         filtros: ["fecha", "status", "cliente"],
         statusOptions: ["Pendiente", "En ruta", "Completado"],
     },
     {
-        key: "cartas-porte", label: "Cartas Porte", icon: "📄",
+        key: "cartas-porte", label: "Cartas Porte", icon: "馃搫",
         filtros: ["fecha", "status"],
-        statusOptions: ["Activa", "En Tránsito", "Entregada", "Cancelada"],
+        statusOptions: ["Activa", "En Tr谩nsito", "Entregada", "Cancelada"],
     },
     {
-        key: "liquidaciones", label: "Liquidaciones", icon: "💰",
+        key: "liquidaciones", label: "Liquidaciones", icon: "馃挵",
         filtros: ["fecha", "driver"],
         statusOptions: [],
     },
@@ -88,41 +88,41 @@ export default function ReportesPage() {
                 return `<tr>
                     <td>${i + 1}</td>
                     <td>#${item.id}</td>
-                    <td>${item.clienteNombre || "—"}</td>
-                    <td>${item.origen || "—"} → ${item.destino || "—"}</td>
-                    <td>${item.driverNombre || "—"}</td>
-                    <td>${item.date || "—"}</td>
+                    <td>${item.clienteNombre || "鈥?}</td>
+                    <td>${item.origen || "鈥?} 鈫?${item.destino || "鈥?}</td>
+                    <td>${item.driverNombre || "鈥?}</td>
+                    <td>${item.date || "鈥?}</td>
                     <td>$${(item.cost || 0).toLocaleString()}</td>
-                    <td>${item.status || "—"}</td>
+                    <td>${item.status || "鈥?}</td>
                 </tr>`;
             } else if (modulo.key === "cartas-porte") {
                 return `<tr>
                     <td>${i + 1}</td>
-                    <td>${item.folio || "—"}</td>
-                    <td>${item.remitenteNombre || "—"}</td>
-                    <td>${item.destinatarioNombre || "—"}</td>
-                    <td>${item.lugarCarga || "—"} → ${item.lugarDescarga || "—"}</td>
-                    <td>${item.fechaEmision || "—"}</td>
-                    <td>${item.status || "—"}</td>
+                    <td>${item.folio || "鈥?}</td>
+                    <td>${item.remitenteNombre || "鈥?}</td>
+                    <td>${item.destinatarioNombre || "鈥?}</td>
+                    <td>${item.lugarCarga || "鈥?} 鈫?${item.lugarDescarga || "鈥?}</td>
+                    <td>${item.fechaEmision || "鈥?}</td>
+                    <td>${item.status || "鈥?}</td>
                 </tr>`;
             } else {
                 return `<tr>
                     <td>${i + 1}</td>
                     <td>#${item.id}</td>
-                    <td>${item.driverNombre || "—"}</td>
-                    <td>#${item.orderId || "—"}</td>
-                    <td>${item.esquemaPago || "—"}</td>
+                    <td>${item.driverNombre || "鈥?}</td>
+                    <td>#${item.orderId || "鈥?}</td>
+                    <td>${item.esquemaPago || "鈥?}</td>
                     <td>$${(item.totalIngreso || 0).toLocaleString()}</td>
                     <td>-$${(item.totalDeducciones || 0).toLocaleString()}</td>
                     <td>$${(item.netoAPagar || 0).toLocaleString()}</td>
-                    <td>${item.status || "—"}</td>
+                    <td>${item.status || "鈥?}</td>
                 </tr>`;
             }
         }).join("");
 
         const headers_tabla = {
             "orders":        ["#", "ID", "Cliente", "Ruta", "Conductor", "Fecha", "Costo", "Status"],
-            "cartas-porte":  ["#", "Folio", "Remitente", "Destinatario", "Ruta", "Emisión", "Status"],
+            "cartas-porte":  ["#", "Folio", "Remitente", "Destinatario", "Ruta", "Emisi贸n", "Status"],
             "liquidaciones": ["#", "ID", "Operador", "Viaje", "Esquema", "Ingreso", "Deducciones", "Neto", "Status"],
         }[modulo.key];
 
@@ -160,7 +160,7 @@ export default function ReportesPage() {
             <thead><tr>${headers_tabla.map(h => `<th>${h}</th>`).join("")}</tr></thead>
             <tbody>${filas}</tbody>
         </table>
-        <div class="footer">Veltrax ERP v2.0 — ${new Date().toLocaleDateString("es-MX")}</div>
+        <div class="footer">Veltrax ERP v2.0 鈥?${new Date().toLocaleDateString("es-MX")}</div>
         </body></html>`;
 
         const w = window.open("", "_blank");
@@ -168,7 +168,7 @@ export default function ReportesPage() {
         w.document.close();
         w.focus();
         setTimeout(() => w.print(), 500);
-        setMensaje({ tipo: "ok", texto: "PDF generado correctamente ✓" });
+        setMensaje({ tipo: "ok", texto: "PDF generado correctamente 鉁? });
     };
 
     const exportarExcel = () => {
@@ -179,10 +179,10 @@ export default function ReportesPage() {
 
         let csv = "";
         if (moduloActivo.key === "orders") {
-            csv = "ID,Cliente,Origen,Destino,Conductor,Vehículo,Fecha,Costo,Status\n";
+            csv = "ID,Cliente,Origen,Destino,Conductor,Veh铆culo,Fecha,Costo,Status\n";
             csv += preview.map(v => `${v.id},"${v.clienteNombre||""}","${v.origen||""}","${v.destino||""}","${v.driverNombre||""}","${v.vehiclePlacas||""}","${v.date||""}",${v.cost||0},"${v.status||""}"`).join("\n");
         } else if (moduloActivo.key === "cartas-porte") {
-            csv = "Folio,Remitente,Destinatario,Origen,Destino,Conductor,Vehículo,Emisión,Status\n";
+            csv = "Folio,Remitente,Destinatario,Origen,Destino,Conductor,Veh铆culo,Emisi贸n,Status\n";
             csv += preview.map(c => `"${c.folio||""}","${c.remitenteNombre||""}","${c.destinatarioNombre||""}","${c.lugarCarga||""}","${c.lugarDescarga||""}","${c.conductorNombre||""}","${c.vehiculoPlacas||""}","${c.fechaEmision||""}","${c.status||""}"`).join("\n");
         } else {
             csv = "ID,Operador,Viaje,Esquema,Ingreso,Deducciones,Neto,Fecha,Status\n";
@@ -194,7 +194,7 @@ export default function ReportesPage() {
         link.href = URL.createObjectURL(blob);
         link.download = `reporte_${moduloActivo.key}_${new Date().toISOString().slice(0, 10)}.csv`;
         link.click();
-        setMensaje({ tipo: "ok", texto: "Excel exportado correctamente ✓" });
+        setMensaje({ tipo: "ok", texto: "Excel exportado correctamente 鉁? });
     };
 
     const resetFiltros = () => {
@@ -216,9 +216,9 @@ export default function ReportesPage() {
                 </motion.div>
 
                 <div className="grid grid-cols-4 gap-8">
-                    {/* Sidebar módulos */}
+                    {/* Sidebar m贸dulos */}
                     <div className="col-span-1">
-                        <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-4">Módulo</p>
+                        <p className="text-gray-500 text-xs font-bold uppercase tracking-widest mb-4">M贸dulo</p>
                         <div className="space-y-3">
                             {MODULOS.map(m => (
                                 <motion.button key={m.key} whileHover={{ scale: 1.02 }}
@@ -318,8 +318,8 @@ export default function ReportesPage() {
                         {/* Preview */}
                         <div className="rounded-3xl bg-white/5 border border-cyan-400/10 p-8">
                             <h2 className="text-2xl font-black text-cyan-300 mb-6 flex items-center gap-3">
-                                {moduloActivo.icon} Vista Previa — {moduloActivo.label}
-                                <span className="text-sm font-normal text-gray-500">(últimos 5 registros)</span>
+                                {moduloActivo.icon} Vista Previa 鈥?{moduloActivo.label}
+                                <span className="text-sm font-normal text-gray-500">(煤ltimos 5 registros)</span>
                             </h2>
 
                             {loadingPreview ? (
@@ -332,7 +332,7 @@ export default function ReportesPage() {
                                         <thead>
                                             <tr className="text-gray-400 border-b border-cyan-400/10">
                                                 {moduloActivo.key === "orders" && ["ID","Cliente","Ruta","Conductor","Fecha","Costo","Status"].map(h => <th key={h} className="pb-3 pr-4">{h}</th>)}
-                                                {moduloActivo.key === "cartas-porte" && ["Folio","Remitente","Destinatario","Ruta","Emisión","Status"].map(h => <th key={h} className="pb-3 pr-4">{h}</th>)}
+                                                {moduloActivo.key === "cartas-porte" && ["Folio","Remitente","Destinatario","Ruta","Emisi贸n","Status"].map(h => <th key={h} className="pb-3 pr-4">{h}</th>)}
                                                 {moduloActivo.key === "liquidaciones" && ["ID","Operador","Viaje","Esquema","Ingreso","Neto","Status"].map(h => <th key={h} className="pb-3 pr-4">{h}</th>)}
                                             </tr>
                                         </thead>
@@ -341,24 +341,24 @@ export default function ReportesPage() {
                                                 <tr key={i} className="border-b border-cyan-400/5 hover:bg-cyan-500/5 transition-all">
                                                     {moduloActivo.key === "orders" && <>
                                                         <td className="py-3 pr-4 text-cyan-300 font-bold">#{item.id}</td>
-                                                        <td className="py-3 pr-4">{item.clienteNombre || "—"}</td>
-                                                        <td className="py-3 pr-4 text-gray-400 text-xs">{item.origen || "—"} → {item.destino || "—"}</td>
-                                                        <td className="py-3 pr-4 text-gray-400">{item.driverNombre || "—"}</td>
-                                                        <td className="py-3 pr-4 text-gray-400">{item.date || "—"}</td>
+                                                        <td className="py-3 pr-4">{item.clienteNombre || "鈥?}</td>
+                                                        <td className="py-3 pr-4 text-gray-400 text-xs">{item.origen || "鈥?} 鈫?{item.destino || "鈥?}</td>
+                                                        <td className="py-3 pr-4 text-gray-400">{item.driverNombre || "鈥?}</td>
+                                                        <td className="py-3 pr-4 text-gray-400">{item.date || "鈥?}</td>
                                                         <td className="py-3 pr-4 text-green-300">${(item.cost || 0).toLocaleString()}</td>
                                                         <td className="py-3 pr-4"><span className="px-2 py-1 rounded-full bg-cyan-500/10 text-cyan-300 text-xs">{item.status}</span></td>
                                                     </>}
                                                     {moduloActivo.key === "cartas-porte" && <>
                                                         <td className="py-3 pr-4 text-cyan-300 font-bold">{item.folio}</td>
-                                                        <td className="py-3 pr-4">{item.remitenteNombre || "—"}</td>
-                                                        <td className="py-3 pr-4">{item.destinatarioNombre || "—"}</td>
-                                                        <td className="py-3 pr-4 text-gray-400 text-xs">{item.lugarCarga || "—"} → {item.lugarDescarga || "—"}</td>
-                                                        <td className="py-3 pr-4 text-gray-400">{item.fechaEmision || "—"}</td>
+                                                        <td className="py-3 pr-4">{item.remitenteNombre || "鈥?}</td>
+                                                        <td className="py-3 pr-4">{item.destinatarioNombre || "鈥?}</td>
+                                                        <td className="py-3 pr-4 text-gray-400 text-xs">{item.lugarCarga || "鈥?} 鈫?{item.lugarDescarga || "鈥?}</td>
+                                                        <td className="py-3 pr-4 text-gray-400">{item.fechaEmision || "鈥?}</td>
                                                         <td className="py-3 pr-4"><span className="px-2 py-1 rounded-full bg-cyan-500/10 text-cyan-300 text-xs">{item.status}</span></td>
                                                     </>}
                                                     {moduloActivo.key === "liquidaciones" && <>
                                                         <td className="py-3 pr-4 text-cyan-300 font-bold">#{item.id}</td>
-                                                        <td className="py-3 pr-4">{item.driverNombre || "—"}</td>
+                                                        <td className="py-3 pr-4">{item.driverNombre || "鈥?}</td>
                                                         <td className="py-3 pr-4 text-gray-400">#{item.orderId}</td>
                                                         <td className="py-3 pr-4 text-xs"><span className="px-2 py-1 rounded-full bg-cyan-500/10 text-cyan-300">{item.esquemaPago}</span></td>
                                                         <td className="py-3 pr-4 text-green-300">${(item.totalIngreso || 0).toLocaleString()}</td>

@@ -1,7 +1,7 @@
 ﻿import { useState, useEffect, useCallback, useRef } from "react";
 import { FaMapMarkerAlt, FaSpinner } from "react-icons/fa";
 
-const API = "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
 
 export default function CodigoPostalInput({ value, onChange, disabled = false }) {
     const [colonias, setColonias] = useState([]);
@@ -122,3 +122,4 @@ export default function CodigoPostalInput({ value, onChange, disabled = false })
         </div>
     );
 }
+

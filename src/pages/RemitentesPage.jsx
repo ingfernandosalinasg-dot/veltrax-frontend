@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+﻿import { useState, useEffect, useCallback, useRef } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import CodigoPostalInput from "../components/CodigoPostalInput";
@@ -6,12 +6,12 @@ import ValidacionRegimenUso from "../components/ValidacionRegimenUso";
 import { FaPlus, FaTrash, FaEdit, FaTimes, FaCheck, FaBuilding, FaSearch } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
 
 const emptyForm = {
     nombre: "", razonSocial: "", rfc: "",
     telefono: "", email: "",
-    direccion: "", ciudad: "", estado: "", pais: "México", codigoPostal: "",
+    direccion: "", ciudad: "", estado: "", pais: "M茅xico", codigoPostal: "",
     municipio: "", localidad: "", colonia: "",
     contacto: "", contactoTelefono: "",
     tipoCarga: "", notas: "", status: "Activo",
@@ -24,31 +24,31 @@ const emptyForm = {
 const inputCls  = "w-full bg-white/5 border border-cyan-400/10 rounded-xl px-5 py-3 text-white outline-none focus:border-cyan-400/40 transition-all";
 const selectCls = "w-full bg-[#020617] border border-cyan-400/10 rounded-xl px-5 py-3 text-white outline-none focus:border-cyan-400/40 transition-all";
 
-// Regímenes fiscales más comunes (SAT México)
+// Reg铆menes fiscales m谩s comunes (SAT M茅xico)
 const REGIMENES = [
     { clave: "601", desc: "General de Ley Personas Morales" },
     { clave: "603", desc: "Personas Morales con Fines no Lucrativos" },
     { clave: "605", desc: "Sueldos y Salarios e Ingresos Asimilados" },
     { clave: "606", desc: "Arrendamiento" },
-    { clave: "607", desc: "Régimen de Enajenación o Adquisición de Bienes" },
-    { clave: "608", desc: "Demás Ingresos" },
+    { clave: "607", desc: "R茅gimen de Enajenaci贸n o Adquisici贸n de Bienes" },
+    { clave: "608", desc: "Dem谩s Ingresos" },
     { clave: "610", desc: "Residentes en el Extranjero" },
     { clave: "611", desc: "Ingresos por Dividendos (socios y accionistas)" },
-    { clave: "612", desc: "Personas Físicas con Actividades Empresariales" },
+    { clave: "612", desc: "Personas F铆sicas con Actividades Empresariales" },
     { clave: "614", desc: "Ingresos por intereses" },
-    { clave: "615", desc: "Régimen de los ingresos por obtención de premios" },
+    { clave: "615", desc: "R茅gimen de los ingresos por obtenci贸n de premios" },
     { clave: "616", desc: "Sin obligaciones fiscales" },
-    { clave: "620", desc: "Sociedades Cooperativas de Producción" },
-    { clave: "621", desc: "Incorporación Fiscal" },
-    { clave: "622", desc: "Actividades Agrícolas, Ganaderas, Silvícolas y Pesqueras" },
+    { clave: "620", desc: "Sociedades Cooperativas de Producci贸n" },
+    { clave: "621", desc: "Incorporaci贸n Fiscal" },
+    { clave: "622", desc: "Actividades Agr铆colas, Ganaderas, Silv铆colas y Pesqueras" },
     { clave: "623", desc: "Opcional para Grupos de Sociedades" },
     { clave: "624", desc: "Coordinados" },
-    { clave: "625", desc: "Régimen de las Actividades Empresariales con ingresos a través de Plataformas Tecnológicas" },
-    { clave: "626", desc: "Régimen Simplificado de Confianza (RESICO)" },
+    { clave: "625", desc: "R茅gimen de las Actividades Empresariales con ingresos a trav茅s de Plataformas Tecnol贸gicas" },
+    { clave: "626", desc: "R茅gimen Simplificado de Confianza (RESICO)" },
 ];
 
 const USOS_CFDI = [
-    { clave: "G01", desc: "Adquisición de mercancias" },
+    { clave: "G01", desc: "Adquisici贸n de mercancias" },
     { clave: "G02", desc: "Devoluciones, descuentos o bonificaciones" },
     { clave: "G03", desc: "Gastos en general" },
     { clave: "I01", desc: "Construcciones" },
@@ -56,22 +56,22 @@ const USOS_CFDI = [
     { clave: "I03", desc: "Equipo de transporte" },
     { clave: "I04", desc: "Equipo de computo y accesorios" },
     { clave: "I05", desc: "Dados, troqueles, moldes, matrices y herramental" },
-    { clave: "I06", desc: "Comunicaciones telefónicas" },
+    { clave: "I06", desc: "Comunicaciones telef贸nicas" },
     { clave: "I07", desc: "Comunicaciones satelitales" },
     { clave: "I08", desc: "Otra maquinaria y equipo" },
-    { clave: "D01", desc: "Honorarios médicos, dentales y gastos hospitalarios" },
-    { clave: "D02", desc: "Gastos médicos por incapacidad o discapacidad" },
+    { clave: "D01", desc: "Honorarios m茅dicos, dentales y gastos hospitalarios" },
+    { clave: "D02", desc: "Gastos m茅dicos por incapacidad o discapacidad" },
     { clave: "D03", desc: "Gastos funerales" },
     { clave: "D04", desc: "Donativos" },
-    { clave: "D05", desc: "Intereses reales efectivamente pagados por créditos hipotecarios (casa habitación)" },
+    { clave: "D05", desc: "Intereses reales efectivamente pagados por cr茅ditos hipotecarios (casa habitaci贸n)" },
     { clave: "D06", desc: "Aportaciones voluntarias al SAR" },
-    { clave: "D07", desc: "Primas por seguros de gastos médicos" },
-    { clave: "D08", desc: "Gastos de transportación escolar obligatoria" },
-    { clave: "D09", desc: "Depósitos en cuentas para el ahorro, primas que tengan como base planes de pensiones" },
+    { clave: "D07", desc: "Primas por seguros de gastos m茅dicos" },
+    { clave: "D08", desc: "Gastos de transportaci贸n escolar obligatoria" },
+    { clave: "D09", desc: "Dep贸sitos en cuentas para el ahorro, primas que tengan como base planes de pensiones" },
     { clave: "D10", desc: "Pagos por servicios educativos (colegiaturas)" },
     { clave: "S01", desc: "Sin efectos fiscales" },
     { clave: "CP01", desc: "Pagos" },
-    { clave: "CN01", desc: "Nómina" },
+    { clave: "CN01", desc: "N贸mina" },
 ];
 
 function Field({ label, children, span2 = false }) {
@@ -83,9 +83,9 @@ function Field({ label, children, span2 = false }) {
     );
 }
 
-// Picker para catálogos SAT cargados en BD (Carta Porte 3.1)
+// Picker para cat谩logos SAT cargados en BD (Carta Porte 3.1)
 function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2 = false }) {
-    const [query,   setQuery]   = useState(value ? `${value} — ${valueDesc || ""}` : "");
+    const [query,   setQuery]   = useState(value ? `${value} 鈥?${valueDesc || ""}` : "");
     const [results, setResults] = useState([]);
     const [open,    setOpen]    = useState(false);
     const [loading, setLoading] = useState(false);
@@ -113,7 +113,7 @@ function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2
     };
 
     const seleccionar = (item) => {
-        setQuery(`${item.clave} — ${item.descripcion}`);
+        setQuery(`${item.clave} 鈥?${item.descripcion}`);
         setOpen(false);
         onChange(item.clave, item.descripcion);
     };
@@ -134,7 +134,7 @@ function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2
                 {value && (
                     <div className="mt-1 px-3 py-1 rounded-lg bg-cyan-500/10 border border-cyan-400/20 text-xs text-cyan-300 flex items-center gap-2">
                         <span className="font-mono font-bold">{value}</span>
-                        <span className="text-gray-400">—</span>
+                        <span className="text-gray-400">鈥?/span>
                         <span className="truncate">{valueDesc}</span>
                     </div>
                 )}
@@ -195,7 +195,7 @@ export default function RemitentesPage() {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm("¿Eliminar este remitente?")) return;
+        if (!confirm("驴Eliminar este remitente?")) return;
         try { await fetch(`${API}/remitentes/${id}`, { method: "DELETE", headers }); fetchItems(); }
         catch (e) { console.error(e); }
     };
@@ -237,7 +237,7 @@ export default function RemitentesPage() {
                 <motion.div initial={{ opacity: 0, y: -30 }} animate={{ opacity: 1, y: 0 }} className="mb-12 flex justify-between items-center">
                     <div>
                         <h1 className="text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">REMITENTES</h1>
-                        <p className="text-gray-400 mt-4 text-xl">Catálogo de empresas y personas que envían mercancía</p>
+                        <p className="text-gray-400 mt-4 text-xl">Cat谩logo de empresas y personas que env铆an mercanc铆a</p>
                     </div>
                     <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={openNew}
                         className="flex items-center gap-3 px-8 py-4 rounded-2xl bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 font-bold text-lg hover:bg-cyan-500/20 transition-all">
@@ -272,7 +272,7 @@ export default function RemitentesPage() {
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="text-gray-400 border-b border-cyan-400/10 text-sm">
-                                    {["Nombre / Razón Social","RFC","Régimen Fiscal","Ciudad","Teléfono","Status","Acciones"]
+                                    {["Nombre / Raz贸n Social","RFC","R茅gimen Fiscal","Ciudad","Tel茅fono","Status","Acciones"]
                                         .map(h => <th key={h} className="pb-4 pr-6">{h}</th>)}
                                 </tr>
                             </thead>
@@ -287,16 +287,16 @@ export default function RemitentesPage() {
                                             <div className="font-bold text-white">{item.nombre}</div>
                                             {item.razonSocial && <div className="text-xs text-gray-500">{item.razonSocial}</div>}
                                         </td>
-                                        <td className="py-4 pr-6 text-cyan-300 font-mono text-sm">{item.rfc || "—"}</td>
+                                        <td className="py-4 pr-6 text-cyan-300 font-mono text-sm">{item.rfc || "鈥?}</td>
                                         <td className="py-4 pr-6">
                                             {item.regimenFiscal ? (
                                                 <span className="px-2 py-1 rounded-lg bg-purple-500/10 text-purple-300 text-xs font-mono font-bold">
                                                     {item.regimenFiscal}
                                                 </span>
-                                            ) : <span className="text-gray-600">—</span>}
+                                            ) : <span className="text-gray-600">鈥?/span>}
                                         </td>
-                                        <td className="py-4 pr-6 text-gray-400">{item.ciudad || "—"}</td>
-                                        <td className="py-4 pr-6 text-gray-400">{item.telefono || "—"}</td>
+                                        <td className="py-4 pr-6 text-gray-400">{item.ciudad || "鈥?}</td>
+                                        <td className="py-4 pr-6 text-gray-400">{item.telefono || "鈥?}</td>
                                         <td className="py-4 pr-6">
                                             <span className={`px-3 py-1 rounded-full border text-xs font-bold ${item.status === "Activo" ? "text-green-300 bg-green-500/10 border-green-400/30" : "text-red-300 bg-red-500/10 border-red-400/30"}`}>
                                                 {item.status}
@@ -330,7 +330,7 @@ export default function RemitentesPage() {
                                 <div className="grid grid-cols-2 gap-5">
 
                                     <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest">Datos generales</p>
-                                    <Field label="Nombre / Razón Social" span2>
+                                    <Field label="Nombre / Raz贸n Social" span2>
                                         <input value={form.nombre} onChange={set("nombre")} placeholder="Empresa S.A. de C.V." className={inputCls} />
                                     </Field>
                                     <Field label="Nombre comercial">
@@ -340,7 +340,7 @@ export default function RemitentesPage() {
                                         <input value={form.rfc} onChange={set("rfc")} placeholder="RFC000000XXX" className={inputCls} />
                                     </Field>
                                     <Field label="Tipo de carga que maneja" span2>
-                                        <input value={form.tipoCarga} onChange={set("tipoCarga")} placeholder="Electrónicos, alimentos, químicos..." className={inputCls} />
+                                        <input value={form.tipoCarga} onChange={set("tipoCarga")} placeholder="Electr贸nicos, alimentos, qu铆micos..." className={inputCls} />
                                     </Field>
                                     <Field label="Status">
                                         <select value={form.status} onChange={set("status")} className={selectCls}>
@@ -348,17 +348,17 @@ export default function RemitentesPage() {
                                         </select>
                                     </Field>
 
-                                    {/* SECCIÓN SAT */}
+                                    {/* SECCI脫N SAT */}
                                     <div className="col-span-2 mt-2 p-4 rounded-2xl bg-purple-500/5 border border-purple-400/20">
                                         <p className="text-purple-400 text-xs font-bold uppercase tracking-widest mb-4">Datos fiscales SAT (para timbrado CFDI)</p>
                                         <div className="grid grid-cols-2 gap-4">
-                                            <Field label="Régimen Fiscal (SAT)" span2>
+                                            <Field label="R茅gimen Fiscal (SAT)" span2>
                                                 <select value={form.regimenFiscal} onChange={e => {
                                                     const reg = REGIMENES.find(r => r.clave === e.target.value);
                                                     setForm(prev => ({ ...prev, regimenFiscal: e.target.value, regimenFiscalDesc: reg?.desc || "" }));
                                                 }} className={selectCls}>
-                                                    <option value="">Seleccionar régimen fiscal...</option>
-                                                    {REGIMENES.map(r => <option key={r.clave} value={r.clave}>{r.clave} — {r.desc}</option>)}
+                                                    <option value="">Seleccionar r茅gimen fiscal...</option>
+                                                    {REGIMENES.map(r => <option key={r.clave} value={r.clave}>{r.clave} 鈥?{r.desc}</option>)}
                                                 </select>
                                             </Field>
                                             <Field label="Uso CFDI (SAT)" span2>
@@ -367,7 +367,7 @@ export default function RemitentesPage() {
                                                     setForm(prev => ({ ...prev, usoCfdi: e.target.value, usoCfdiDesc: uso?.desc || "" }));
                                                 }} className={selectCls}>
                                                     <option value="">Seleccionar uso de CFDI...</option>
-                                                    {USOS_CFDI.map(u => <option key={u.clave} value={u.clave}>{u.clave} — {u.desc}</option>)}
+                                                    {USOS_CFDI.map(u => <option key={u.clave} value={u.clave}>{u.clave} 鈥?{u.desc}</option>)}
                                                 </select>
                                             </Field>
                                             <Field label="Num. Reg. ID Trib. (extranjeros)" span2>
@@ -376,12 +376,12 @@ export default function RemitentesPage() {
                                             <ValidacionRegimenUso regimen={form.regimenFiscal} uso={form.usoCfdi} />
                                         </div>
                                         <p className="text-purple-300/60 text-xs mt-3">
-                                            El código postal fiscal se captura abajo, en la sección de Dirección de origen.
+                                            El c贸digo postal fiscal se captura abajo, en la secci贸n de Direcci贸n de origen.
                                         </p>
                                     </div>
 
                                     <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-2">Contacto</p>
-                                    <Field label="Teléfono">
+                                    <Field label="Tel茅fono">
                                         <input value={form.telefono} onChange={set("telefono")} placeholder="+52 81 0000 0000" className={inputCls} />
                                     </Field>
                                     <Field label="Email">
@@ -394,8 +394,8 @@ export default function RemitentesPage() {
                                         <input value={form.contactoTelefono} onChange={set("contactoTelefono")} className={inputCls} />
                                     </Field>
 
-                                    <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-2">Dirección de origen</p>
-                                    <Field label="Calle y número" span2>
+                                    <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-2">Direcci贸n de origen</p>
+                                    <Field label="Calle y n煤mero" span2>
                                         <input value={form.direccion} onChange={set("direccion")} placeholder="Calle, No., Colonia" className={inputCls} />
                                     </Field>
 
@@ -403,7 +403,7 @@ export default function RemitentesPage() {
                                         <CodigoPostalInput value={direccionCp} onChange={handleDireccionChange} />
                                     </div>
 
-                                    <Field label="País">
+                                    <Field label="Pa铆s">
                                         <input value={form.pais} onChange={set("pais")} className={inputCls} />
                                     </Field>
 
@@ -428,3 +428,4 @@ export default function RemitentesPage() {
         </div>
     );
 }
+

@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+﻿import { useState, useEffect, useCallback, useRef } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import { FaIdCard, FaPlus, FaTrash, FaEdit, FaTimes, FaCheck, FaSearch } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
 
 const emptyForm = {
     name: "", apellidos: "", telefono: "", email: "",
@@ -12,7 +12,7 @@ const emptyForm = {
     vehiculoTipo: "", vehiculoMarca: "", vehiculoModelo: "", vehiculoAnio: "",
     vehiculoPlacas: "", vehiculoColor: "",
     tarjetaCirculacion: "", polizaSeguro: "", vigenciaSeguro: "",
-    direccion: "", ciudad: "", pais: "México",
+    direccion: "", ciudad: "", pais: "M茅xico",
     notas: "", status: "Disponible",
     // SAT Carta Porte
     figuraTransporte: "", figuraTransporteDesc: "",
@@ -32,7 +32,7 @@ function Field({ label, children, span2 = false }) {
 }
 
 function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2 = false }) {
-    const [query,   setQuery]   = useState(value ? `${value} — ${valueDesc || ""}` : "");
+    const [query,   setQuery]   = useState(value ? `${value} 鈥?${valueDesc || ""}` : "");
     const [results, setResults] = useState([]);
     const [open,    setOpen]    = useState(false);
     const [loading, setLoading] = useState(false);
@@ -60,7 +60,7 @@ function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2
     };
 
     const seleccionar = (item) => {
-        setQuery(`${item.clave} — ${item.descripcion}`);
+        setQuery(`${item.clave} 鈥?${item.descripcion}`);
         setOpen(false);
         onChange(item.clave, item.descripcion);
     };
@@ -81,7 +81,7 @@ function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2
                 {value && (
                     <div className="mt-1 px-3 py-1 rounded-lg bg-cyan-500/10 border border-cyan-400/20 text-xs text-cyan-300 flex items-center gap-2">
                         <span className="font-mono font-bold">{value}</span>
-                        <span className="text-gray-400">—</span>
+                        <span className="text-gray-400">鈥?/span>
                         <span className="truncate">{valueDesc}</span>
                     </div>
                 )}
@@ -148,7 +148,7 @@ export default function OperadoresPage() {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm("¿Eliminar este operador?")) return;
+        if (!confirm("驴Eliminar este operador?")) return;
         try { await fetch(`${API}/drivers/${id}`, { method: "DELETE", headers }); fetchOperadores(); }
         catch (e) { console.error(e); }
     };
@@ -174,7 +174,7 @@ export default function OperadoresPage() {
                 <motion.div initial={{ opacity: 0, y: -30 }} animate={{ opacity: 1, y: 0 }} className="mb-12 flex justify-between items-center">
                     <div>
                         <h1 className="text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">OPERADORES</h1>
-                        <p className="text-gray-400 mt-4 text-xl">Catálogo de conductores y operadores</p>
+                        <p className="text-gray-400 mt-4 text-xl">Cat谩logo de conductores y operadores</p>
                     </div>
                     <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={openNew}
                         className="flex items-center gap-3 px-8 py-4 rounded-2xl bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 font-bold text-lg hover:bg-cyan-500/20 transition-all">
@@ -210,7 +210,7 @@ export default function OperadoresPage() {
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="text-gray-400 border-b border-cyan-400/10 text-sm">
-                                    {["Nombre","RFC","Figura SAT","Licencia","Vigencia","Placas","Teléfono","Status","Acciones"]
+                                    {["Nombre","RFC","Figura SAT","Licencia","Vigencia","Placas","Tel茅fono","Status","Acciones"]
                                         .map(h => <th key={h} className="pb-4 pr-5">{h}</th>)}
                                 </tr>
                             </thead>
@@ -228,19 +228,19 @@ export default function OperadoresPage() {
                                                 <div className="font-bold">{o.name} {o.apellidos}</div>
                                                 <div className="text-xs text-gray-500">{o.email}</div>
                                             </td>
-                                            <td className="py-4 pr-5 text-cyan-300 font-mono text-xs">{o.rfcOperador || "—"}</td>
+                                            <td className="py-4 pr-5 text-cyan-300 font-mono text-xs">{o.rfcOperador || "鈥?}</td>
                                             <td className="py-4 pr-5">
                                                 {o.figuraTransporte
                                                     ? <span className="px-2 py-1 rounded-lg bg-cyan-500/10 text-cyan-300 text-xs font-mono font-bold">{o.figuraTransporte}</span>
-                                                    : <span className="text-gray-600">—</span>}
+                                                    : <span className="text-gray-600">鈥?/span>}
                                             </td>
-                                            <td className="py-4 pr-5 text-cyan-300 font-mono text-sm">{o.licenseNumber || "—"}</td>
+                                            <td className="py-4 pr-5 text-cyan-300 font-mono text-sm">{o.licenseNumber || "鈥?}</td>
                                             <td className={`py-4 pr-5 font-bold text-sm ${vigColor}`}>
-                                                {o.licenseExpiration || "—"}
-                                                {dias !== null && <div className="text-xs font-normal">{dias < 0 ? "Vencida" : `${dias} días`}</div>}
+                                                {o.licenseExpiration || "鈥?}
+                                                {dias !== null && <div className="text-xs font-normal">{dias < 0 ? "Vencida" : `${dias} d铆as`}</div>}
                                             </td>
-                                            <td className="py-4 pr-5 text-cyan-300 font-mono text-sm">{o.vehiculoPlacas || "—"}</td>
-                                            <td className="py-4 pr-5 text-gray-400">{o.telefono || "—"}</td>
+                                            <td className="py-4 pr-5 text-cyan-300 font-mono text-sm">{o.vehiculoPlacas || "鈥?}</td>
+                                            <td className="py-4 pr-5 text-gray-400">{o.telefono || "鈥?}</td>
                                             <td className="py-4 pr-5">
                                                 <span className={`px-3 py-1 rounded-full border text-xs font-bold ${
                                                     o.status === "Disponible" ? "text-green-300 bg-green-500/10 border-green-400/30" :
@@ -281,21 +281,21 @@ export default function OperadoresPage() {
                                         <input value={form.name} onChange={set("name")} placeholder="Juan" className={inputCls} />
                                     </Field>
                                     <Field label="Apellidos">
-                                        <input value={form.apellidos} onChange={set("apellidos")} placeholder="Pérez García" className={inputCls} />
+                                        <input value={form.apellidos} onChange={set("apellidos")} placeholder="P茅rez Garc铆a" className={inputCls} />
                                     </Field>
-                                    <Field label="Teléfono">
+                                    <Field label="Tel茅fono">
                                         <input value={form.telefono} onChange={set("telefono")} className={inputCls} />
                                     </Field>
                                     <Field label="Email">
                                         <input type="email" value={form.email} onChange={set("email")} className={inputCls} />
                                     </Field>
-                                    <Field label="Dirección" span2>
+                                    <Field label="Direcci贸n" span2>
                                         <input value={form.direccion} onChange={set("direccion")} className={inputCls} />
                                     </Field>
                                     <Field label="Ciudad">
                                         <input value={form.ciudad} onChange={set("ciudad")} className={inputCls} />
                                     </Field>
-                                    <Field label="País">
+                                    <Field label="Pa铆s">
                                         <input value={form.pais} onChange={set("pais")} className={inputCls} />
                                     </Field>
                                     <Field label="Status">
@@ -307,9 +307,9 @@ export default function OperadoresPage() {
                                         </select>
                                     </Field>
 
-                                    {/* SECCIÓN SAT */}
+                                    {/* SECCI脫N SAT */}
                                     <div className="col-span-2 p-4 rounded-2xl bg-cyan-500/5 border border-cyan-400/20">
-                                        <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-4">Claves SAT — Carta Porte 3.1</p>
+                                        <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-4">Claves SAT 鈥?Carta Porte 3.1</p>
                                         <div className="grid grid-cols-2 gap-4">
                                             <SatPicker label="Figura Transporte (SAT)" tipo="c_FiguraTransporte"
                                                 value={form.figuraTransporte} valueDesc={form.figuraTransporteDesc}
@@ -318,38 +318,38 @@ export default function OperadoresPage() {
                                             <Field label="RFC del Operador (para timbrado)">
                                                 <input value={form.rfcOperador} onChange={set("rfcOperador")} placeholder="RFC del operador" className={inputCls} />
                                             </Field>
-                                            <Field label="Núm. Licencia Federal SCT">
-                                                <input value={form.numLicenciaFederal} onChange={set("numLicenciaFederal")} placeholder="Número de licencia federal" className={inputCls} />
+                                            <Field label="N煤m. Licencia Federal SCT">
+                                                <input value={form.numLicenciaFederal} onChange={set("numLicenciaFederal")} placeholder="N煤mero de licencia federal" className={inputCls} />
                                             </Field>
                                         </div>
                                     </div>
 
                                     <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-2">Licencia de conducir</p>
-                                    <Field label="Número de licencia">
+                                    <Field label="N煤mero de licencia">
                                         <input value={form.licenseNumber} onChange={set("licenseNumber")} placeholder="D00001234" className={inputCls} />
                                     </Field>
                                     <Field label="Tipo de licencia">
                                         <select value={form.licenciaTipo} onChange={set("licenciaTipo")} className={selectCls}>
-                                            <option value="A">A — Motocicleta</option>
-                                            <option value="B">B — Automóvil</option>
-                                            <option value="C">C — Camión unitario</option>
-                                            <option value="D">D — Autobús</option>
-                                            <option value="E">E — Tractocamión (Trailer)</option>
-                                            <option value="F">F — Motobomba</option>
+                                            <option value="A">A 鈥?Motocicleta</option>
+                                            <option value="B">B 鈥?Autom贸vil</option>
+                                            <option value="C">C 鈥?Cami贸n unitario</option>
+                                            <option value="D">D 鈥?Autob煤s</option>
+                                            <option value="E">E 鈥?Tractocami贸n (Trailer)</option>
+                                            <option value="F">F 鈥?Motobomba</option>
                                         </select>
                                     </Field>
                                     <Field label="Vigencia de licencia">
                                         <input type="date" value={form.licenseExpiration} onChange={set("licenseExpiration")} className={inputCls} />
                                     </Field>
 
-                                    <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-2">Vehículo asignado</p>
-                                    <Field label="Tipo de vehículo">
+                                    <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-2">Veh铆culo asignado</p>
+                                    <Field label="Tipo de veh铆culo">
                                         <select value={form.vehiculoTipo} onChange={set("vehiculoTipo")} className={selectCls}>
-                                            <option value="">Sin vehículo asignado</option>
-                                            <option>Trailer / Tractocamión</option>
+                                            <option value="">Sin veh铆culo asignado</option>
+                                            <option>Trailer / Tractocami贸n</option>
                                             <option>Torton</option>
                                             <option>Rabon</option>
-                                            <option>Camión 3.5T</option>
+                                            <option>Cami贸n 3.5T</option>
                                             <option>Camioneta</option>
                                             <option>Otro</option>
                                         </select>
@@ -360,7 +360,7 @@ export default function OperadoresPage() {
                                     <Field label="Modelo">
                                         <input value={form.vehiculoModelo} onChange={set("vehiculoModelo")} className={inputCls} />
                                     </Field>
-                                    <Field label="Año">
+                                    <Field label="A帽o">
                                         <input type="number" value={form.vehiculoAnio} onChange={set("vehiculoAnio")} className={inputCls} />
                                     </Field>
                                     <Field label="Placas">
@@ -370,11 +370,11 @@ export default function OperadoresPage() {
                                         <input value={form.vehiculoColor} onChange={set("vehiculoColor")} className={inputCls} />
                                     </Field>
 
-                                    <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-2">Documentos del vehículo</p>
-                                    <Field label="Tarjeta de circulación">
+                                    <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-2">Documentos del veh铆culo</p>
+                                    <Field label="Tarjeta de circulaci贸n">
                                         <input value={form.tarjetaCirculacion} onChange={set("tarjetaCirculacion")} className={inputCls} />
                                     </Field>
-                                    <Field label="Póliza de seguro">
+                                    <Field label="P贸liza de seguro">
                                         <input value={form.polizaSeguro} onChange={set("polizaSeguro")} className={inputCls} />
                                     </Field>
                                     <Field label="Vigencia del seguro">

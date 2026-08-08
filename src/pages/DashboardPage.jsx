@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import { FaRoute, FaTruck, FaMoneyBillWave, FaBox, FaGavel,
@@ -9,7 +9,7 @@ import { motion } from "framer-motion";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip,
          ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
-const API = "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
 const fmt  = n => "$"+Number(n||0).toLocaleString("es-MX", { minimumFractionDigits:2 });
 const fmtM = n => "$"+Number(n||0).toLocaleString("es-MX", { maximumFractionDigits:0 });
 
@@ -344,7 +344,7 @@ export default function DashboardPage() {
                                 <span className="text-xl">{iconoBitacora(e?.modulo)}</span>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-white text-sm font-bold truncate">{e?.descripcion}</p>
-                                    <p className="text-gray-500 text-xs">{e?.modulo} · {e?.usuario}</p>
+                                    <p className="text-gray-500 text-xs">{e?.modulo} 路 {e?.usuario}</p>
                                 </div>
                                 <p className="text-gray-500 text-xs flex-shrink-0">{e?.fecha} {e?.hora}</p>
                             </motion.div>

@@ -1,19 +1,19 @@
-import { useState, useEffect, useCallback } from "react";
+﻿import { useState, useEffect, useCallback } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import { FaSearch, FaDatabase, FaCheckCircle } from "react-icons/fa";
 import { motion } from "framer-motion";
 
-const API = "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
 
 const TIPOS_LABEL = {
     "c_CveTransporte":        "Clave de Transporte",
     "c_FiguraTransporte":     "Figura Transporte",
-    "c_ConfigAutotransporte": "Configuración Autotransporte",
+    "c_ConfigAutotransporte": "Configuraci贸n Autotransporte",
     "c_TipoPermiso":          "Tipo de Permiso SCT",
     "c_TipoEmbalaje":         "Tipo de Embalaje",
     "c_ClaveUnidadPeso":      "Clave Unidad de Peso",
-    "c_TipoEstacion":         "Tipo de Estación",
+    "c_TipoEstacion":         "Tipo de Estaci贸n",
     "c_TipoDeServicio":       "Tipo de Servicio",
     "c_TipoCarro":            "Tipo de Carro",
     "c_Contenedor":           "Tipo de Contenedor",
@@ -24,13 +24,13 @@ const TIPOS_LABEL = {
     "c_ClaveUnidad":          "Clave de Unidad",
     "c_FormaPago":            "Forma de Pago",
     "c_Impuesto":             "Impuesto",
-    "c_MetodoPago":           "Método de Pago",
+    "c_MetodoPago":           "M茅todo de Pago",
     "c_Moneda":               "Moneda",
-    "c_Pais":                 "País",
-    "c_RegimenFiscal":        "Régimen Fiscal",
+    "c_Pais":                 "Pa铆s",
+    "c_RegimenFiscal":        "R茅gimen Fiscal",
     "c_TipoDeComprobante":    "Tipo de Comprobante",
     "c_TipoFactor":           "Tipo de Factor",
-    "c_TipoRelacion":         "Tipo de Relación",
+    "c_TipoRelacion":         "Tipo de Relaci贸n",
     "c_UsoCFDI":              "Uso de CFDI",
 };
 
@@ -77,11 +77,11 @@ export default function CatalogosSatPage() {
                 <Topbar />
 
                 <motion.div initial={{ opacity: 0, y: -30 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
-                    <h1 className="text-5xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">CATÁLOGOS SAT</h1>
-                    <p className="text-gray-400 mt-3 text-lg">Catálogos oficiales del SAT para Carta Porte 3.1</p>
+                    <h1 className="text-5xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">CAT脕LOGOS SAT</h1>
+                    <p className="text-gray-400 mt-3 text-lg">Cat谩logos oficiales del SAT para Carta Porte 3.1</p>
                 </motion.div>
 
-                {/* Stats de catálogos cargados */}
+                {/* Stats de cat谩logos cargados */}
                 <div className="grid grid-cols-4 gap-4 mb-8">
                     {tipos.slice(0, 4).map((t, i) => {
                         const total = Number(t.total) || 0;
@@ -153,7 +153,7 @@ export default function CatalogosSatPage() {
                             <input
                                 value={busqueda}
                                 onChange={e => setBusqueda(e.target.value)}
-                                placeholder="Buscar por clave o descripción..."
+                                placeholder="Buscar por clave o descripci贸n..."
                                 className="w-full bg-white/5 border border-cyan-400/10 rounded-xl pl-11 pr-5 py-3 text-white outline-none focus:border-cyan-400/40 transition-all" />
                         </div>
                     </div>
@@ -164,7 +164,7 @@ export default function CatalogosSatPage() {
                     ) : resultados.length === 0 ? (
                         <div className="py-10 text-center text-gray-500">
                             {totalActivo === 0
-                                ? "Este catálogo no tiene datos cargados. Ejecuta el script de carga."
+                                ? "Este cat谩logo no tiene datos cargados. Ejecuta el script de carga."
                                 : "No se encontraron resultados."}
                         </div>
                     ) : (
@@ -173,7 +173,7 @@ export default function CatalogosSatPage() {
                                 <thead>
                                     <tr className="text-gray-400 border-b border-cyan-400/10 text-sm">
                                         <th className="pb-3 pr-6 w-40">Clave</th>
-                                        <th className="pb-3">Descripción</th>
+                                        <th className="pb-3">Descripci贸n</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -192,7 +192,7 @@ export default function CatalogosSatPage() {
                             </table>
                             {resultados.length >= 100 && (
                                 <p className="text-center text-gray-500 text-xs mt-4">
-                                    Mostrando los primeros 100 resultados. Refina tu búsqueda para ver más.
+                                    Mostrando los primeros 100 resultados. Refina tu b煤squeda para ver m谩s.
                                 </p>
                             )}
                         </div>

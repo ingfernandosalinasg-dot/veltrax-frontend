@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import {
@@ -8,36 +8,36 @@ import {
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
 
-// Catálogos SAT para timbrado
+// Cat谩logos SAT para timbrado
 const FORMAS_PAGO_SAT = [
     { clave: "01", desc: "Efectivo" },
     { clave: "02", desc: "Cheque nominativo" },
-    { clave: "03", desc: "Transferencia electrónica de fondos" },
-    { clave: "04", desc: "Tarjeta de crédito" },
-    { clave: "05", desc: "Monedero electrónico" },
-    { clave: "06", desc: "Dinero electrónico" },
+    { clave: "03", desc: "Transferencia electr贸nica de fondos" },
+    { clave: "04", desc: "Tarjeta de cr茅dito" },
+    { clave: "05", desc: "Monedero electr贸nico" },
+    { clave: "06", desc: "Dinero electr贸nico" },
     { clave: "08", desc: "Vales de despensa" },
-    { clave: "12", desc: "Dación en pago" },
-    { clave: "13", desc: "Pago por subrogación" },
-    { clave: "14", desc: "Pago por consignación" },
-    { clave: "15", desc: "Condonación" },
-    { clave: "17", desc: "Compensación" },
-    { clave: "23", desc: "Novación" },
-    { clave: "24", desc: "Confusión" },
-    { clave: "25", desc: "Remisión de deuda" },
-    { clave: "26", desc: "Prescripción o caducidad" },
-    { clave: "27", desc: "A satisfacción del acreedor" },
-    { clave: "28", desc: "Tarjeta de débito" },
+    { clave: "12", desc: "Daci贸n en pago" },
+    { clave: "13", desc: "Pago por subrogaci贸n" },
+    { clave: "14", desc: "Pago por consignaci贸n" },
+    { clave: "15", desc: "Condonaci贸n" },
+    { clave: "17", desc: "Compensaci贸n" },
+    { clave: "23", desc: "Novaci贸n" },
+    { clave: "24", desc: "Confusi贸n" },
+    { clave: "25", desc: "Remisi贸n de deuda" },
+    { clave: "26", desc: "Prescripci贸n o caducidad" },
+    { clave: "27", desc: "A satisfacci贸n del acreedor" },
+    { clave: "28", desc: "Tarjeta de d茅bito" },
     { clave: "29", desc: "Tarjeta de servicios" },
-    { clave: "30", desc: "Aplicación de anticipos" },
+    { clave: "30", desc: "Aplicaci贸n de anticipos" },
     { clave: "31", desc: "Intermediario pagos" },
     { clave: "99", desc: "Por definir" },
 ];
 
 const METODOS_PAGO_SAT = [
-    { clave: "PUE", desc: "Pago en una sola exhibición" },
+    { clave: "PUE", desc: "Pago en una sola exhibici贸n" },
     { clave: "PPD", desc: "Pago en parcialidades o diferido" },
 ];
 
@@ -230,7 +230,7 @@ export default function CobranzaPage() {
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="text-gray-400 border-b border-cyan-400/10 text-sm">
-                                    {["Folio","Cliente","RFC","Total","Pagado","Saldo","Vencimiento","Días","Status","Acciones"]
+                                    {["Folio","Cliente","RFC","Total","Pagado","Saldo","Vencimiento","D铆as","Status","Acciones"]
                                         .map(h => <th key={h} className="pb-4 pr-4">{h}</th>)}
                                 </tr>
                             </thead>
@@ -248,14 +248,14 @@ export default function CobranzaPage() {
                                         <motion.tr key={f.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
                                             className="border-b border-cyan-400/5 hover:bg-cyan-500/5 transition-all">
                                             <td className="py-4 pr-4 font-bold text-cyan-300">{f.folio}</td>
-                                            <td className="py-4 pr-4 font-bold">{f.clienteNombre || "—"}</td>
-                                            <td className="py-4 pr-4 text-gray-400 font-mono text-xs">{f.rfc || "—"}</td>
+                                            <td className="py-4 pr-4 font-bold">{f.clienteNombre || "鈥?}</td>
+                                            <td className="py-4 pr-4 text-gray-400 font-mono text-xs">{f.rfc || "鈥?}</td>
                                             <td className="py-4 pr-4 text-white font-bold">${(f.total||0).toLocaleString()}</td>
                                             <td className="py-4 pr-4 text-green-300">${(f.pagado||0).toLocaleString()}</td>
                                             <td className="py-4 pr-4 text-yellow-300 font-black">${saldo.toLocaleString()}</td>
-                                            <td className="py-4 pr-4 text-gray-400 text-sm">{f.fechaVencimiento || "—"}</td>
+                                            <td className="py-4 pr-4 text-gray-400 text-sm">{f.fechaVencimiento || "鈥?}</td>
                                             <td className={`py-4 pr-4 text-sm ${diasColor}`}>
-                                                {dias === null ? "—" : dias < 0 ? `${Math.abs(dias)}d vencida` : `${dias}d`}
+                                                {dias === null ? "鈥? : dias < 0 ? `${Math.abs(dias)}d vencida` : `${dias}d`}
                                             </td>
                                             <td className="py-4 pr-4">
                                                 <span className={`px-3 py-1 rounded-full border text-xs font-bold ${statusColor(f.status)}`}>
@@ -295,7 +295,7 @@ export default function CobranzaPage() {
                             <div className="flex justify-between items-center p-8 pb-4">
                                 <div>
                                     <h2 className="text-2xl font-black text-cyan-300">Registrar Pago</h2>
-                                    <p className="text-gray-400 text-sm mt-1">{facturaActiva.folio} — {facturaActiva.clienteNombre}</p>
+                                    <p className="text-gray-400 text-sm mt-1">{facturaActiva.folio} 鈥?{facturaActiva.clienteNombre}</p>
                                 </div>
                                 <button onClick={() => setShowPagoModal(false)} className="text-gray-400 hover:text-white text-2xl"><FaTimes /></button>
                             </div>
@@ -319,7 +319,7 @@ export default function CobranzaPage() {
                             <div className="flex-1 overflow-y-auto px-8 pb-2 grid grid-cols-2 gap-5">
                                 <Field label="Monto del pago ($)" span2>
                                     <input type="number" value={formPago.monto} onChange={setP("monto")}
-                                        placeholder={`Máximo: $${saldoPendiente(facturaActiva).toLocaleString()}`}
+                                        placeholder={`M谩ximo: $${saldoPendiente(facturaActiva).toLocaleString()}`}
                                         className={inputCls} />
                                 </Field>
                                 <Field label="Fecha de pago">
@@ -336,14 +336,14 @@ export default function CobranzaPage() {
                                         <Field label="Forma de Pago (SAT)" span2>
                                             <select value={formPago.formaPago} onChange={setP("formaPago")} className={selectCls}>
                                                 {FORMAS_PAGO_SAT.map(f => (
-                                                    <option key={f.clave} value={f.clave}>{f.clave} — {f.desc}</option>
+                                                    <option key={f.clave} value={f.clave}>{f.clave} 鈥?{f.desc}</option>
                                                 ))}
                                             </select>
                                         </Field>
-                                        <Field label="Método de Pago (SAT)" span2>
+                                        <Field label="M茅todo de Pago (SAT)" span2>
                                             <select value={formPago.metodoPago} onChange={setP("metodoPago")} className={selectCls}>
                                                 {METODOS_PAGO_SAT.map(m => (
-                                                    <option key={m.clave} value={m.clave}>{m.clave} — {m.desc}</option>
+                                                    <option key={m.clave} value={m.clave}>{m.clave} 鈥?{m.desc}</option>
                                                 ))}
                                             </select>
                                         </Field>
@@ -382,20 +382,20 @@ export default function CobranzaPage() {
                             <div className="flex justify-between items-center p-8 pb-4">
                                 <div>
                                     <h2 className="text-2xl font-black text-cyan-300 flex items-center gap-3"><FaHistory /> Historial de Pagos</h2>
-                                    <p className="text-gray-400 text-sm mt-1">{facturaActiva.folio} — {facturaActiva.clienteNombre}</p>
+                                    <p className="text-gray-400 text-sm mt-1">{facturaActiva.folio} 鈥?{facturaActiva.clienteNombre}</p>
                                 </div>
                                 <button onClick={() => setShowPagosModal(false)} className="text-gray-400 hover:text-white text-2xl"><FaTimes /></button>
                             </div>
                             <div className="px-8 pb-8 space-y-3 max-h-[60vh] overflow-y-auto">
                                 {pagos.length === 0 && (
-                                    <p className="text-gray-500 text-center py-8">Sin pagos registrados aún.</p>
+                                    <p className="text-gray-500 text-center py-8">Sin pagos registrados a煤n.</p>
                                 )}
                                 {pagos.map(p => (
                                     <div key={p.id} className="p-4 rounded-2xl bg-white/5 border border-cyan-400/10">
                                         <div className="flex justify-between items-start">
                                             <div>
                                                 <p className="text-white font-black text-lg">${(p.monto||0).toLocaleString()}</p>
-                                                <p className="text-gray-400 text-sm">{p.fecha} {p.referencia ? `· ${p.referencia}` : ""}</p>
+                                                <p className="text-gray-400 text-sm">{p.fecha} {p.referencia ? `路 ${p.referencia}` : ""}</p>
                                                 {p.notas && <p className="text-gray-500 text-xs mt-1">{p.notas}</p>}
                                             </div>
                                             <div className="text-right">

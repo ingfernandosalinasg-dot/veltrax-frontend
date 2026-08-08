@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import { FaPlus, FaBox, FaTimes, FaCheck, FaUndo, FaTrash, FaExclamationTriangle } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
 
 const inputCls  = "w-full bg-white/5 border border-cyan-400/10 rounded-xl px-4 py-3 text-white outline-none focus:border-cyan-400/40 transition-all text-sm";
 const selectCls = "w-full bg-[#020617] border border-cyan-400/10 rounded-xl px-4 py-3 text-white outline-none focus:border-cyan-400/40 transition-all text-sm";
@@ -23,10 +23,10 @@ function diasEnCliente(fecha) {
 }
 
 function colorDias(dias) {
-    if (dias <= 10) return { bg: "bg-green-500/10",  border: "border-green-400/30",  text: "text-green-300",  label: "Al día" };
-    if (dias <= 15) return { bg: "bg-yellow-500/10", border: "border-yellow-400/30", text: "text-yellow-300", label: "Atención" };
+    if (dias <= 10) return { bg: "bg-green-500/10",  border: "border-green-400/30",  text: "text-green-300",  label: "Al d铆a" };
+    if (dias <= 15) return { bg: "bg-yellow-500/10", border: "border-yellow-400/30", text: "text-yellow-300", label: "Atenci贸n" };
     if (dias <= 20) return { bg: "bg-orange-500/10", border: "border-orange-400/30", text: "text-orange-300", label: "Urgente" };
-    return           { bg: "bg-red-500/10",    border: "border-red-400/30",    text: "text-red-300",    label: "Crítico" };
+    return           { bg: "bg-red-500/10",    border: "border-red-400/30",    text: "text-red-300",    label: "Cr铆tico" };
 }
 
 export default function CajasPage() {
@@ -95,7 +95,7 @@ export default function CajasPage() {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm("¿Eliminar movimiento?")) return;
+        if (!confirm("驴Eliminar movimiento?")) return;
         await fetch(`${API}/api/movimientos-caja/${id}`, { method: "DELETE", headers });
         fetchAll();
     };
@@ -175,7 +175,7 @@ export default function CajasPage() {
                     {[
                         { label: "En Clientes",    value: totalEnClientes, color: "text-cyan-400",   border: "border-cyan-500/20" },
                         { label: "Valor Retenido", value: `$${valorRetenido.toLocaleString("es-MX", { minimumFractionDigits: 0 })}`, color: "text-yellow-400", border: "border-yellow-500/20" },
-                        { label: "Alertas Críticas", value: criticas,      color: "text-red-400",    border: "border-red-500/20" },
+                        { label: "Alertas Cr铆ticas", value: criticas,      color: "text-red-400",    border: "border-red-500/20" },
                         { label: "Movimientos",    value: movimientos.length, color: "text-green-400", border: "border-green-500/20" },
                     ].map((s, i) => (
                         <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
@@ -210,7 +210,7 @@ export default function CajasPage() {
                     <div className="space-y-4">
                         {Object.keys(pendientesPorCliente).length === 0 && (
                             <div className="rounded-3xl bg-white/5 border border-cyan-400/10 p-12 text-center text-gray-500">
-                                No hay cajas pendientes en clientes 🎉
+                                No hay cajas pendientes en clientes 馃帀
                             </div>
                         )}
                         {Object.entries(pendientesPorCliente).map(([cliente, data], i) => {
@@ -226,12 +226,12 @@ export default function CajasPage() {
                                         <div>
                                             <h3 className="text-xl font-black text-white">{cliente}</h3>
                                             <p className="text-gray-400 text-sm mt-1">
-                                                Desde: {data.fechaMasAntigua} — <span className={color.text}>{dias} días en cliente</span>
+                                                Desde: {data.fechaMasAntigua} 鈥?<span className={color.text}>{dias} d铆as en cliente</span>
                                             </p>
                                         </div>
                                         <div className="text-right">
                                             <span className={`px-4 py-2 rounded-full border text-xs font-black ${color.bg} ${color.border} ${color.text}`}>
-                                                {color.label} — {dias} días
+                                                {color.label} 鈥?{dias} d铆as
                                             </span>
                                             <p className="text-yellow-300 font-bold mt-2 text-sm">
                                                 Valor retenido: ${valor.toLocaleString("es-MX", { minimumFractionDigits: 0 })}
@@ -242,19 +242,19 @@ export default function CajasPage() {
                                         <table className="w-full text-sm">
                                             <thead>
                                                 <tr className="text-gray-400 border-b border-white/10">
-                                                    {["Tipo", "Cantidad", "Fecha Salida", "Compromiso", "Operador", "Viaje", "Acción"]
+                                                    {["Tipo", "Cantidad", "Fecha Salida", "Compromiso", "Operador", "Viaje", "Acci贸n"]
                                                         .map(h => <th key={h} className="pb-2 pr-4 text-left font-medium">{h}</th>)}
                                                 </tr>
                                             </thead>
                                             <tbody>
                                                 {data.movimientos.map(m => (
                                                     <tr key={m.id} className="border-b border-white/5">
-                                                        <td className="py-2 pr-4 text-white">{m.tipoCaja?.nombre || "—"}</td>
+                                                        <td className="py-2 pr-4 text-white">{m.tipoCaja?.nombre || "鈥?}</td>
                                                         <td className="py-2 pr-4 font-bold text-cyan-300">{m.cantidad}</td>
                                                         <td className="py-2 pr-4 text-gray-400">{m.fecha}</td>
-                                                        <td className="py-2 pr-4 text-gray-400">{m.fechaCompromisoDevolucion || "—"}</td>
-                                                        <td className="py-2 pr-4 text-gray-400">{m.driver ? `${m.driver.name} ${m.driver.apellidos || ""}` : "—"}</td>
-                                                        <td className="py-2 pr-4 text-gray-400">{m.order ? `#${m.order.id}` : "—"}</td>
+                                                        <td className="py-2 pr-4 text-gray-400">{m.fechaCompromisoDevolucion || "鈥?}</td>
+                                                        <td className="py-2 pr-4 text-gray-400">{m.driver ? `${m.driver.name} ${m.driver.apellidos || ""}` : "鈥?}</td>
+                                                        <td className="py-2 pr-4 text-gray-400">{m.order ? `#${m.order.id}` : "鈥?}</td>
                                                         <td className="py-2">
                                                             <button onClick={() => handleDevolver(m.id)}
                                                                 className="flex items-center gap-1 px-3 py-1 rounded-lg bg-green-500/10 border border-green-400/20 text-green-300 text-xs font-bold hover:bg-green-500/20 transition-all">
@@ -306,20 +306,20 @@ export default function CajasPage() {
                                                     {m.tipoMovimiento}
                                                 </span>
                                             </td>
-                                            <td className="py-3 pr-4 text-white">{m.tipoCaja?.nombre || "—"}</td>
-                                            <td className="py-3 pr-4 text-gray-300">{m.cliente?.name || "—"}</td>
+                                            <td className="py-3 pr-4 text-white">{m.tipoCaja?.nombre || "鈥?}</td>
+                                            <td className="py-3 pr-4 text-gray-300">{m.cliente?.name || "鈥?}</td>
                                             <td className="py-3 pr-4 font-bold text-cyan-300">{m.cantidad}</td>
                                             <td className="py-3 pr-4 text-gray-400">{m.fecha}</td>
-                                            <td className="py-3 pr-4 text-gray-400">{m.fechaCompromisoDevolucion || "—"}</td>
+                                            <td className="py-3 pr-4 text-gray-400">{m.fechaCompromisoDevolucion || "鈥?}</td>
                                             <td className="py-3 pr-4 text-gray-400">
-                                                {m.driver ? `${m.driver.name} ${m.driver.apellidos || ""}` : "—"}
+                                                {m.driver ? `${m.driver.name} ${m.driver.apellidos || ""}` : "鈥?}
                                             </td>
                                             <td className="py-3 pr-4">
                                                 <span className={`px-3 py-1 rounded-full border text-xs font-bold ${
                                                     m.status === "DEVUELTA" ? "text-green-300 bg-green-500/10 border-green-400/30" :
                                                     m.status === "PERDIDA"  ? "text-red-300 bg-red-500/10 border-red-400/30" :
                                                     `${color.text} ${color.bg} ${color.border}`}`}>
-                                                    {m.status === "PENDIENTE" ? `${dias}d — ${color.label}` : m.status}
+                                                    {m.status === "PENDIENTE" ? `${dias}d 鈥?${color.label}` : m.status}
                                                 </span>
                                             </td>
                                             <td className="py-3">
@@ -361,8 +361,8 @@ export default function CajasPage() {
                                     <div>
                                         <label className="text-gray-400 text-xs mb-1 block">Tipo de Movimiento</label>
                                         <select value={form.tipoMovimiento} onChange={setF("tipoMovimiento")} className={selectCls}>
-                                            <option value="SALIDA">SALIDA — Entrega a cliente</option>
-                                            <option value="ENTRADA">ENTRADA — Devolución de cliente</option>
+                                            <option value="SALIDA">SALIDA 鈥?Entrega a cliente</option>
+                                            <option value="ENTRADA">ENTRADA 鈥?Devoluci贸n de cliente</option>
                                             <option value="TRASPASO">TRASPASO</option>
                                         </select>
                                     </div>
@@ -370,7 +370,7 @@ export default function CajasPage() {
                                         <label className="text-gray-400 text-xs mb-1 block">Tipo de Caja</label>
                                         <select value={form.tipoCajaId} onChange={setF("tipoCajaId")} className={selectCls}>
                                             <option value="">Seleccionar...</option>
-                                            {tiposCaja.map(t => <option key={t.id} value={t.id}>{t.nombre} — ${t.valorUnitario}</option>)}
+                                            {tiposCaja.map(t => <option key={t.id} value={t.id}>{t.nombre} 鈥?${t.valorUnitario}</option>)}
                                         </select>
                                     </div>
                                     <div>
@@ -389,18 +389,18 @@ export default function CajasPage() {
                                         <input type="date" value={form.fecha} onChange={setF("fecha")} className={inputCls} />
                                     </div>
                                     <div>
-                                        <label className="text-gray-400 text-xs mb-1 block">Fecha Compromiso Devolución</label>
+                                        <label className="text-gray-400 text-xs mb-1 block">Fecha Compromiso Devoluci贸n</label>
                                         <input type="date" value={form.fechaCompromisoDevolucion} onChange={setF("fechaCompromisoDevolucion")} className={inputCls} />
                                     </div>
                                     <div>
-                                        <label className="text-gray-400 text-xs mb-1 block">Viaje (Order) — Opcional</label>
+                                        <label className="text-gray-400 text-xs mb-1 block">Viaje (Order) 鈥?Opcional</label>
                                         <select value={form.orderId} onChange={setF("orderId")} className={selectCls}>
                                             <option value="">Sin viaje</option>
-                                            {orders.map(o => <option key={o.id} value={o.id}>#{o.id} — {o.cliente?.name || ""}</option>)}
+                                            {orders.map(o => <option key={o.id} value={o.id}>#{o.id} 鈥?{o.cliente?.name || ""}</option>)}
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="text-gray-400 text-xs mb-1 block">Operador — Opcional</label>
+                                        <label className="text-gray-400 text-xs mb-1 block">Operador 鈥?Opcional</label>
                                         <select value={form.driverId} onChange={setF("driverId")} className={selectCls}>
                                             <option value="">Sin operador</option>
                                             {drivers.map(d => <option key={d.id} value={d.id}>{d.name} {d.apellidos || ""}</option>)}
@@ -449,7 +449,7 @@ export default function CajasPage() {
                                             <label className="text-gray-400 text-xs mb-1 block">Nombre</label>
                                             <input value={formTipo.nombre}
                                                 onChange={e => setFormTipo(p => ({ ...p, nombre: e.target.value }))}
-                                                className={inputCls} placeholder="Caja plástica" />
+                                                className={inputCls} placeholder="Caja pl谩stica" />
                                         </div>
                                         <div>
                                             <label className="text-gray-400 text-xs mb-1 block">Valor unitario ($)</label>
@@ -458,10 +458,10 @@ export default function CajasPage() {
                                                 className={inputCls} placeholder="120" />
                                         </div>
                                         <div className="col-span-2">
-                                            <label className="text-gray-400 text-xs mb-1 block">Descripción</label>
+                                            <label className="text-gray-400 text-xs mb-1 block">Descripci贸n</label>
                                             <input value={formTipo.descripcion}
                                                 onChange={e => setFormTipo(p => ({ ...p, descripcion: e.target.value }))}
-                                                className={inputCls} placeholder="Descripción opcional" />
+                                                className={inputCls} placeholder="Descripci贸n opcional" />
                                         </div>
                                     </div>
                                     <button onClick={saveTipo}
@@ -474,7 +474,7 @@ export default function CajasPage() {
                                     <div key={t.id} className="flex justify-between items-center py-3 border-b border-white/5">
                                         <div>
                                             <p className="text-white font-bold">{t.nombre}</p>
-                                            <p className="text-gray-400 text-xs">{t.descripcion} — ${t.valorUnitario} c/u</p>
+                                            <p className="text-gray-400 text-xs">{t.descripcion} 鈥?${t.valorUnitario} c/u</p>
                                         </div>
                                         <button onClick={() => deleteTipo(t.id)}
                                             className="p-2 rounded-xl bg-red-500/10 border border-red-400/20 text-red-400 hover:bg-red-500/20 transition-all">

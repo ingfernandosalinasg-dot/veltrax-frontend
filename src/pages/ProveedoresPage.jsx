@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import CodigoPostalInput from "../components/CodigoPostalInput";
 import { FaWarehouse, FaPlus, FaTrash, FaEdit, FaTimes, FaCheck } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
 
 const rolColor = {
     "Remitente":           "text-cyan-300 bg-cyan-500/10 border-cyan-400/30",
@@ -16,7 +16,7 @@ const rolColor = {
 const emptyForm = {
     nombre: "", razonSocial: "", rfc: "", rol: "Remitente",
     telefono: "", email: "", sitioWeb: "",
-    direccion: "", ciudad: "", pais: "México", codigoPostal: "",
+    direccion: "", ciudad: "", pais: "M茅xico", codigoPostal: "",
     municipio: "", localidad: "", colonia: "",
     contactoPrincipal: "", contactoTelefono: "", contactoEmail: "",
     tipoCarga: "", condicionesPago: "Contado",
@@ -74,7 +74,7 @@ export default function ProveedoresPage() {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm("¿Eliminar este proveedor?")) return;
+        if (!confirm("驴Eliminar este proveedor?")) return;
         try { await fetch(`${API}/proveedores/${id}`, { method: "DELETE", headers }); fetchProveedores(); }
         catch (e) { console.error(e); }
     };
@@ -168,7 +168,7 @@ export default function ProveedoresPage() {
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="text-gray-400 border-b border-cyan-400/10 text-sm">
-                                    {["Nombre / Razón Social", "RFC", "Rol", "Ciudad", "Tipo de Carga", "Contacto", "Teléfono", "Status", "Acciones"]
+                                    {["Nombre / Raz贸n Social", "RFC", "Rol", "Ciudad", "Tipo de Carga", "Contacto", "Tel茅fono", "Status", "Acciones"]
                                         .map(h => <th key={h} className="pb-4 pr-6">{h}</th>)}
                                 </tr>
                             </thead>
@@ -183,16 +183,16 @@ export default function ProveedoresPage() {
                                             <div className="font-bold text-white">{p.nombre}</div>
                                             {p.razonSocial && <div className="text-xs text-gray-500">{p.razonSocial}</div>}
                                         </td>
-                                        <td className="py-4 pr-6 text-cyan-300 font-mono text-sm">{p.rfc || "—"}</td>
+                                        <td className="py-4 pr-6 text-cyan-300 font-mono text-sm">{p.rfc || "鈥?}</td>
                                         <td className="py-4 pr-6">
                                             <span className={`px-2 py-1 rounded-full border text-xs font-bold ${rolColor[p.rol] || "text-gray-300 bg-white/5 border-white/10"}`}>
                                                 {p.rol}
                                             </span>
                                         </td>
                                         <td className="py-4 pr-6 text-gray-400">{p.ciudad}{p.pais ? `, ${p.pais}` : ""}</td>
-                                        <td className="py-4 pr-6 text-gray-400 text-sm">{p.tipoCarga || "—"}</td>
-                                        <td className="py-4 pr-6 text-gray-400">{p.contactoPrincipal || "—"}</td>
-                                        <td className="py-4 pr-6 text-gray-400">{p.telefono || "—"}</td>
+                                        <td className="py-4 pr-6 text-gray-400 text-sm">{p.tipoCarga || "鈥?}</td>
+                                        <td className="py-4 pr-6 text-gray-400">{p.contactoPrincipal || "鈥?}</td>
+                                        <td className="py-4 pr-6 text-gray-400">{p.telefono || "鈥?}</td>
                                         <td className="py-4 pr-6">
                                             <span className={`px-3 py-1 rounded-full border text-xs font-bold ${p.status === "Activo" ? "text-green-300 bg-green-500/10 border-green-400/30" : "text-red-300 bg-red-500/10 border-red-400/30"}`}>
                                                 {p.status}
@@ -225,7 +225,7 @@ export default function ProveedoresPage() {
                             <div className="flex-1 overflow-y-auto px-8 py-6">
                                 <div className="grid grid-cols-2 gap-5">
                                     <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest">Datos generales</p>
-                                    <Field label="Nombre / Razón Social" span2>
+                                    <Field label="Nombre / Raz贸n Social" span2>
                                         <input value={form.nombre} onChange={set("nombre")} placeholder="Empresa o nombre completo" className={inputCls} />
                                     </Field>
                                     <Field label="Nombre comercial">
@@ -247,11 +247,11 @@ export default function ProveedoresPage() {
                                         </select>
                                     </Field>
                                     <Field label="Tipo de carga que maneja" span2>
-                                        <input value={form.tipoCarga} onChange={set("tipoCarga")} placeholder="Electrónicos, alimentos, químicos, general..." className={inputCls} />
+                                        <input value={form.tipoCarga} onChange={set("tipoCarga")} placeholder="Electr贸nicos, alimentos, qu铆micos, general..." className={inputCls} />
                                     </Field>
 
                                     <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-2">Contacto principal</p>
-                                    <Field label="Teléfono">
+                                    <Field label="Tel茅fono">
                                         <input value={form.telefono} onChange={set("telefono")} placeholder="+52 81 0000 0000" className={inputCls} />
                                     </Field>
                                     <Field label="Email">
@@ -263,9 +263,9 @@ export default function ProveedoresPage() {
                                     <Field label="Condiciones de pago">
                                         <select value={form.condicionesPago} onChange={set("condicionesPago")} className={selectCls}>
                                             <option>Contado</option>
-                                            <option>Crédito 15 días</option>
-                                            <option>Crédito 30 días</option>
-                                            <option>Crédito 60 días</option>
+                                            <option>Cr茅dito 15 d铆as</option>
+                                            <option>Cr茅dito 30 d铆as</option>
+                                            <option>Cr茅dito 60 d铆as</option>
                                         </select>
                                     </Field>
 
@@ -280,8 +280,8 @@ export default function ProveedoresPage() {
                                         <input type="email" value={form.contactoEmail} onChange={set("contactoEmail")} placeholder="encargado@empresa.com" className={inputCls} />
                                     </Field>
 
-                                    <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-2">Dirección</p>
-                                    <Field label="Calle y número" span2>
+                                    <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-2">Direcci贸n</p>
+                                    <Field label="Calle y n煤mero" span2>
                                         <input value={form.direccion} onChange={set("direccion")} placeholder="Calle, No., Colonia" className={inputCls} />
                                     </Field>
 
@@ -289,7 +289,7 @@ export default function ProveedoresPage() {
                                         <CodigoPostalInput value={direccionCp} onChange={handleDireccionChange} />
                                     </div>
 
-                                    <Field label="País">
+                                    <Field label="Pa铆s">
                                         <input value={form.pais} onChange={set("pais")} className={inputCls} />
                                     </Field>
                                     <Field label="Certificaciones">
@@ -315,3 +315,4 @@ export default function ProveedoresPage() {
         </div>
     );
 }
+

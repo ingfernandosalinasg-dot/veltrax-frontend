@@ -1,4 +1,4 @@
-import {
+﻿import {
     FaTruck, FaClipboardList, FaUserTie, FaChartBar,
     FaMapMarkedAlt, FaSignOutAlt, FaRoute, FaFileAlt,
     FaAddressBook, FaMapMarkerAlt, FaUsers, FaMoneyBillWave,
@@ -18,12 +18,12 @@ import { FaExclamationTriangle, FaTools, FaClipboardCheck, FaWrench } from "reac
 function Sidebar() {
     const location = useLocation();
 
-    // ── GIRO TRANSPORTE ──────────────────────────────────────
+    // 鈹€鈹€ GIRO TRANSPORTE 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
     const transporte = [
         { name: "Dashboard",      path: "/dashboard",       icon: <FaChartBar /> },
         { name: "Viajes",         path: "/viajes",         icon: <FaRoute /> },
         { name: "Liquidaciones",  path: "/liquidaciones",  icon: <FaMoneyBillWave /> },
-        { name: "Préstamos",      path: "/prestamos",      icon: <FaHandHoldingUsd /> },
+        { name: "Pr茅stamos",      path: "/prestamos",      icon: <FaHandHoldingUsd /> },
         { name: "Umbrales",       path: "/umbrales",       icon: <FaTrophy /> },
         { name: "Cartas Porte",   path: "/cartas-porte",   icon: <FaFileAlt /> },
         { name: "Tracking GPS",   path: "/tracking",       icon: <FaMapMarkedAlt /> },
@@ -36,34 +36,34 @@ function Sidebar() {
     const catalogosTransporte = [
         { name: "Clientes",       path: "/clientes",       icon: <FaUsers /> },
         { name: "Operadores",     path: "/operadores",     icon: <FaUserTie /> },
-        { name: "Vehículos",      path: "/vehicles",       icon: <FaTruck /> },
+        { name: "Veh铆culos",      path: "/vehicles",       icon: <FaTruck /> },
         { name: "Rutas",          path: "/rutas",          icon: <FaRoute /> },
         { name: "Remitentes",     path: "/remitentes",     icon: <FaAddressBook /> },
         { name: "Destinatarios",  path: "/destinatarios",  icon: <FaMapMarkerAlt /> },
     ];
 
-    // ── MANTENIMIENTO ─────────────────────────────────────────
+    // 鈹€鈹€ MANTENIMIENTO 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
     const mantenimiento = [
         { name: "Reportes de Falla",      path: "/reportes-falla",         icon: <FaExclamationTriangle /> },
         { name: "Mantenimientos",         path: "/mantenimientos",         icon: <FaWrench /> },
-        { name: "Órdenes de Servicio",    path: "/ordenes-servicio",       icon: <FaTools /> },
+        { name: "脫rdenes de Servicio",    path: "/ordenes-servicio",       icon: <FaTools /> },
         { name: "Servicios Completados",  path: "/servicios-completados",  icon: <FaClipboardCheck /> },
     ];
 
-    // ── GIRO BIENES Y SERVICIOS ──────────────────────────────
+    // 鈹€鈹€ GIRO BIENES Y SERVICIOS 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
     const bienesServicios = [
         { name: "Licitaciones",   path: "/licitaciones",        icon: <FaGavel /> },
-        { name: "Órdenes Compra", path: "/ordenes-compra",      icon: <FaShoppingCart /> },
-        { name: "Catálogo",       path: "/catalogo-articulos",  icon: <FaPills /> },
+        { name: "脫rdenes Compra", path: "/ordenes-compra",      icon: <FaShoppingCart /> },
+        { name: "Cat谩logo",       path: "/catalogo-articulos",  icon: <FaPills /> },
     ];
 
-    // ── COMPARTIDO ───────────────────────────────────────────
+    // 鈹€鈹€ COMPARTIDO 鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€鈹€
     const compartido = [
         { name: "Proveedores",     path: "/proveedores",     icon: <FaTruck /> },
-        { name: "Catálogos SAT",   path: "/catalogos-sat",   icon: <FaTags /> },
+        { name: "Cat谩logos SAT",   path: "/catalogos-sat",   icon: <FaTags /> },
         { name: "Empresa",         path: "/empresa",         icon: <FaBuilding /> },
-        { name: "Bitácora",        path: "/bitacora",        icon: <FaHistory /> },
-        { name: "Órdenes",         path: "/orders",          icon: <FaClipboardList /> },
+        { name: "Bit谩cora",        path: "/bitacora",        icon: <FaHistory /> },
+        { name: "脫rdenes",         path: "/orders",          icon: <FaClipboardList /> },
     ];
 
     const logout = () => {
@@ -117,7 +117,7 @@ function Sidebar() {
                 <div className="mb-1">
                     <div className="flex items-center gap-2 px-2 mb-2 mt-2">
                         <div className="h-px flex-1 bg-cyan-400/20" />
-                        <p className="text-cyan-400 text-xs font-black uppercase tracking-widest">🚛 Transporte</p>
+                        <p className="text-cyan-400 text-xs font-black uppercase tracking-widest">馃殯 Transporte</p>
                         <div className="h-px flex-1 bg-cyan-400/20" />
                     </div>
                     <div className="space-y-1">
@@ -125,9 +125,9 @@ function Sidebar() {
                     </div>
                 </div>
 
-                {/* Catálogos Transporte */}
+                {/* Cat谩logos Transporte */}
                 <div className="mb-1">
-                    <SectionTitle label="Catálogos Transporte" />
+                    <SectionTitle label="Cat谩logos Transporte" />
                     <div className="space-y-1">
                         {catalogosTransporte.map((item, i) => <NavItem key={item.path} item={item} index={i} />)}
                     </div>
@@ -137,7 +137,7 @@ function Sidebar() {
                 <div className="mb-1">
                     <div className="flex items-center gap-2 px-2 mb-2 mt-4">
                         <div className="h-px flex-1 bg-orange-400/20" />
-                        <p className="text-orange-400 text-xs font-black uppercase tracking-widest">🔧 Mantenimiento</p>
+                        <p className="text-orange-400 text-xs font-black uppercase tracking-widest">馃敡 Mantenimiento</p>
                         <div className="h-px flex-1 bg-orange-400/20" />
                     </div>
                     <div className="space-y-1">
@@ -149,7 +149,7 @@ function Sidebar() {
                 <div className="mb-1">
                     <div className="flex items-center gap-2 px-2 mb-2 mt-4">
                         <div className="h-px flex-1 bg-purple-400/20" />
-                        <p className="text-purple-400 text-xs font-black uppercase tracking-widest">💊 Bienes y Servicios</p>
+                        <p className="text-purple-400 text-xs font-black uppercase tracking-widest">馃拪 Bienes y Servicios</p>
                         <div className="h-px flex-1 bg-purple-400/20" />
                     </div>
                     <div className="space-y-1">
@@ -165,10 +165,10 @@ function Sidebar() {
                     </div>
                 </div>
 
-                {/* ADMINISTRACIÓN */}
+                {/* ADMINISTRACI脫N */}
                 {isAdmin && (
                     <div className="mb-1">
-                        <SectionTitle label="Administración" color="text-yellow-500/70" />
+                        <SectionTitle label="Administraci贸n" color="text-yellow-500/70" />
                         <div className="space-y-1">
                             {[
                                 { name: "Usuarios", path: "/usuarios", icon: <FaUserShield /> },
@@ -190,7 +190,7 @@ function Sidebar() {
                 </div>
                 <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }} onClick={logout}
                     className="w-full py-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 font-bold flex items-center justify-center gap-3 hover:bg-red-500/20 transition-all text-sm">
-                    <FaSignOutAlt /> Cerrar Sesión
+                    <FaSignOutAlt /> Cerrar Sesi贸n
                 </motion.button>
             </div>
         </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import CodigoPostalInput from "../components/CodigoPostalInput";
@@ -6,12 +6,12 @@ import ValidacionRegimenUso from "../components/ValidacionRegimenUso";
 import { FaPlus, FaTrash, FaEdit, FaTimes, FaCheck, FaMapMarkerAlt } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
 
 const emptyForm = {
     nombre: "", razonSocial: "", rfc: "",
     telefono: "", email: "",
-    direccion: "", ciudad: "", estado: "", pais: "México", codigoPostal: "",
+    direccion: "", ciudad: "", estado: "", pais: "M茅xico", codigoPostal: "",
     municipio: "", localidad: "", colonia: "",
     contacto: "", contactoTelefono: "",
     horariosRecepcion: "", requisitosDescarga: "", notas: "", status: "Activo",
@@ -28,18 +28,18 @@ const REGIMENES = [
     { clave: "603", desc: "Personas Morales con Fines no Lucrativos" },
     { clave: "605", desc: "Sueldos y Salarios e Ingresos Asimilados" },
     { clave: "606", desc: "Arrendamiento" },
-    { clave: "608", desc: "Demás Ingresos" },
+    { clave: "608", desc: "Dem谩s Ingresos" },
     { clave: "610", desc: "Residentes en el Extranjero" },
-    { clave: "612", desc: "Personas Físicas con Actividades Empresariales" },
+    { clave: "612", desc: "Personas F铆sicas con Actividades Empresariales" },
     { clave: "616", desc: "Sin obligaciones fiscales" },
-    { clave: "620", desc: "Sociedades Cooperativas de Producción" },
-    { clave: "621", desc: "Incorporación Fiscal" },
-    { clave: "622", desc: "Actividades Agrícolas, Ganaderas, Silvícolas y Pesqueras" },
-    { clave: "626", desc: "Régimen Simplificado de Confianza (RESICO)" },
+    { clave: "620", desc: "Sociedades Cooperativas de Producci贸n" },
+    { clave: "621", desc: "Incorporaci贸n Fiscal" },
+    { clave: "622", desc: "Actividades Agr铆colas, Ganaderas, Silv铆colas y Pesqueras" },
+    { clave: "626", desc: "R茅gimen Simplificado de Confianza (RESICO)" },
 ];
 
 const USOS_CFDI = [
-    { clave: "G01", desc: "Adquisición de mercancias" },
+    { clave: "G01", desc: "Adquisici贸n de mercancias" },
     { clave: "G02", desc: "Devoluciones, descuentos o bonificaciones" },
     { clave: "G03", desc: "Gastos en general" },
     { clave: "I01", desc: "Construcciones" },
@@ -47,7 +47,7 @@ const USOS_CFDI = [
     { clave: "I04", desc: "Equipo de computo y accesorios" },
     { clave: "S01", desc: "Sin efectos fiscales" },
     { clave: "CP01", desc: "Pagos" },
-    { clave: "CN01", desc: "Nómina" },
+    { clave: "CN01", desc: "N贸mina" },
 ];
 
 function Field({ label, children, span2 = false }) {
@@ -96,7 +96,7 @@ export default function DestinatariosPage() {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm("¿Eliminar este destinatario?")) return;
+        if (!confirm("驴Eliminar este destinatario?")) return;
         try { await fetch(`${API}/destinatarios/${id}`, { method: "DELETE", headers }); fetchItems(); }
         catch (e) { console.error(e); }
     };
@@ -138,7 +138,7 @@ export default function DestinatariosPage() {
                 <motion.div initial={{ opacity: 0, y: -30 }} animate={{ opacity: 1, y: 0 }} className="mb-12 flex justify-between items-center">
                     <div>
                         <h1 className="text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">DESTINATARIOS</h1>
-                        <p className="text-gray-400 mt-4 text-xl">Catálogo de empresas y personas que reciben mercancía</p>
+                        <p className="text-gray-400 mt-4 text-xl">Cat谩logo de empresas y personas que reciben mercanc铆a</p>
                     </div>
                     <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={openNew}
                         className="flex items-center gap-3 px-8 py-4 rounded-2xl bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 font-bold text-lg hover:bg-cyan-500/20 transition-all">
@@ -173,7 +173,7 @@ export default function DestinatariosPage() {
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="text-gray-400 border-b border-cyan-400/10 text-sm">
-                                    {["Nombre / Razón Social","RFC","Régimen Fiscal","Ciudad","Teléfono","Status","Acciones"]
+                                    {["Nombre / Raz贸n Social","RFC","R茅gimen Fiscal","Ciudad","Tel茅fono","Status","Acciones"]
                                         .map(h => <th key={h} className="pb-4 pr-6">{h}</th>)}
                                 </tr>
                             </thead>
@@ -188,14 +188,14 @@ export default function DestinatariosPage() {
                                             <div className="font-bold text-white">{item.nombre}</div>
                                             {item.razonSocial && <div className="text-xs text-gray-500">{item.razonSocial}</div>}
                                         </td>
-                                        <td className="py-4 pr-6 text-cyan-300 font-mono text-sm">{item.rfc || "—"}</td>
+                                        <td className="py-4 pr-6 text-cyan-300 font-mono text-sm">{item.rfc || "鈥?}</td>
                                         <td className="py-4 pr-6">
                                             {item.regimenFiscal
                                                 ? <span className="px-2 py-1 rounded-lg bg-purple-500/10 text-purple-300 text-xs font-mono font-bold">{item.regimenFiscal}</span>
-                                                : <span className="text-gray-600">—</span>}
+                                                : <span className="text-gray-600">鈥?/span>}
                                         </td>
-                                        <td className="py-4 pr-6 text-gray-400">{item.ciudad || "—"}</td>
-                                        <td className="py-4 pr-6 text-gray-400">{item.telefono || "—"}</td>
+                                        <td className="py-4 pr-6 text-gray-400">{item.ciudad || "鈥?}</td>
+                                        <td className="py-4 pr-6 text-gray-400">{item.telefono || "鈥?}</td>
                                         <td className="py-4 pr-6">
                                             <span className={`px-3 py-1 rounded-full border text-xs font-bold ${item.status === "Activo" ? "text-green-300 bg-green-500/10 border-green-400/30" : "text-red-300 bg-red-500/10 border-red-400/30"}`}>
                                                 {item.status}
@@ -228,7 +228,7 @@ export default function DestinatariosPage() {
                             <div className="flex-1 overflow-y-auto px-8 py-6">
                                 <div className="grid grid-cols-2 gap-5">
                                     <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest">Datos generales</p>
-                                    <Field label="Nombre / Razón Social" span2>
+                                    <Field label="Nombre / Raz贸n Social" span2>
                                         <input value={form.nombre} onChange={set("nombre")} placeholder="Empresa S.A. de C.V." className={inputCls} />
                                     </Field>
                                     <Field label="Nombre comercial">
@@ -243,17 +243,17 @@ export default function DestinatariosPage() {
                                         </select>
                                     </Field>
 
-                                    {/* SECCIÓN SAT */}
+                                    {/* SECCI脫N SAT */}
                                     <div className="col-span-2 p-4 rounded-2xl bg-purple-500/5 border border-purple-400/20">
                                         <p className="text-purple-400 text-xs font-bold uppercase tracking-widest mb-4">Datos fiscales SAT (para timbrado CFDI)</p>
                                         <div className="grid grid-cols-2 gap-4">
-                                            <Field label="Régimen Fiscal (SAT)" span2>
+                                            <Field label="R茅gimen Fiscal (SAT)" span2>
                                                 <select value={form.regimenFiscal} onChange={e => {
                                                     const reg = REGIMENES.find(r => r.clave === e.target.value);
                                                     setForm(prev => ({ ...prev, regimenFiscal: e.target.value, regimenFiscalDesc: reg?.desc || "" }));
                                                 }} className={selectCls}>
-                                                    <option value="">Seleccionar régimen fiscal...</option>
-                                                    {REGIMENES.map(r => <option key={r.clave} value={r.clave}>{r.clave} — {r.desc}</option>)}
+                                                    <option value="">Seleccionar r茅gimen fiscal...</option>
+                                                    {REGIMENES.map(r => <option key={r.clave} value={r.clave}>{r.clave} 鈥?{r.desc}</option>)}
                                                 </select>
                                             </Field>
                                             <Field label="Uso CFDI (SAT)" span2>
@@ -262,7 +262,7 @@ export default function DestinatariosPage() {
                                                     setForm(prev => ({ ...prev, usoCfdi: e.target.value, usoCfdiDesc: uso?.desc || "" }));
                                                 }} className={selectCls}>
                                                     <option value="">Seleccionar uso de CFDI...</option>
-                                                    {USOS_CFDI.map(u => <option key={u.clave} value={u.clave}>{u.clave} — {u.desc}</option>)}
+                                                    {USOS_CFDI.map(u => <option key={u.clave} value={u.clave}>{u.clave} 鈥?{u.desc}</option>)}
                                                 </select>
                                             </Field>
                                             <Field label="Num. Reg. ID Trib. (extranjeros)" span2>
@@ -271,12 +271,12 @@ export default function DestinatariosPage() {
                                             <ValidacionRegimenUso regimen={form.regimenFiscal} uso={form.usoCfdi} />
                                         </div>
                                         <p className="text-purple-300/60 text-xs mt-3">
-                                            El código postal fiscal se captura abajo, en la sección de Dirección de entrega.
+                                            El c贸digo postal fiscal se captura abajo, en la secci贸n de Direcci贸n de entrega.
                                         </p>
                                     </div>
 
                                     <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-2">Contacto</p>
-                                    <Field label="Teléfono">
+                                    <Field label="Tel茅fono">
                                         <input value={form.telefono} onChange={set("telefono")} className={inputCls} />
                                     </Field>
                                     <Field label="Email">
@@ -289,8 +289,8 @@ export default function DestinatariosPage() {
                                         <input value={form.contactoTelefono} onChange={set("contactoTelefono")} className={inputCls} />
                                     </Field>
 
-                                    <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-2">Dirección de entrega</p>
-                                    <Field label="Calle y número" span2>
+                                    <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-2">Direcci贸n de entrega</p>
+                                    <Field label="Calle y n煤mero" span2>
                                         <input value={form.direccion} onChange={set("direccion")} className={inputCls} />
                                     </Field>
 
@@ -298,12 +298,12 @@ export default function DestinatariosPage() {
                                         <CodigoPostalInput value={direccionCp} onChange={handleDireccionChange} />
                                     </div>
 
-                                    <Field label="País">
+                                    <Field label="Pa铆s">
                                         <input value={form.pais} onChange={set("pais")} className={inputCls} />
                                     </Field>
 
-                                    <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-2">Recepción</p>
-                                    <Field label="Horarios de recepción">
+                                    <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-2">Recepci贸n</p>
+                                    <Field label="Horarios de recepci贸n">
                                         <input value={form.horariosRecepcion} onChange={set("horariosRecepcion")} placeholder="Lun-Vie 8:00-17:00" className={inputCls} />
                                     </Field>
                                     <Field label="Requisitos de descarga">
@@ -328,3 +328,4 @@ export default function DestinatariosPage() {
         </div>
     );
 }
+

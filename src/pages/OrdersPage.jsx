@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import {
@@ -7,11 +7,11 @@ import {
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
 
 const estadoColor = {
     "Pendiente":   "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-    "En Tránsito": "bg-blue-500/20 text-blue-400 border-blue-500/30",
+    "En Tr谩nsito": "bg-blue-500/20 text-blue-400 border-blue-500/30",
     "Entregado":   "bg-green-500/20 text-green-400 border-green-500/30",
     "Cancelado":   "bg-red-500/20 text-red-400 border-red-500/30",
 };
@@ -37,7 +37,7 @@ function OrdersPage() {
             const data = await res.json();
             setOrders(Array.isArray(data) ? data : []);
         } catch (e) {
-            console.error("Error cargando órdenes:", e);
+            console.error("Error cargando 贸rdenes:", e);
         }
     };
 
@@ -61,7 +61,7 @@ function OrdersPage() {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm("¿Eliminar esta orden?")) return;
+        if (!confirm("驴Eliminar esta orden?")) return;
         try {
             await fetch(`${API}/pedidos/${id}`, { method: "DELETE", headers });
             fetchOrders();
@@ -78,7 +78,7 @@ function OrdersPage() {
     );
 
     const pendientes = orders.filter(o => o.status === "Pendiente").length;
-    const enRuta     = orders.filter(o => o.status === "En Tránsito").length;
+    const enRuta     = orders.filter(o => o.status === "En Tr谩nsito").length;
     const entregadas = orders.filter(o => o.status === "Entregado").length;
 
     return (
@@ -101,9 +101,9 @@ function OrdersPage() {
                     className="mb-12 flex justify-between items-center">
                     <div>
                         <h1 className="text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">
-                            ÓRDENES
+                            脫RDENES
                         </h1>
-                        <p className="text-gray-400 mt-4 text-xl">Gestión avanzada de viajes y entregas</p>
+                        <p className="text-gray-400 mt-4 text-xl">Gesti贸n avanzada de viajes y entregas</p>
                     </div>
                     <motion.button whileHover={{ scale:1.05 }} whileTap={{ scale:0.95 }}
                         onClick={() => setShowModal(true)}
@@ -115,7 +115,7 @@ function OrdersPage() {
                 {/* KPIs */}
                 <div className="grid grid-cols-4 gap-6 mb-10">
                     {[
-                        { label:"Total Órdenes", value: orders.length, icon:<FaClipboardList />, border:"border-cyan-500/20",   text:"text-cyan-400" },
+                        { label:"Total 脫rdenes", value: orders.length, icon:<FaClipboardList />, border:"border-cyan-500/20",   text:"text-cyan-400" },
                         { label:"Pendientes",    value: pendientes,    icon:<FaClock />,         border:"border-yellow-500/20", text:"text-yellow-400" },
                         { label:"En Ruta",       value: enRuta,        icon:<FaTruckMoving />,   border:"border-blue-500/20",   text:"text-blue-400" },
                         { label:"Entregadas",    value: entregadas,    icon:<FaCheckCircle />,   border:"border-green-500/20",  text:"text-green-400" },
@@ -149,7 +149,7 @@ function OrdersPage() {
                                 <th className="p-5 text-left">Cliente</th>
                                 <th className="p-5 text-left">Ruta</th>
                                 <th className="p-5 text-left">Conductor</th>
-                                <th className="p-5 text-left">Vehículo</th>
+                                <th className="p-5 text-left">Veh铆culo</th>
                                 <th className="p-5 text-left">Fecha</th>
                                 <th className="p-5 text-left">Costo</th>
                                 <th className="p-5 text-left">Estado</th>
@@ -160,7 +160,7 @@ function OrdersPage() {
                             {filtered.length === 0 && (
                                 <tr>
                                     <td colSpan={9} className="p-10 text-center text-gray-500">
-                                        No hay órdenes registradas
+                                        No hay 贸rdenes registradas
                                     </td>
                                 </tr>
                             )}
@@ -173,7 +173,7 @@ function OrdersPage() {
                                     <td className="p-5">
                                         <div className="flex items-center gap-2">
                                             <FaMapMarkerAlt className="text-cyan-400" />
-                                            {o.origin} → {o.destination}
+                                            {o.origin} 鈫?{o.destination}
                                         </div>
                                     </td>
                                     <td className="p-5">
@@ -222,7 +222,7 @@ function OrdersPage() {
                             <div className="grid grid-cols-2 gap-5">
                                 {[
                                     { label:"Cliente",   key:"client" },
-                                    { label:"Vehículo",  key:"vehicle" },
+                                    { label:"Veh铆culo",  key:"vehicle" },
                                     { label:"Conductor", key:"driver" },
                                     { label:"Origen",    key:"origin" },
                                     { label:"Destino",   key:"destination" },
@@ -241,7 +241,7 @@ function OrdersPage() {
                                     <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}
                                         className="w-full bg-[#020617] border border-cyan-400/10 rounded-xl px-5 py-3 text-white outline-none">
                                         <option>Pendiente</option>
-                                        <option>En Tránsito</option>
+                                        <option>En Tr谩nsito</option>
                                         <option>Entregado</option>
                                         <option>Cancelado</option>
                                     </select>

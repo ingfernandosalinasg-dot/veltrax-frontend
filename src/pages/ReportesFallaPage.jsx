@@ -6,7 +6,7 @@ import { FaExclamationTriangle, FaPlus, FaTrash, FaTimes, FaCheck,
          FaArrowRight, FaClipboardList, FaTruck, FaTools } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
 
 const PRIORIDADES = ["Baja", "Media", "Alta", "Urgente"];
 const TIPOS_ORDEN = ["Preventivo", "Correctivo"];
@@ -327,3 +327,4 @@ export default function ReportesFallaPage() {
         </div>
     );
 }
+

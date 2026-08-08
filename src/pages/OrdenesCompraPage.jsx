@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import { FaShoppingCart, FaCheck, FaTimes, FaTrash, FaEye,
@@ -6,12 +6,12 @@ import { FaShoppingCart, FaCheck, FaTimes, FaTrash, FaEye,
          FaChevronDown, FaChevronUp, FaPlus } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
 const inputCls  = "w-full bg-white/5 border border-cyan-400/10 rounded-xl px-4 py-3 text-white outline-none focus:border-cyan-400/40 transition-all text-sm";
 const selectCls = "w-full bg-[#020617] border border-cyan-400/10 rounded-xl px-4 py-3 text-white outline-none focus:border-cyan-400/40 transition-all text-sm";
 
-function fmxn(n) { if (n == null) return "—"; return "$" + Number(n).toLocaleString("es-MX", { minimumFractionDigits: 2 }); }
-function fnum(n) { if (n == null) return "—"; return Number(n).toLocaleString("es-MX"); }
+function fmxn(n) { if (n == null) return "鈥?; return "$" + Number(n).toLocaleString("es-MX", { minimumFractionDigits: 2 }); }
+function fnum(n) { if (n == null) return "鈥?; return Number(n).toLocaleString("es-MX"); }
 
 const OC_STATUS_COLORS = {
     PENDIENTE:  "text-yellow-300 bg-yellow-500/10 border-yellow-400/30",
@@ -71,7 +71,7 @@ export default function OrdenesCompraPage() {
 
     useEffect(() => { fetchAll(); }, []);
 
-    // Cuando cambia la licitación en el form, cargar sus partidas
+    // Cuando cambia la licitaci贸n en el form, cargar sus partidas
     useEffect(() => {
         if (!form.licitacionId) { setPartidasLic([]); return; }
         fetch(`${API}/api/licitaciones/${form.licitacionId}/partidas`, { headers })
@@ -94,12 +94,12 @@ export default function OrdenesCompraPage() {
     const setF = k => e => { setForm(p => ({ ...p, [k]: e.target.value })); setErrForm(null); };
 
     const validar = () => {
-        if (!form.licitacionId) return "Selecciona una licitación";
+        if (!form.licitacionId) return "Selecciona una licitaci贸n";
         if (!form.partidaId)    return "Selecciona una partida";
         if (!form.proveedorId)  return "Selecciona un proveedor";
         const cant = Number(form.cantidad);
-        if (!cant || cant <= 0) return "Ingresa una cantidad válida";
-        if (saldoDisp && cant > saldoDisp.disponible) return `⛔ Excede el saldo disponible (${fnum(saldoDisp.disponible)} ${saldoDisp.partida?.unidad || ""})`;
+        if (!cant || cant <= 0) return "Ingresa una cantidad v谩lida";
+        if (saldoDisp && cant > saldoDisp.disponible) return `鉀?Excede el saldo disponible (${fnum(saldoDisp.disponible)} ${saldoDisp.partida?.unidad || ""})`;
         if (!form.precioUnitario || Number(form.precioUnitario) <= 0) return "Ingresa el precio unitario";
         return null;
     };
@@ -121,7 +121,7 @@ export default function OrdenesCompraPage() {
                 })
             });
             if (res.ok) {
-                showMsg(true, "Orden de compra creada ✓");
+                showMsg(true, "Orden de compra creada 鉁?);
                 setShowModal(false);
                 setForm({ licitacionId:"", partidaId:"", proveedorId:"", cantidad:"", precioUnitario:"", notas:"" });
                 fetchAll();
@@ -129,7 +129,7 @@ export default function OrdenesCompraPage() {
                 const e = await res.json().catch(() => ({}));
                 setErrForm(e.message || "Error al crear la orden");
             }
-        } catch { setErrForm("Error de conexión"); }
+        } catch { setErrForm("Error de conexi贸n"); }
         setLoading(false);
     };
 
@@ -143,7 +143,7 @@ export default function OrdenesCompraPage() {
     };
 
     const cancelarOC = async (id) => {
-        if (!confirm("¿Cancelar esta orden de compra?")) return;
+        if (!confirm("驴Cancelar esta orden de compra?")) return;
         await fetch(`${API}/api/licitaciones/ordenes-compra/${id}/cancelar`, { method: "PUT", headers });
         showMsg(true, "Orden cancelada");
         fetchAll();
@@ -181,7 +181,7 @@ export default function OrdenesCompraPage() {
                 {/* Header */}
                 <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-8 flex justify-between items-center">
                     <div>
-                        <h1 className="text-5xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">ÓRDENES DE COMPRA</h1>
+                        <h1 className="text-5xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">脫RDENES DE COMPRA</h1>
                         <p className="text-gray-400 mt-2">Todas las OC ligadas a fallos de licitaciones ganadas</p>
                     </div>
                     <button onClick={() => { setShowModal(true); setErrForm(null); }}
@@ -223,9 +223,9 @@ export default function OrdenesCompraPage() {
                     <select value={filtroLic} onChange={e => setFiltroLic(e.target.value)}
                         className="bg-[#020617] border border-cyan-400/10 rounded-xl px-4 py-2 text-white outline-none text-sm">
                         <option value="">Todas las licitaciones</option>
-                        {licitaciones.map(l => <option key={l.id} value={l.id}>{l.folio} — {l.titulo}</option>)}
+                        {licitaciones.map(l => <option key={l.id} value={l.id}>{l.folio} 鈥?{l.titulo}</option>)}
                     </select>
-                    <span className="text-gray-500 text-sm self-center">{filtradas.length} OC · {fmxn(totalActivo)}</span>
+                    <span className="text-gray-500 text-sm self-center">{filtradas.length} OC 路 {fmxn(totalActivo)}</span>
                 </div>
 
                 {/* Tabla */}
@@ -233,7 +233,7 @@ export default function OrdenesCompraPage() {
                     <table className="w-full text-left text-sm">
                         <thead>
                             <tr className="text-gray-400 border-b border-cyan-400/10">
-                                {["# OC", "Licitación", "Partida", "Proveedor", "Cantidad", "Precio U.", "Total", "Status", "Avanzar", "Acciones"].map(h => (
+                                {["# OC", "Licitaci贸n", "Partida", "Proveedor", "Cantidad", "Precio U.", "Total", "Status", "Avanzar", "Acciones"].map(h => (
                                     <th key={h} className="px-4 py-3 font-bold whitespace-nowrap">{h}</th>
                                 ))}
                             </tr>
@@ -242,8 +242,8 @@ export default function OrdenesCompraPage() {
                             {filtradas.length === 0 && (
                                 <tr><td colSpan={10} className="py-16 text-center text-gray-500">
                                     <FaShoppingCart className="mx-auto mb-3 text-3xl" />
-                                    <p>No hay órdenes de compra</p>
-                                    <p className="text-xs mt-1">Crea una OC desde una licitación GANADA o desde el botón "Nueva OC"</p>
+                                    <p>No hay 贸rdenes de compra</p>
+                                    <p className="text-xs mt-1">Crea una OC desde una licitaci贸n GANADA o desde el bot贸n "Nueva OC"</p>
                                 </td></tr>
                             )}
                             {filtradas.map((oc, i) => {
@@ -258,14 +258,14 @@ export default function OrdenesCompraPage() {
                                             </button>
                                         </td>
                                         <td className="px-4 py-3">
-                                            <p className="text-cyan-300 font-black text-xs">{oc.licitacionFolio || "—"}</p>
+                                            <p className="text-cyan-300 font-black text-xs">{oc.licitacionFolio || "鈥?}</p>
                                             <p className="text-gray-400 text-xs truncate max-w-xs">{oc.licitacionTitulo || ""}</p>
                                         </td>
                                         <td className="px-4 py-3 text-white max-w-xs">
-                                            <p className="font-bold truncate">{oc.partidaDescripcion || "—"}</p>
+                                            <p className="font-bold truncate">{oc.partidaDescripcion || "鈥?}</p>
                                             {oc.partidaClave && <p className="text-gray-500 text-xs">{oc.partidaClave}</p>}
                                         </td>
-                                        <td className="px-4 py-3 text-gray-300 whitespace-nowrap">{oc.proveedorNombre || "—"}</td>
+                                        <td className="px-4 py-3 text-gray-300 whitespace-nowrap">{oc.proveedorNombre || "鈥?}</td>
                                         <td className="px-4 py-3 text-white font-bold text-right whitespace-nowrap">{fnum(oc.cantidad)} {oc.unidad}</td>
                                         <td className="px-4 py-3 text-white text-right whitespace-nowrap">{fmxn(oc.precioUnitario)}</td>
                                         <td className="px-4 py-3 text-green-300 font-black text-right whitespace-nowrap">{fmxn(oc.total)}</td>
@@ -278,7 +278,7 @@ export default function OrdenesCompraPage() {
                                             {siguiente && oc.status !== "CANCELADA" && (
                                                 <button onClick={() => avanzarStatus(oc)}
                                                     className="px-3 py-1 rounded-lg bg-cyan-500/10 border border-cyan-400/20 text-cyan-300 text-xs font-bold hover:bg-cyan-500/20 transition-all whitespace-nowrap">
-                                                    → {siguiente}
+                                                    鈫?{siguiente}
                                                 </button>
                                             )}
                                         </td>
@@ -313,7 +313,7 @@ export default function OrdenesCompraPage() {
                 </div>
             </div>
 
-            {/* ── Modal Nueva OC ── */}
+            {/* 鈹€鈹€ Modal Nueva OC 鈹€鈹€ */}
             <AnimatePresence>
                 {showModal && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -332,12 +332,12 @@ export default function OrdenesCompraPage() {
                             )}
 
                             <div className="space-y-3">
-                                {/* Licitación */}
+                                {/* Licitaci贸n */}
                                 <div>
-                                    <label className="text-gray-400 text-xs mb-1 block">Licitación (GANADA) *</label>
+                                    <label className="text-gray-400 text-xs mb-1 block">Licitaci贸n (GANADA) *</label>
                                     <select value={form.licitacionId} onChange={setF("licitacionId")} className={selectCls}>
-                                        <option value="">— Seleccionar licitación —</option>
-                                        {licitaciones.map(l => <option key={l.id} value={l.id}>{l.folio} — {l.titulo}</option>)}
+                                        <option value="">鈥?Seleccionar licitaci贸n 鈥?/option>
+                                        {licitaciones.map(l => <option key={l.id} value={l.id}>{l.folio} 鈥?{l.titulo}</option>)}
                                     </select>
                                 </div>
 
@@ -345,7 +345,7 @@ export default function OrdenesCompraPage() {
                                 <div>
                                     <label className="text-gray-400 text-xs mb-1 block">Partida del fallo *</label>
                                     <select value={form.partidaId} onChange={setF("partidaId")} className={selectCls} disabled={!form.licitacionId}>
-                                        <option value="">— Seleccionar partida —</option>
+                                        <option value="">鈥?Seleccionar partida 鈥?/option>
                                         {partidasLic.map(p => <option key={p.id} value={p.id}>{p.clave ? `[${p.clave}] ` : ""}{p.descripcion}</option>)}
                                     </select>
                                 </div>
@@ -354,11 +354,11 @@ export default function OrdenesCompraPage() {
                                 {saldoDisp && (
                                     <div className={`px-4 py-3 rounded-xl border text-sm ${saldoDisp.disponible <= 0 ? "bg-red-500/10 border-red-400/30 text-red-300" : "bg-cyan-500/5 border-cyan-400/20 text-cyan-300"}`}>
                                         <div className="flex justify-between">
-                                            <span>Máximo adjudicado: <strong>{fnum(saldoDisp.partida.cantidadMaxima)}</strong></span>
+                                            <span>M谩ximo adjudicado: <strong>{fnum(saldoDisp.partida.cantidadMaxima)}</strong></span>
                                             <span>Consumido: <strong>{fnum(saldoDisp.consumido)}</strong></span>
                                             <span className="font-black">Disponible: <strong>{fnum(saldoDisp.disponible)}</strong></span>
                                         </div>
-                                        {saldoDisp.disponible <= 0 && <p className="mt-1 text-xs flex items-center gap-1"><FaLock size={10}/> Esta partida está agotada</p>}
+                                        {saldoDisp.disponible <= 0 && <p className="mt-1 text-xs flex items-center gap-1"><FaLock size={10}/> Esta partida est谩 agotada</p>}
                                     </div>
                                 )}
 
@@ -366,7 +366,7 @@ export default function OrdenesCompraPage() {
                                 <div>
                                     <label className="text-gray-400 text-xs mb-1 block">Proveedor *</label>
                                     <select value={form.proveedorId} onChange={setF("proveedorId")} className={selectCls}>
-                                        <option value="">— Seleccionar proveedor —</option>
+                                        <option value="">鈥?Seleccionar proveedor 鈥?/option>
                                         {proveedores.map(p => <option key={p.id} value={p.id}>{p.nombre || p.razonSocial}</option>)}
                                     </select>
                                 </div>
@@ -376,7 +376,7 @@ export default function OrdenesCompraPage() {
                                         <label className="text-gray-400 text-xs mb-1 block">Cantidad *</label>
                                         <input type="number" value={form.cantidad} onChange={setF("cantidad")}
                                             className={inputCls}
-                                            placeholder={saldoDisp ? `Máx ${fnum(saldoDisp.disponible)}` : "0"}
+                                            placeholder={saldoDisp ? `M谩x ${fnum(saldoDisp.disponible)}` : "0"}
                                             max={saldoDisp?.disponible} min={1} />
                                     </div>
                                     <div>
@@ -414,7 +414,7 @@ export default function OrdenesCompraPage() {
                 )}
             </AnimatePresence>
 
-            {/* ── Modal Detalle OC ── */}
+            {/* 鈹€鈹€ Modal Detalle OC 鈹€鈹€ */}
             <AnimatePresence>
                 {showDetalle && ocDetalle && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -431,7 +431,7 @@ export default function OrdenesCompraPage() {
 
                             <div className="space-y-2 mb-5">
                                 {[
-                                    { label: "Licitación",     value: `${ocDetalle.licitacionFolio || ""} ${ocDetalle.licitacionTitulo || ""}` },
+                                    { label: "Licitaci贸n",     value: `${ocDetalle.licitacionFolio || ""} ${ocDetalle.licitacionTitulo || ""}` },
                                     { label: "Partida",        value: ocDetalle.partidaDescripcion },
                                     { label: "Clave partida",  value: ocDetalle.partidaClave },
                                     { label: "Proveedor",      value: ocDetalle.proveedorNombre },
@@ -462,7 +462,7 @@ export default function OrdenesCompraPage() {
                                     return sig && ocDetalle.status !== "CANCELADA" ? (
                                         <button onClick={() => { avanzarStatus(ocDetalle); setOcDetalle(prev => ({ ...prev, status: sig })); }}
                                             className="flex-1 py-3 rounded-2xl bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 font-bold hover:bg-cyan-500/30">
-                                            → Marcar como {sig}
+                                            鈫?Marcar como {sig}
                                         </button>
                                     ) : null;
                                 })()}

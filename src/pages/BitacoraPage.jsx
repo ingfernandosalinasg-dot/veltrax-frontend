@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import { FaHistory, FaSearch, FaFilter } from "react-icons/fa";
 import { motion } from "framer-motion";
 
-const API = "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
 
 const MODULOS = ["TODOS", "VIAJE", "CARTA_PORTE", "LIQUIDACION", "FACTURA", "CAJA"];
 
@@ -83,12 +83,12 @@ export default function BitacoraPage() {
                 <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
                     className="mb-8">
                     <h1 className="text-5xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">
-                        BITÁCORA
+                        BIT脕CORA
                     </h1>
-                    <p className="text-gray-400 mt-2">Historial completo de eventos — quién hizo qué y cuándo</p>
+                    <p className="text-gray-400 mt-2">Historial completo de eventos 鈥?qui茅n hizo qu茅 y cu谩ndo</p>
                 </motion.div>
 
-                {/* Stats rápidos */}
+                {/* Stats r谩pidos */}
                 <div className="grid grid-cols-5 gap-4 mb-8">
                     {[
                         { label: "Total eventos", value: eventos.length, color: "text-white" },
@@ -108,7 +108,7 @@ export default function BitacoraPage() {
 
                 {/* Filtros */}
                 <div className="flex flex-wrap gap-3 mb-6">
-                    {/* Filtro por módulo */}
+                    {/* Filtro por m贸dulo */}
                     <div className="flex gap-2 flex-wrap">
                         {MODULOS.map(m => (
                             <button key={m} onClick={() => setFiltroMod(m)}
@@ -130,7 +130,7 @@ export default function BitacoraPage() {
                             className="bg-white/5 border border-cyan-400/10 rounded-xl pl-9 pr-4 py-2 text-white outline-none focus:border-cyan-400/40 transition-all text-sm w-56" />
                     </div>
 
-                    {/* Buscar por folio específico */}
+                    {/* Buscar por folio espec铆fico */}
                     <div className="flex gap-2">
                         <div className="relative">
                             <FaFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-xs" />
@@ -146,7 +146,7 @@ export default function BitacoraPage() {
                         {buscarFolio && (
                             <button onClick={() => { setBuscarFolio(""); fetchAll(); }}
                                 className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-gray-400 text-sm font-bold hover:bg-white/10 transition-all">
-                                ✕ Limpiar
+                                鉁?Limpiar
                             </button>
                         )}
                     </div>
@@ -161,7 +161,7 @@ export default function BitacoraPage() {
                             <table className="w-full text-left text-sm">
                                 <thead>
                                     <tr className="text-gray-400 border-b border-cyan-400/10">
-                                        {["Fecha", "Hora", "Módulo", "Folio", "Acción", "Status Anterior", "Status Nuevo", "Usuario", "Descripción"]
+                                        {["Fecha", "Hora", "M贸dulo", "Folio", "Acci贸n", "Status Anterior", "Status Nuevo", "Usuario", "Descripci贸n"]
                                             .map(h => <th key={h} className="pb-3 pr-4 font-medium">{h}</th>)}
                                     </tr>
                                 </thead>
@@ -186,17 +186,17 @@ export default function BitacoraPage() {
                                                 </span>
                                             </td>
                                             <td className="py-3 pr-4">
-                                                <span className="font-black text-cyan-300 text-xs">{e.folioReferencia || "—"}</span>
+                                                <span className="font-black text-cyan-300 text-xs">{e.folioReferencia || "鈥?}</span>
                                             </td>
                                             <td className="py-3 pr-4">
                                                 <span className={`px-2 py-1 rounded-lg border text-xs font-bold ${accionColor(e.accion)}`}>
                                                     {e.accion}
                                                 </span>
                                             </td>
-                                            <td className="py-3 pr-4 text-gray-500 text-xs">{e.statusAnterior || "—"}</td>
-                                            <td className="py-3 pr-4 text-gray-300 text-xs">{e.statusNuevo || "—"}</td>
-                                            <td className="py-3 pr-4 text-white text-xs font-bold">{e.usuario || "—"}</td>
-                                            <td className="py-3 pr-4 text-gray-400 text-xs max-w-xs truncate">{e.descripcion || "—"}</td>
+                                            <td className="py-3 pr-4 text-gray-500 text-xs">{e.statusAnterior || "鈥?}</td>
+                                            <td className="py-3 pr-4 text-gray-300 text-xs">{e.statusNuevo || "鈥?}</td>
+                                            <td className="py-3 pr-4 text-white text-xs font-bold">{e.usuario || "鈥?}</td>
+                                            <td className="py-3 pr-4 text-gray-400 text-xs max-w-xs truncate">{e.descripcion || "鈥?}</td>
                                         </motion.tr>
                                     ))}
                                 </tbody>

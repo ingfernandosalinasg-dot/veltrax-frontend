@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+﻿import { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import Topbar from '../components/Topbar';
 import { FaPlus, FaTimes, FaCheck, FaTrash, FaEdit, FaMoneyBillWave,
@@ -85,18 +85,18 @@ export default function PrestamosPage() {
             const method = editando ? 'PUT' : 'POST';
             const res = await fetch(url, { method, headers, body: JSON.stringify({ ...form, montoTotal: Number(form.montoTotal) }) });
             if (res.ok) {
-                showMsg(true, editando ? 'Préstamo actualizado ✓' : 'Préstamo registrado ✓');
+                showMsg(true, editando ? 'Pr茅stamo actualizado 鉁? : 'Pr茅stamo registrado 鉁?);
                 setShowModal(false);
                 fetchAll();
             } else {
                 showMsg(false, 'Error al guardar');
             }
-        } catch(e) { showMsg(false, 'Error de conexión'); }
+        } catch(e) { showMsg(false, 'Error de conexi贸n'); }
         setLoading(false);
     };
 
     const handleDelete = async (id) => {
-        if (!confirm('¿Eliminar este préstamo?')) return;
+        if (!confirm('驴Eliminar este pr茅stamo?')) return;
         await fetch(`${API}/prestamos/${id}`, { method: 'DELETE', headers });
         fetchAll();
     };
@@ -110,7 +110,7 @@ export default function PrestamosPage() {
     };
 
     const registrarAbono = async () => {
-        if (!abonoMonto || Number(abonoMonto) <= 0) { showMsg(false, 'Ingresa un monto válido'); return; }
+        if (!abonoMonto || Number(abonoMonto) <= 0) { showMsg(false, 'Ingresa un monto v谩lido'); return; }
         setLoadingAbono(true);
         try {
             const res = await fetch(`${API}/prestamos/${prestamoSel.id}/abonar`, {
@@ -118,12 +118,12 @@ export default function PrestamosPage() {
                 body: JSON.stringify({ monto: Number(abonoMonto), fecha: abonoFecha })
             });
             if (res.ok) {
-                showMsg(true, 'Abono registrado ✓');
+                showMsg(true, 'Abono registrado 鉁?);
                 setAbonoMonto('');
                 fetchAbonos(prestamoSel.id);
                 fetchAll();
             } else { showMsg(false, 'Error al registrar abono'); }
-        } catch(e) { showMsg(false, 'Error de conexión'); }
+        } catch(e) { showMsg(false, 'Error de conexi贸n'); }
         setLoadingAbono(false);
     };
 
@@ -143,12 +143,12 @@ export default function PrestamosPage() {
 
                 <div className="mb-10 flex justify-between items-center">
                     <div>
-                        <h1 className="text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">PRÉSTAMOS</h1>
-                        <p className="text-gray-400 mt-4 text-xl">Anticipos y préstamos a operadores</p>
+                        <h1 className="text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">PR脡STAMOS</h1>
+                        <p className="text-gray-400 mt-4 text-xl">Anticipos y pr茅stamos a operadores</p>
                     </div>
                     <button onClick={openNew}
                         className="flex items-center gap-3 px-8 py-4 rounded-2xl bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 font-bold text-lg hover:bg-cyan-500/20 transition-all">
-                        <FaPlus /> Nuevo Préstamo
+                        <FaPlus /> Nuevo Pr茅stamo
                     </button>
                 </div>
 
@@ -163,7 +163,7 @@ export default function PrestamosPage() {
                     {[
                         { label: 'Total Prestado',    value: fmt(totalPrestado),  color: 'text-cyan-300',   icon: <FaMoneyBillWave /> },
                         { label: 'Saldo Pendiente',   value: fmt(totalPendiente), color: 'text-yellow-300', icon: <FaMoneyBillWave /> },
-                        { label: 'Préstamos Pagados', value: totalPagado,         color: 'text-green-300',  icon: <FaCheck /> },
+                        { label: 'Pr茅stamos Pagados', value: totalPagado,         color: 'text-green-300',  icon: <FaCheck /> },
                     ].map((s, i) => (
                         <motion.div key={i} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
                             transition={{ delay: i * 0.1 }}
@@ -202,7 +202,7 @@ export default function PrestamosPage() {
                         </thead>
                         <tbody>
                             {prestFiltrados.length === 0 && (
-                                <tr><td colSpan={8} className="py-10 text-center text-gray-500">No hay préstamos registrados</td></tr>
+                                <tr><td colSpan={8} className="py-10 text-center text-gray-500">No hay pr茅stamos registrados</td></tr>
                             )}
                             {prestFiltrados.map((p, i) => (
                                 <motion.tr key={p.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }}
@@ -338,7 +338,7 @@ export default function PrestamosPage() {
                         <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
                             className="bg-[#020617] border border-cyan-400/20 rounded-3xl w-full max-w-lg">
                             <div className="flex justify-between items-center p-8 pb-0">
-                                <h2 className="text-2xl font-black text-cyan-300">{editando ? 'Editar Préstamo' : 'Nuevo Préstamo'}</h2>
+                                <h2 className="text-2xl font-black text-cyan-300">{editando ? 'Editar Pr茅stamo' : 'Nuevo Pr茅stamo'}</h2>
                                 <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-white text-2xl"><FaTimes /></button>
                             </div>
                             <div className="p-8 space-y-4">

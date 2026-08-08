@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+﻿import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import { FaTrophy, FaPlus, FaTrash, FaEdit, FaTimes, FaCheck, FaToggleOn, FaToggleOff } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
 
 const emptyForm = {
     nombre: "", metrica: "VIAJES", valorMinimo: "", tipoBono: "FIJO", valorBono: "", activo: true
@@ -13,7 +13,7 @@ const emptyForm = {
 const inputCls  = "w-full bg-white/5 border border-cyan-400/10 rounded-xl px-5 py-3 text-white outline-none focus:border-cyan-400/40 transition-all";
 const selectCls = "w-full bg-[#020617] border border-cyan-400/10 rounded-xl px-5 py-3 text-white outline-none focus:border-cyan-400/40 transition-all";
 
-const metricaLabel = { VIAJES: "Número de viajes", KM: "Kilómetros recorridos", INGRESO: "Ingreso generado ($)" };
+const metricaLabel = { VIAJES: "N煤mero de viajes", KM: "Kil贸metros recorridos", INGRESO: "Ingreso generado ($)" };
 
 function Field({ label, children, span2 = false }) {
     return (
@@ -76,7 +76,7 @@ export default function UmbralesPage() {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm("¿Eliminar esta regla de umbral?")) return;
+        if (!confirm("驴Eliminar esta regla de umbral?")) return;
         try { await fetch(`${API}/umbrales/${id}`, { method: "DELETE", headers }); fetchAll(); }
         catch (e) { console.error(e); }
     };
@@ -99,7 +99,7 @@ export default function UmbralesPage() {
                 <motion.div initial={{ opacity: 0, y: -30 }} animate={{ opacity: 1, y: 0 }} className="mb-12 flex justify-between items-center">
                     <div>
                         <h1 className="text-5xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">UMBRALES DE RENDIMIENTO</h1>
-                        <p className="text-gray-400 mt-4 text-xl">Reglas de bonos automáticos por metas cumplidas</p>
+                        <p className="text-gray-400 mt-4 text-xl">Reglas de bonos autom谩ticos por metas cumplidas</p>
                     </div>
                     <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={openNew}
                         className="flex items-center gap-3 px-8 py-4 rounded-2xl bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 font-bold text-lg hover:bg-cyan-500/20 transition-all">
@@ -108,9 +108,9 @@ export default function UmbralesPage() {
                 </motion.div>
 
                 <p className="text-gray-500 text-sm mb-6 max-w-2xl">
-                    Estas reglas se evalúan automáticamente al generar una <strong>liquidación por período</strong>.
-                    Si el operador alcanza la meta, el bono se suma a la liquidación. Si dos reglas activas comparten
-                    la misma métrica, solo se aplica la de mayor umbral cumplido; reglas de métricas distintas se suman.
+                    Estas reglas se eval煤an autom谩ticamente al generar una <strong>liquidaci贸n por per铆odo</strong>.
+                    Si el operador alcanza la meta, el bono se suma a la liquidaci贸n. Si dos reglas activas comparten
+                    la misma m茅trica, solo se aplica la de mayor umbral cumplido; reglas de m茅tricas distintas se suman.
                 </p>
 
                 <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
@@ -120,13 +120,13 @@ export default function UmbralesPage() {
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="text-gray-400 border-b border-cyan-400/10 text-sm">
-                                    {["Nombre", "Métrica", "Meta mínima", "Bono", "Activa", "Acciones"]
+                                    {["Nombre", "M茅trica", "Meta m铆nima", "Bono", "Activa", "Acciones"]
                                         .map(h => <th key={h} className="pb-4 pr-4">{h}</th>)}
                                 </tr>
                             </thead>
                             <tbody>
                                 {umbrales.length === 0 && (
-                                    <tr><td colSpan={6} className="py-10 text-center text-gray-500">No hay reglas configuradas todavía</td></tr>
+                                    <tr><td colSpan={6} className="py-10 text-center text-gray-500">No hay reglas configuradas todav铆a</td></tr>
                                 )}
                                 {umbrales.map((u, i) => (
                                     <motion.tr key={u.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
@@ -137,7 +137,7 @@ export default function UmbralesPage() {
                                                 {metricaLabel[u.metrica] || u.metrica}
                                             </span>
                                         </td>
-                                        <td className="py-4 pr-4 text-gray-300">{u.valorMinimo?.toLocaleString() ?? "—"}</td>
+                                        <td className="py-4 pr-4 text-gray-300">{u.valorMinimo?.toLocaleString() ?? "鈥?}</td>
                                         <td className="py-4 pr-4 text-yellow-300 font-bold">
                                             {u.tipoBono === "PORCENTAJE" ? `${u.valorBono}% del ingreso` : `$${(u.valorBono || 0).toLocaleString()}`}
                                         </td>
@@ -174,14 +174,14 @@ export default function UmbralesPage() {
                                 <Field label="Nombre de la regla" span2>
                                     <input type="text" value={form.nombre} onChange={set("nombre")} placeholder="Bono por viajes en quincena" className={inputCls} />
                                 </Field>
-                                <Field label="Métrica">
+                                <Field label="M茅trica">
                                     <select value={form.metrica} onChange={set("metrica")} className={selectCls}>
-                                        <option value="VIAJES">Número de viajes</option>
-                                        <option value="KM">Kilómetros recorridos</option>
+                                        <option value="VIAJES">N煤mero de viajes</option>
+                                        <option value="KM">Kil贸metros recorridos</option>
                                         <option value="INGRESO">Ingreso generado ($)</option>
                                     </select>
                                 </Field>
-                                <Field label="Meta mínima a alcanzar">
+                                <Field label="Meta m铆nima a alcanzar">
                                     <input type="number" value={form.valorMinimo} onChange={set("valorMinimo")} placeholder="8" className={inputCls} />
                                 </Field>
                                 <Field label="Tipo de bono">
@@ -208,3 +208,4 @@ export default function UmbralesPage() {
         </div>
     );
 }
+

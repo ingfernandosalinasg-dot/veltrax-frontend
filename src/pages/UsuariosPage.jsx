@@ -3,7 +3,7 @@ import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import { FaUserShield, FaPlus, FaTimes, FaCheck, FaTrash, FaEdit, FaToggleOn, FaToggleOff } from "react-icons/fa";
 
-const API = "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
 
 const ROLE_COLORS = {
     ADMIN:    "text-purple-300 bg-purple-500/10 border-purple-400/30",
@@ -186,3 +186,4 @@ export default function UsuariosPage() {
         </div>
     );
 }
+

@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { motion } from "framer-motion";
 import { FaTruck } from "react-icons/fa";
 import API from "../services/api";
@@ -40,7 +40,7 @@ function LoginPage() {
 
             console.log(error);
 
-            alert(error?.response?.data?.error || "Correo, contraseña o RFC de empresa incorrectos");
+            alert(error?.response?.data?.error || "Correo, contrase帽a o RFC de empresa incorrectos");
         }
     };
 
@@ -88,7 +88,7 @@ function LoginPage() {
                 }}
             />
 
-            {/* Camión */}
+            {/* Cami贸n */}
             <motion.div
                 initial={{ x: -500 }}
                 animate={{ x: 1500 }}
@@ -183,7 +183,7 @@ function LoginPage() {
         textShadow: "0 0 10px rgba(255,255,255,0.5)"
     }}
 >
-    Plataforma logística inteligente
+    Plataforma log铆stica inteligente
 </p>
 
                 {/* RFC de empresa */}
@@ -231,7 +231,7 @@ function LoginPage() {
                 {/* Password */}
                 <input
                     type="password"
-                    placeholder="Contraseña"
+                    placeholder="Contrase帽a"
                     value={password}
                     onChange={(e)=>
                         setPassword(e.target.value)
@@ -248,7 +248,7 @@ function LoginPage() {
                     }}
                 />
 
-                {/* Botón */}
+                {/* Bot贸n */}
                 <motion.button
 
                     whileHover={{
@@ -274,7 +274,7 @@ function LoginPage() {
                         cursor: "pointer"
                     }}
                 >
-                    INICIAR SESIÓN
+                    INICIAR SESI脫N
                 </motion.button>
 
             </motion.div>

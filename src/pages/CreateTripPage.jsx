@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { motion } from "framer-motion";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
@@ -31,7 +31,7 @@ function CreateTripPage() {
 
         console.log("Nuevo Viaje:", trip);
 
-        alert("Viaje creado correctamente 🚚");
+        alert("Viaje creado correctamente 馃殮");
     };
 
     return (

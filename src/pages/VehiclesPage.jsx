@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+﻿import { useState, useEffect, useCallback, useRef } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import { FaTruck, FaTools, FaCheckCircle, FaRoad, FaPlus, FaTrash, FaTimes, FaEdit, FaSearch, FaTachometerAlt } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
 
 const emptyForm = {
     plate: "", brand: "", model: "", year: "",
@@ -32,7 +32,7 @@ function Field({ label, children, span2 = false }) {
 }
 
 function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2 = false }) {
-    const [query,   setQuery]   = useState(value ? `${value} — ${valueDesc || ""}` : "");
+    const [query,   setQuery]   = useState(value ? `${value} 鈥?${valueDesc || ""}` : "");
     const [results, setResults] = useState([]);
     const [open,    setOpen]    = useState(false);
     const [loading, setLoading] = useState(false);
@@ -60,7 +60,7 @@ function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2
     };
 
     const seleccionar = (item) => {
-        setQuery(`${item.clave} — ${item.descripcion}`);
+        setQuery(`${item.clave} 鈥?${item.descripcion}`);
         setOpen(false);
         onChange(item.clave, item.descripcion);
     };
@@ -81,7 +81,7 @@ function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2
                 {value && (
                     <div className="mt-1 px-3 py-1 rounded-lg bg-cyan-500/10 border border-cyan-400/20 text-xs text-cyan-300 flex items-center gap-2">
                         <span className="font-mono font-bold">{value}</span>
-                        <span className="text-gray-400">—</span>
+                        <span className="text-gray-400">鈥?/span>
                         <span className="truncate">{valueDesc}</span>
                     </div>
                 )}
@@ -147,7 +147,7 @@ export default function VehiclesPage() {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm("¿Eliminar este vehículo?")) return;
+        if (!confirm("驴Eliminar este veh铆culo?")) return;
         try { await fetch(`${API}/vehicles/${id}`, { method: "DELETE", headers }); fetchVehicles(); }
         catch (e) { console.error(e); }
     };
@@ -172,12 +172,12 @@ export default function VehiclesPage() {
 
                 <motion.div initial={{ opacity: 0, y: -30 }} animate={{ opacity: 1, y: 0 }} className="mb-12 flex justify-between items-center">
                     <div>
-                        <h1 className="text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">VEHÍCULOS</h1>
-                        <p className="text-gray-400 mt-4 text-xl">Catálogo y gestión de flotilla</p>
+                        <h1 className="text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">VEH脥CULOS</h1>
+                        <p className="text-gray-400 mt-4 text-xl">Cat谩logo y gesti贸n de flotilla</p>
                     </div>
                     <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={openNew}
                         className="flex items-center gap-3 px-8 py-4 rounded-2xl bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 font-bold text-lg hover:bg-cyan-500/20 transition-all">
-                        <FaPlus /> Nuevo Vehículo
+                        <FaPlus /> Nuevo Veh铆culo
                     </motion.button>
                 </motion.div>
 
@@ -204,18 +204,18 @@ export default function VehiclesPage() {
 
                 <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
                     className="rounded-3xl bg-white/5 border border-cyan-400/10 backdrop-blur-xl p-8">
-                    <h2 className="text-3xl font-black text-cyan-300 mb-8 flex items-center gap-3"><FaTruck /> Vehículos Registrados</h2>
+                    <h2 className="text-3xl font-black text-cyan-300 mb-8 flex items-center gap-3"><FaTruck /> Veh铆culos Registrados</h2>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="text-gray-400 border-b border-cyan-400/10 text-sm">
-                                    {["Placas","Marca","Modelo","Año","Tipo","Odómetro","Config SAT","Permiso SCT","Status","Acciones"]
+                                    {["Placas","Marca","Modelo","A帽o","Tipo","Od贸metro","Config SAT","Permiso SCT","Status","Acciones"]
                                         .map(h => <th key={h} className="pb-4 pr-5">{h}</th>)}
                                 </tr>
                             </thead>
                             <tbody>
                                 {filtrados.length === 0 && (
-                                    <tr><td colSpan={10} className="py-10 text-center text-gray-500">No hay vehículos registrados</td></tr>
+                                    <tr><td colSpan={10} className="py-10 text-center text-gray-500">No hay veh铆culos registrados</td></tr>
                                 )}
                                 {filtrados.map((v, i) => (
                                     <motion.tr key={v.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
@@ -224,7 +224,7 @@ export default function VehiclesPage() {
                                         <td className="py-4 pr-5 font-bold">{v.brand}</td>
                                         <td className="py-4 pr-5 text-gray-300">{v.model}</td>
                                         <td className="py-4 pr-5 text-gray-400">{v.year}</td>
-                                        <td className="py-4 pr-5 text-gray-400 text-sm">{v.tipo || "—"}</td>
+                                        <td className="py-4 pr-5 text-gray-400 text-sm">{v.tipo || "鈥?}</td>
                                         <td className="py-4 pr-5">
                                             <span className="flex items-center gap-2 text-orange-300 font-bold text-sm">
                                                 <FaTachometerAlt size={12} /> {(v.odometroKm || 0).toLocaleString()} km
@@ -233,12 +233,12 @@ export default function VehiclesPage() {
                                         <td className="py-4 pr-5">
                                             {v.configAutotransporte
                                                 ? <span className="px-2 py-1 rounded-lg bg-cyan-500/10 text-cyan-300 text-xs font-mono font-bold">{v.configAutotransporte}</span>
-                                                : <span className="text-gray-600">—</span>}
+                                                : <span className="text-gray-600">鈥?/span>}
                                         </td>
                                         <td className="py-4 pr-5">
                                             {v.tipoPermiso
                                                 ? <span className="px-2 py-1 rounded-lg bg-purple-500/10 text-purple-300 text-xs font-mono font-bold">{v.tipoPermiso}</span>
-                                                : <span className="text-gray-600">—</span>}
+                                                : <span className="text-gray-600">鈥?/span>}
                                         </td>
                                         <td className="py-4 pr-5">
                                             <span className={`px-3 py-1 rounded-full border text-xs font-bold ${
@@ -270,23 +270,23 @@ export default function VehiclesPage() {
                         <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
                             className="bg-[#020617] border border-cyan-400/20 rounded-3xl w-full max-w-3xl max-h-[90vh] flex flex-col">
                             <div className="flex justify-between items-center p-8 pb-0 flex-shrink-0">
-                                <h2 className="text-3xl font-black text-cyan-300">{editando ? "Editar Vehículo" : "Nuevo Vehículo"}</h2>
+                                <h2 className="text-3xl font-black text-cyan-300">{editando ? "Editar Veh铆culo" : "Nuevo Veh铆culo"}</h2>
                                 <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-white text-2xl"><FaTimes /></button>
                             </div>
                             <div className="flex-1 overflow-y-auto px-8 py-6">
                                 <div className="grid grid-cols-2 gap-5">
 
-                                    <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest">Identificación</p>
+                                    <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest">Identificaci贸n</p>
                                     <Field label="Placas">
                                         <input value={form.plate} onChange={set("plate")} placeholder="ABC-1234" className={inputCls} />
                                     </Field>
-                                    <Field label="Tipo de vehículo">
+                                    <Field label="Tipo de veh铆culo">
                                         <select value={form.tipo} onChange={set("tipo")} className={selectCls}>
                                             <option value="">Seleccionar...</option>
-                                            <option>Trailer / Tractocamión</option>
+                                            <option>Trailer / Tractocami贸n</option>
                                             <option>Torton</option>
                                             <option>Rabon</option>
-                                            <option>Camión 3.5T</option>
+                                            <option>Cami贸n 3.5T</option>
                                             <option>Camioneta</option>
                                             <option>Otro</option>
                                         </select>
@@ -297,7 +297,7 @@ export default function VehiclesPage() {
                                     <Field label="Modelo">
                                         <input value={form.model} onChange={set("model")} placeholder="T680, FH16..." className={inputCls} />
                                     </Field>
-                                    <Field label="Año">
+                                    <Field label="A帽o">
                                         <input type="number" value={form.year} onChange={set("year")} placeholder="2022" className={inputCls} />
                                     </Field>
                                     <Field label="Color">
@@ -312,9 +312,9 @@ export default function VehiclesPage() {
                                     <Field label="Capacidad de carga">
                                         <input value={form.capacidadCarga} onChange={set("capacidadCarga")} placeholder="20 TON" className={inputCls} />
                                     </Field>
-                                    <Field label="Odómetro actual (km)">
+                                    <Field label="Od贸metro actual (km)">
                                         <input type="number" value={form.odometroKm} onChange={set("odometroKm")} placeholder="0" className={inputCls} />
-                                        <p className="text-gray-500 text-xs mt-1">Se suma solo con cada viaje cobrado. Aquí puedes corregirlo si hace falta.</p>
+                                        <p className="text-gray-500 text-xs mt-1">Se suma solo con cada viaje cobrado. Aqu铆 puedes corregirlo si hace falta.</p>
                                     </Field>
                                     <Field label="Status">
                                         <select value={form.status} onChange={set("status")} className={selectCls}>
@@ -325,11 +325,11 @@ export default function VehiclesPage() {
                                         </select>
                                     </Field>
 
-                                    {/* SECCIÓN SAT */}
+                                    {/* SECCI脫N SAT */}
                                     <div className="col-span-2 p-4 rounded-2xl bg-cyan-500/5 border border-cyan-400/20">
-                                        <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-4">Claves SAT — Carta Porte 3.1</p>
+                                        <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-4">Claves SAT 鈥?Carta Porte 3.1</p>
                                         <div className="grid grid-cols-2 gap-4">
-                                            <SatPicker label="Configuración Autotransporte (SAT)" tipo="c_ConfigAutotransporte"
+                                            <SatPicker label="Configuraci贸n Autotransporte (SAT)" tipo="c_ConfigAutotransporte"
                                                 value={form.configAutotransporte} valueDesc={form.configAutotransporteDesc}
                                                 onChange={setSat("configAutotransporte","configAutotransporteDesc")}
                                                 placeholder="Buscar config... ej: C2, T3S2" span2={true} />
@@ -337,8 +337,8 @@ export default function VehiclesPage() {
                                                 value={form.tipoPermiso} valueDesc={form.tipoPermisoDesc}
                                                 onChange={setSat("tipoPermiso","tipoPermisoDesc")}
                                                 placeholder="Buscar permiso... ej: TPAF01" span2={true} />
-                                            <Field label="Número de Permiso SCT">
-                                                <input value={form.numPermisoSct} onChange={set("numPermisoSct")} placeholder="Número asignado por SCT" className={inputCls} />
+                                            <Field label="N煤mero de Permiso SCT">
+                                                <input value={form.numPermisoSct} onChange={set("numPermisoSct")} placeholder="N煤mero asignado por SCT" className={inputCls} />
                                             </Field>
                                             <Field label="Placas Remolque 1">
                                                 <input value={form.numPlacasRemolque1} onChange={set("numPlacasRemolque1")} placeholder="Si aplica" className={inputCls} />
@@ -350,10 +350,10 @@ export default function VehiclesPage() {
                                     </div>
 
                                     <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-2">Documentos</p>
-                                    <Field label="Tarjeta de circulación">
+                                    <Field label="Tarjeta de circulaci贸n">
                                         <input value={form.tarjetaCirculacion} onChange={set("tarjetaCirculacion")} className={inputCls} />
                                     </Field>
-                                    <Field label="Póliza de seguro">
+                                    <Field label="P贸liza de seguro">
                                         <input value={form.polizaSeguro} onChange={set("polizaSeguro")} className={inputCls} />
                                     </Field>
                                     <Field label="Vigencia del seguro" span2>
@@ -368,7 +368,7 @@ export default function VehiclesPage() {
                                 <button onClick={() => setShowModal(false)} className="flex-1 py-4 rounded-2xl border border-white/10 text-gray-400 hover:bg-white/5 transition-all font-bold">Cancelar</button>
                                 <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleSubmit} disabled={loading}
                                     className="flex-1 py-4 rounded-2xl bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 font-bold hover:bg-cyan-500/30 transition-all flex items-center justify-center gap-3">
-                                    {loading ? "Guardando..." : editando ? "Actualizar" : "Guardar Vehículo"}
+                                    {loading ? "Guardando..." : editando ? "Actualizar" : "Guardar Veh铆culo"}
                                 </motion.button>
                             </div>
                         </motion.div>
