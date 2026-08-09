@@ -40,7 +40,7 @@ function LoginPage() {
 
             console.log(error);
 
-            alert(error?.response?.data?.error || "Correo, contrase帽a o RFC de empresa incorrectos");
+            alert(error?.response?.data?.error || "Correo, Contraseña o RFC de empresa incorrectos");
         }
     };
 
@@ -183,7 +183,7 @@ function LoginPage() {
         textShadow: "0 0 10px rgba(255,255,255,0.5)"
     }}
 >
-    Plataforma log铆stica inteligente
+    Plataforma logística inteligente
 </p>
 
                 {/* RFC de empresa */}
@@ -231,7 +231,7 @@ function LoginPage() {
                 {/* Password */}
                 <input
                     type="password"
-                    placeholder="Contrase帽a"
+                    placeholder="Contraseña"
                     value={password}
                     onChange={(e)=>
                         setPassword(e.target.value)
@@ -274,7 +274,7 @@ function LoginPage() {
                         cursor: "pointer"
                     }}
                 >
-                    INICIAR SESI脫N
+                    INICIAR Sesión
                 </motion.button>
 
             </motion.div>
@@ -284,6 +284,7 @@ function LoginPage() {
 }
 
 export default LoginPage;
+
 
 
 

@@ -290,7 +290,7 @@ export default function DestinatariosPage() {
                                     </Field>
 
                                     <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-2">Direcci贸n de entrega</p>
-                                    <Field label="Calle y n煤mero" span2>
+                                    <Field label="Calle y Número" span2>
                                         <input value={form.direccion} onChange={set("direccion")} className={inputCls} />
                                     </Field>
 
@@ -328,6 +328,7 @@ export default function DestinatariosPage() {
         </div>
     );
 }
+
 
 
 

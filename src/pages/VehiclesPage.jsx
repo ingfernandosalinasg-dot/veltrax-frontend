@@ -337,8 +337,8 @@ export default function VehiclesPage() {
                                                 value={form.tipoPermiso} valueDesc={form.tipoPermisoDesc}
                                                 onChange={setSat("tipoPermiso","tipoPermisoDesc")}
                                                 placeholder="Buscar permiso... ej: TPAF01" span2={true} />
-                                            <Field label="N煤mero de Permiso SCT">
-                                                <input value={form.numPermisoSct} onChange={set("numPermisoSct")} placeholder="N煤mero asignado por SCT" className={inputCls} />
+                                            <Field label="Número de Permiso SCT">
+                                                <input value={form.numPermisoSct} onChange={set("numPermisoSct")} placeholder="Número asignado por SCT" className={inputCls} />
                                             </Field>
                                             <Field label="Placas Remolque 1">
                                                 <input value={form.numPlacasRemolque1} onChange={set("numPlacasRemolque1")} placeholder="Si aplica" className={inputCls} />
@@ -378,6 +378,7 @@ export default function VehiclesPage() {
         </div>
     );
 }
+
 
 
 

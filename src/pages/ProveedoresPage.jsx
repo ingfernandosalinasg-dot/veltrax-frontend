@@ -281,7 +281,7 @@ export default function ProveedoresPage() {
                                     </Field>
 
                                     <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-2">Direcci贸n</p>
-                                    <Field label="Calle y n煤mero" span2>
+                                    <Field label="Calle y Número" span2>
                                         <input value={form.direccion} onChange={set("direccion")} placeholder="Calle, No., Colonia" className={inputCls} />
                                     </Field>
 
@@ -315,6 +315,7 @@ export default function ProveedoresPage() {
         </div>
     );
 }
+
 
 
 

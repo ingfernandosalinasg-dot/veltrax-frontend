@@ -13,7 +13,7 @@ const emptyForm = {
 const inputCls  = "w-full bg-white/5 border border-cyan-400/10 rounded-xl px-5 py-3 text-white outline-none focus:border-cyan-400/40 transition-all";
 const selectCls = "w-full bg-[#020617] border border-cyan-400/10 rounded-xl px-5 py-3 text-white outline-none focus:border-cyan-400/40 transition-all";
 
-const metricaLabel = { VIAJES: "N煤mero de viajes", KM: "Kil贸metros recorridos", INGRESO: "Ingreso generado ($)" };
+const metricaLabel = { VIAJES: "Número de viajes", KM: "Kil贸metros recorridos", INGRESO: "Ingreso generado ($)" };
 
 function Field({ label, children, span2 = false }) {
     return (
@@ -176,7 +176,7 @@ export default function UmbralesPage() {
                                 </Field>
                                 <Field label="M茅trica">
                                     <select value={form.metrica} onChange={set("metrica")} className={selectCls}>
-                                        <option value="VIAJES">N煤mero de viajes</option>
+                                        <option value="VIAJES">Número de viajes</option>
                                         <option value="KM">Kil贸metros recorridos</option>
                                         <option value="INGRESO">Ingreso generado ($)</option>
                                     </select>
@@ -208,6 +208,7 @@ export default function UmbralesPage() {
         </div>
     );
 }
+
 
 
 

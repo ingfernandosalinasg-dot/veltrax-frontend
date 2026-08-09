@@ -318,8 +318,8 @@ export default function ClientesPage() {
                                     </Field>
 
                                     <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-2">Direcci贸n</p>
-                                    <Field label="Calle y n煤mero" span2>
-                                        <input value={form.direccion} onChange={set("direccion")} placeholder="Calle, n煤mero exterior/interior" className={inputCls} />
+                                    <Field label="Calle y Número" span2>
+                                        <input value={form.direccion} onChange={set("direccion")} placeholder="Calle, Número exterior/interior" className={inputCls} />
                                     </Field>
 
                                     <div className="col-span-2">
@@ -362,6 +362,7 @@ export default function ClientesPage() {
         </div>
     );
 }
+
 
 
 

@@ -50,7 +50,7 @@ export default function UsuariosPage() {
 
     const handleSubmit = async () => {
         if (!form.name || !form.email) { showMsg(false, "Nombre y email son requeridos"); return; }
-        if (!editando && (!form.password || form.password.length < 6)) { showMsg(false, "La contrasena debe tener al menos 6 caracteres"); return; }
+        if (!editando && (!form.password || form.password.length < 6)) { showMsg(false, "La Contraseña debe tener al menos 6 caracteres"); return; }
         setLoading(true);
         try {
             const url    = editando ? API+"/api/usuarios/"+editando : API+"/api/usuarios";
@@ -158,7 +158,7 @@ export default function UsuariosPage() {
                                 <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))} className={inputCls} placeholder="correo@veltrax.com" />
                             </div>
                             <div>
-                                <label className="text-gray-400 text-sm mb-2 block">Contrasena {editando && <span className="text-gray-500">(dejar vacio para no cambiar)</span>}</label>
+                                <label className="text-gray-400 text-sm mb-2 block">Contraseña {editando && <span className="text-gray-500">(dejar vacio para no cambiar)</span>}</label>
                                 <input type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} className={inputCls} placeholder={editando ? "..." : "Minimo 6 caracteres"} />
                             </div>
                             <div>
@@ -186,6 +186,7 @@ export default function UsuariosPage() {
         </div>
     );
 }
+
 
 
 

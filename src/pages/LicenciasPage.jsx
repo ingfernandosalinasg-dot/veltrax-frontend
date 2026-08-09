@@ -148,7 +148,7 @@ export default function LicenciasPage() {
     };
 
     const crearUsuario = async () => {
-        if (!userForm.name || !userForm.email || !userForm.password) { showMsg(false, "Nombre, email y contrasena son requeridos"); return; }
+        if (!userForm.name || !userForm.email || !userForm.password) { showMsg(false, "Nombre, email y Contraseña son requeridos"); return; }
         setLoadingUser(true);
         try {
             const res = await fetch(API+"/api/usuarios", { method:"POST", headers, body: JSON.stringify({ ...userForm, tenantId: tenantSel.id }) });
@@ -346,7 +346,7 @@ export default function LicenciasPage() {
                             <div className="space-y-4">
                                 <div><label className="text-gray-400 text-sm mb-2 block">Nombre</label><input value={userForm.name} onChange={setUF("name")} className={inputCls} placeholder="Nombre completo" /></div>
                                 <div><label className="text-gray-400 text-sm mb-2 block">Email</label><input type="email" value={userForm.email} onChange={setUF("email")} className={inputCls} placeholder="correo@empresa.com" /></div>
-                                <div><label className="text-gray-400 text-sm mb-2 block">Contrasena</label><input type="password" value={userForm.password} onChange={setUF("password")} className={inputCls} placeholder="Minimo 6 caracteres" /></div>
+                                <div><label className="text-gray-400 text-sm mb-2 block">Contraseña</label><input type="password" value={userForm.password} onChange={setUF("password")} className={inputCls} placeholder="Minimo 6 caracteres" /></div>
                                 <div><label className="text-gray-400 text-sm mb-2 block">Rol</label>
                                     <select value={userForm.role} onChange={setUF("role")} className={selectCls}>
                                         <option value="ADMIN">ADMIN - Acceso total</option>
@@ -411,7 +411,7 @@ export default function LicenciasPage() {
                                 ))}
                             </div>
                             <div className="p-4 rounded-2xl bg-yellow-500/5 border border-yellow-400/20 text-yellow-300 text-sm text-center">
-                                El precio se calcula automaticamente segun el numero de licencias (usuarios) al registrar un cliente.
+                                El precio se calcula automaticamente segun el Número de licencias (usuarios) al registrar un cliente.
                             </div>
                         </motion.div>
                     </motion.div>
@@ -447,7 +447,7 @@ export default function LicenciasPage() {
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="text-gray-400 text-sm mb-2 block">Numero de Licencias (Usuarios)</label>
+                                        <label className="text-gray-400 text-sm mb-2 block">Número de Licencias (Usuarios)</label>
                                         <input type="number" value={form.maxUsuarios} onChange={onUsuariosChange} className={inputCls} min="1" />
                                         {form.maxUsuarios && form.precioMensual && (
                                             <p className="text-green-300 text-xs mt-1 font-bold">Total mensual: {fmt(form.precioMensual)}</p>
@@ -472,6 +472,8 @@ export default function LicenciasPage() {
         </div>
     );
 }
+
+
 
 
 

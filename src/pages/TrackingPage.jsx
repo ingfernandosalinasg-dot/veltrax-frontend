@@ -76,7 +76,7 @@ export default function TrackingPage() {
     const fetchAll = async () => {
         try {
             const [loc, vj, vh] = await Promise.all([
-                fetch(`${API}/ubicaciones`, { headers }).then(r => r.json()),
+                fetch(`${API}/Ubicaciónes`, { headers }).then(r => r.json()),
                 fetch(`${API}/orders`, { headers }).then(r => r.json()),
                 fetch(`${API}/vehicles`, { headers }).then(r => r.json()),
             ]);
@@ -102,7 +102,7 @@ export default function TrackingPage() {
         setLoading(true);
         try {
             const vehiculo = vehicles.find(v => String(v.id) === String(form.vehicleId));
-            await fetch(`${API}/ubicaciones`, {
+            await fetch(`${API}/Ubicaciónes`, {
                 method: "POST",
                 headers,
                 body: JSON.stringify({
@@ -335,6 +335,7 @@ export default function TrackingPage() {
         </div>
     );
 }
+
 
 
 

@@ -916,7 +916,7 @@ export default function CartaPortePage() {
                                                     </label>
                                                 </div>
                                                 {m.esPeligrosa && (
-                                                    <Field label="Clase / N煤mero ONU" span2>
+                                                    <Field label="Clase / Número ONU" span2>
                                                         <input value={m.claseONU} onChange={setMerc(idx,"claseONU")}
                                                             placeholder="Ej: Clase 3 -L铆quidos inflamables, UN1203" className={inputCls} />
                                                     </Field>
@@ -952,7 +952,7 @@ export default function CartaPortePage() {
                                     <Field label="Valor Asegurado">
                                         <input type="number" value={form.seguroValor} onChange={set("seguroValor")} placeholder="0.00" className={inputCls} />
                                     </Field>
-                                    <Field label="N煤mero de P贸liza de Seguro">
+                                    <Field label="Número de P贸liza de Seguro">
                                         <input value={form.seguroPoliza} onChange={set("seguroPoliza")} placeholder="POL-2026-XXXXX" className={inputCls} />
                                     </Field>
                                     <Field label="Instrucciones Especiales" span2>
@@ -1007,6 +1007,7 @@ export default function CartaPortePage() {
         </div>
     );
 }
+
 
 
 

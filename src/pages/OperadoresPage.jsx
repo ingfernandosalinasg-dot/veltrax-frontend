@@ -319,13 +319,13 @@ export default function OperadoresPage() {
                                                 <input value={form.rfcOperador} onChange={set("rfcOperador")} placeholder="RFC del operador" className={inputCls} />
                                             </Field>
                                             <Field label="N煤m. Licencia Federal SCT">
-                                                <input value={form.numLicenciaFederal} onChange={set("numLicenciaFederal")} placeholder="N煤mero de licencia federal" className={inputCls} />
+                                                <input value={form.numLicenciaFederal} onChange={set("numLicenciaFederal")} placeholder="Número de licencia federal" className={inputCls} />
                                             </Field>
                                         </div>
                                     </div>
 
                                     <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-2">Licencia de conducir</p>
-                                    <Field label="N煤mero de licencia">
+                                    <Field label="Número de licencia">
                                         <input value={form.licenseNumber} onChange={set("licenseNumber")} placeholder="D00001234" className={inputCls} />
                                     </Field>
                                     <Field label="Tipo de licencia">
@@ -399,6 +399,7 @@ export default function OperadoresPage() {
         </div>
     );
 }
+
 
 
 

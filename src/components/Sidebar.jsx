@@ -190,7 +190,7 @@ function Sidebar() {
                 </div>
                 <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.98 }} onClick={logout}
                     className="w-full py-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 font-bold flex items-center justify-center gap-3 hover:bg-red-500/20 transition-all text-sm">
-                    <FaSignOutAlt /> Cerrar Sesi贸n
+                    <FaSignOutAlt /> Cerrar Sesión
                 </motion.button>
             </div>
         </div>
@@ -198,6 +198,7 @@ function Sidebar() {
 }
 
 export default Sidebar;
+
 
 
 

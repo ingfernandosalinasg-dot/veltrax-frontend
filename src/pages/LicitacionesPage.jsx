@@ -36,7 +36,7 @@ const ESTADOS_MX  = ["Aguascalientes","Baja California","Baja California Sur","C
 const FLUJO_STATUS = ["PROSPECTO","EN_PROCESO","PRESENTADA","GANADA"];
 
 const emptyForm = {
-    titulo:"",numeroLicitacion:"",dependencia:"",tipoLicitacion:"PUBLICA",
+    titulo:"",NúmeroLicitacion:"",dependencia:"",tipoLicitacion:"PUBLICA",
     tipoContrato:"SERVICIO_TRANSPORTE",estado:"Nuevo León",municipio:"",
     fechaPublicacion:"",fechaJuntaAclaraciones:"",fechaPresentacionPropuestas:"",
     fechaAperturaTecnica:"",fechaAperturaEconomica:"",fechaFallo:"",
@@ -83,10 +83,10 @@ async function extractTextFromPDF(file, onProgress) {
 async function analizarConIA(file, onProgress) {
     const SYSTEM = `Eres analista senior de licitaciones gobierno mexicano. Devuelve SOLO JSON válido sin texto extra ni backticks.
 {
-  "score":número 0-100,
+  "score":Número 0-100,
   "veredicto":"CONVENIENTE"|"NEUTRAL"|"NO_CONVENIENTE",
   "veredicto_resumen":"2-3 oraciones",
-  "ficha":{"numero":"","entidad":"","objeto":"","categoria":"","fecha_fallo":"","fecha_limite_oferta":"","duracion_contrato":"","lugar":"","presupuesto":"","plazo_entrega_dias":"","acepta_parcialidad":"","sectorizado":""},
+  "ficha":{"Número":"","entidad":"","objeto":"","categoria":"","fecha_fallo":"","fecha_limite_oferta":"","duracion_contrato":"","lugar":"","presupuesto":"","plazo_entrega_dias":"","acepta_parcialidad":"","sectorizado":""},
   "articulos":[{"clave":"","descripcion":"","marca":"","unidad":"","cantidad_minima":null,"cantidad_maxima":null,"precio_unitario":null,"precio_total_min":null,"precio_total_max":null,"registro_sanitario":"","notas":""}],
   "financiero":{"valor_total_estimado":null,"garantia":"","forma_pago":"","penalidades":"","criterio_precio_pct":null,"analisis":""},
   "evaluacion":{"criterios":"","requisitos_tecnicos":[],"condiciones_clave":[]},
@@ -229,7 +229,7 @@ function TabAnalisisIA(){
                 <button onClick={()=>{setResultado(null);setArchivo(null);}} className="mb-4 px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-gray-400 text-xs hover:bg-white/10 transition-all">↩ Analizar otro PDF</button>
                 <div className="flex gap-2 flex-wrap mb-4">{SUB_TABS.map(t=>(<button key={t.key} onClick={()=>setSubTab(t.key)} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${subTab===t.key?"bg-cyan-500/20 border border-cyan-400/30 text-cyan-300":"bg-white/5 border border-white/5 text-gray-400 hover:bg-white/10"}`}>{t.icon} {t.label}</button>))}</div>
                 {subTab==="articulos"&&(<SeccionIA titulo={`Partidas / Artículos (${resultado.articulos?.length||0})`} icon={<FaTable/>}><div className="flex gap-4 mb-4 text-xs flex-wrap"><span className="flex items-center gap-1.5 text-yellow-300"><span className="w-3 h-3 rounded-full bg-yellow-400/30 border border-yellow-400/50 inline-block"/>Cantidad mínima</span><span className="flex items-center gap-1.5 text-green-300"><span className="w-3 h-3 rounded-full bg-green-400/30 border border-green-400/50 inline-block"/>Cantidad máxima</span><span className="flex items-center gap-1.5 text-blue-300"><span className="w-3 h-3 rounded-full bg-blue-400/30 border border-blue-400/50 inline-block"/>Registro sanitario</span></div><TablaArticulos articulos={resultado.articulos}/></SeccionIA>)}
-                {subTab==="ficha"&&(<SeccionIA titulo="Ficha general" icon={<FaFileAlt/>}><KV label="Número de licitación" value={resultado.ficha?.numero}/><KV label="Entidad convocante" value={resultado.ficha?.entidad}/><KV label="Objeto del contrato" value={resultado.ficha?.objeto}/><KV label="Categoría" value={resultado.ficha?.categoria}/><KV label="Fecha de fallo" value={resultado.ficha?.fecha_fallo}/><KV label="Fecha límite oferta" value={resultado.ficha?.fecha_limite_oferta}/><KV label="Duración del contrato" value={resultado.ficha?.duracion_contrato}/><KV label="Lugar de ejecución" value={resultado.ficha?.lugar}/><KV label="Presupuesto referencial" value={resultado.ficha?.presupuesto}/><KV label="Plazo entrega (días)" value={resultado.ficha?.plazo_entrega_dias}/><KV label="Acepta parcialidad" value={resultado.ficha?.acepta_parcialidad}/><KV label="Sectorizado" value={resultado.ficha?.sectorizado}/></SeccionIA>)}
+                {subTab==="ficha"&&(<SeccionIA titulo="Ficha general" icon={<FaFileAlt/>}><KV label="Número de licitación" value={resultado.ficha?.Número}/><KV label="Entidad convocante" value={resultado.ficha?.entidad}/><KV label="Objeto del contrato" value={resultado.ficha?.objeto}/><KV label="Categoría" value={resultado.ficha?.categoria}/><KV label="Fecha de fallo" value={resultado.ficha?.fecha_fallo}/><KV label="Fecha límite oferta" value={resultado.ficha?.fecha_limite_oferta}/><KV label="Duración del contrato" value={resultado.ficha?.duracion_contrato}/><KV label="Lugar de ejecución" value={resultado.ficha?.lugar}/><KV label="Presupuesto referencial" value={resultado.ficha?.presupuesto}/><KV label="Plazo entrega (días)" value={resultado.ficha?.plazo_entrega_dias}/><KV label="Acepta parcialidad" value={resultado.ficha?.acepta_parcialidad}/><KV label="Sectorizado" value={resultado.ficha?.sectorizado}/></SeccionIA>)}
                 {subTab==="financiero"&&(<div><SeccionIA titulo="Análisis financiero" icon={<FaRoute/>}><div className="grid grid-cols-2 gap-3 mb-4">{[{label:"Valor total estimado",value:fmxn(resultado.financiero?.valor_total_estimado)},{label:"Peso del precio (eval.)",value:resultado.financiero?.criterio_precio_pct!=null?`${resultado.financiero.criterio_precio_pct}%`:"-"},{label:"Garantía requerida",value:resultado.financiero?.garantia},{label:"Forma de pago",value:resultado.financiero?.forma_pago},{label:"Penalidades",value:resultado.financiero?.penalidades}].map((item,i)=>(<div key={i} className="bg-white/5 rounded-xl p-3"><p className="text-gray-400 text-xs mb-1">{item.label}</p><p className="text-white font-bold text-sm">{item.value||"-"}</p></div>))}</div><p className="text-gray-300 text-sm leading-relaxed">{resultado.financiero?.analisis}</p></SeccionIA><SeccionIA titulo="Criterios de evaluación" icon={<FaShieldAlt/>}><p className="text-gray-300 text-sm mb-3">{resultado.evaluacion?.criterios}</p>{resultado.evaluacion?.requisitos_tecnicos?.length>0&&(<><p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-2">Requisitos técnicos</p><TagIA items={resultado.evaluacion.requisitos_tecnicos} color="cyan"/></>)}{resultado.evaluacion?.condiciones_clave?.length>0&&(<ul className="mt-4 space-y-2">{resultado.evaluacion.condiciones_clave.map((c,i)=>(<li key={i} className="flex gap-2 text-sm text-gray-300"><span className="text-cyan-400 mt-0.5 flex-shrink-0">▸</span>{c}</li>))}</ul>)}</SeccionIA></div>)}
                 {subTab==="riesgos"&&(<div><SeccionIA titulo="Riesgos identificados" icon={<FaExclamationTriangle/>}><TagIA items={resultado.riesgos} color="red"/><p className="text-gray-300 text-sm mt-4 leading-relaxed">{resultado.analisis_riesgos}</p></SeccionIA><SeccionIA titulo="Oportunidades" icon={<FaCheckCircle/>}><TagIA items={resultado.oportunidades} color="green"/></SeccionIA><SeccionIA titulo="Hoja de ruta" icon={<FaRoute/>} defaultOpen={false}><ol className="space-y-3">{(resultado.pasos||[]).map((p,i)=>(<li key={i} className="flex gap-3 text-sm text-gray-300"><span className="w-6 h-6 rounded-full bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 text-xs font-black flex items-center justify-center flex-shrink-0 mt-0.5">{i+1}</span>{p}</li>))}</ol>{resultado.documentos_clave&&(<div className="mt-4 bg-white/5 rounded-xl p-3"><p className="text-cyan-400 text-xs font-bold mb-1">Documentos a preparar:</p><p className="text-gray-300 text-sm">{resultado.documentos_clave}</p></div>)}</SeccionIA><SeccionIA titulo="Recomendación estratégica" icon={<FaRobot/>} defaultOpen={false}><p className="text-gray-300 text-sm leading-relaxed">{resultado.recomendacion}</p></SeccionIA></div>)}
             </motion.div>)}
@@ -855,7 +855,7 @@ export default function LicitacionesPage() {
                                 {tabExp==="info"&&(
                                     <div className="grid grid-cols-2 gap-4">
                                         {[
-                                            {label:"Número de Licitación",value:expediente.licitacion?.numeroLicitacion},
+                                            {label:"Número de Licitación",value:expedieNúmeroLicitacion},
                                             {label:"Tipo",value:expediente.licitacion?.tipoLicitacion},
                                             {label:"Tipo de Contrato",value:expediente.licitacion?.tipoContrato},
                                             {label:"Estado",value:expediente.licitacion?.estado},
@@ -1006,7 +1006,7 @@ export default function LicitacionesPage() {
                             <div className="flex-1 overflow-y-auto px-6 py-4 space-y-5">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="col-span-2"><label className="text-gray-400 text-xs mb-1 block">Título de la Licitación *</label><input value={form.titulo} onChange={setF("titulo")} className={inputCls} placeholder="Servicio de transporte de carga..."/></div>
-                                    <div><label className="text-gray-400 text-xs mb-1 block">Número de Licitación</label><input value={form.numeroLicitacion} onChange={setF("numeroLicitacion")} className={inputCls} placeholder="LA-019GYN001-E1-2026"/></div>
+                                    <div><label className="text-gray-400 text-xs mb-1 block">Número de Licitación</label><input value={form.NúmeroLicitacion} onChange={setF("NúmeroLicitacion")} className={inputCls} placeholder="LA-019GYN001-E1-2026"/></div>
                                     <div><label className="text-gray-400 text-xs mb-1 block">Dependencia *</label><input value={form.dependencia} onChange={setF("dependencia")} className={inputCls} placeholder="IMSS, CFE, SEP..."/></div>
                                     <div><label className="text-gray-400 text-xs mb-1 block">Tipo de Licitación</label><select value={form.tipoLicitacion} onChange={setF("tipoLicitacion")} className={selectCls}>{TIPOS_LIC.map(t=><option key={t}>{t}</option>)}</select></div>
                                     <div><label className="text-gray-400 text-xs mb-1 block">Tipo de Contrato</label><select value={form.tipoContrato} onChange={setF("tipoContrato")} className={selectCls}>{TIPOS_CON.map(t=><option key={t}>{t}</option>)}</select></div>
@@ -1082,6 +1082,7 @@ export default function LicitacionesPage() {
         </div>
     );
 }
+
 
 
 
