@@ -181,8 +181,7 @@ export default function ViajesPage() {
                 headers: { ...headers, "X-Usuario": usuario }
             });
             if (res.ok) {
-                showMsgFn(true, `Status actualizado a ${nuevoStatus} 鉁揱);
-                fetchAll();
+                showMsgFn(true, `Status actualizado a ${nuevoStatus}`);                fetchAll();
             } else {
                 const txt = await res.text();
                 showMsgFn(false, txt);
@@ -268,8 +267,7 @@ export default function ViajesPage() {
             });
 
             if (res.ok) {
-                showMsgFn(true, "Evidencia guardada y viaje marcado como ENTREGADO 鉁?);
-                setShowEvidencia(false);
+                showMsgFn(true, "Evidencia guardada y viaje marcado como ENTREGADO");setShowEvidencia(false);
                 setFotoFile(null); setFotoPreview(null); setFirmaDataUrl(null);
                 setReceptorNombre(""); setReceptorPuesto(""); setComentarioEv("");
                 fetchAll();
@@ -277,8 +275,7 @@ export default function ViajesPage() {
                 await fetch(`${API}/orders/${viajeEvidencia.id}/status?status=ENTREGADO`, {
                     method: "PUT", headers: { ...headers, "X-Usuario": usuario }
                 });
-                showMsgFn(true, "Viaje marcado como ENTREGADO 鉁?);
-                setShowEvidencia(false);
+                showMsgFn(true, "Viaje marcado como ENTREGADO");setShowEvidencia(false);
                 setFotoFile(null); setFotoPreview(null); setFirmaDataUrl(null);
                 setReceptorNombre(""); setReceptorPuesto(""); setComentarioEv("");
                 fetchAll();
@@ -288,8 +285,7 @@ export default function ViajesPage() {
                 await fetch(`${API}/orders/${viajeEvidencia.id}/status?status=ENTREGADO`, {
                     method: "PUT", headers: { ...headers, "X-Usuario": usuario }
                 });
-                showMsgFn(true, "Viaje marcado como ENTREGADO 鉁?);
-                setShowEvidencia(false);
+                showMsgFn(true, "Viaje marcado como ENTREGADO");setShowEvidencia(false);
                 fetchAll();
             } catch { showMsgFn(false, "Error de conexi贸n"); }
         }
@@ -318,8 +314,7 @@ export default function ViajesPage() {
             setShowModal(false);
             setForm(emptyForm);
             fetchAll();
-            showMsgFn(true, "Viaje creado 鉁?);
-        } catch (e) { console.error(e); }
+            showMsgFn(true, "Viaje creado");} catch (e) { console.error(e); }
         setLoading(false);
     };
 
@@ -498,19 +493,19 @@ export default function ViajesPage() {
                                             transition={{ delay: i * 0.05 }}
                                             className="border-b border-cyan-400/5 hover:bg-cyan-500/5 transition-all">
                                             <td className="py-4 pr-4 font-black text-cyan-300 text-sm">{v.folio || `#${v.id}`}</td>
-                                            <td className="py-4 pr-4">{v.cliente?.name || v.clienteNombre || "鈥?}</td>
-                                            <td className="py-4 pr-4 text-gray-300 text-sm">{v.origen || v.ruta?.remitente?.ciudad || "鈥?}</td>
-                                            <td className="py-4 pr-4 text-gray-300 text-sm">{v.destino || v.ruta?.destinatario?.ciudad || "鈥?}</td>
+                                            <td className="py-4 pr-4">{v.cliente?.name || v.clienteNombre || "-"}</td>
+                                            <td className="py-4 pr-4 text-gray-300 text-sm">{v.origen || v.ruta?.remitente?.ciudad || "-"}</td>
+                                            <td className="py-4 pr-4 text-gray-300 text-sm">{v.destino || v.ruta?.destinatario?.ciudad || "-"}</td>
                                             <td className="py-4 pr-4 text-gray-400 text-sm">
-                                                {v.driver ? `${v.driver.name} ${v.driver.apellidos || ""}` : v.driverNombre || "鈥?}
+                                                {v.driver ? `${v.driver.name} ${v.driver.apellidos || ""}` : v.driverNombre || "-"}
                                             </td>
-                                            <td className="py-4 pr-4 text-gray-400 text-sm">{v.date || "鈥?}</td>
+                                            <td className="py-4 pr-4 text-gray-400 text-sm">{v.date || "-"}</td>
                                             <td className="py-4 pr-4 text-green-300 font-bold">
-                                                {v.cost ? `$${v.cost.toLocaleString()}` : "鈥?}
+                                                {v.cost ? `$${v.cost.toLocaleString()}` : "-"}
                                             </td>
                                             <td className="py-4 pr-4">
                                                 <span className={`px-3 py-1 rounded-full border text-xs font-bold ${statusColor(v.status)}`}>
-                                                    {v.status || "鈥?}
+                                                    {v.status || "-"}
                                                 </span>
                                             </td>
                                             <td className="py-4 pr-4">
@@ -563,7 +558,7 @@ export default function ViajesPage() {
                 </motion.div>
             </div>
 
-            {/* PANEL VIAJE 鈥?GASTOS / TIMELINE / RENTABILIDAD */}
+            {/* PANEL VIAJE -GASTOS / TIMELINE / RENTABILIDAD */}
             <AnimatePresence>
                 {showPanelGastos && viajeSeleccionado && (
                     <motion.div initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }}
@@ -840,7 +835,7 @@ export default function ViajesPage() {
                                     <Field label="Cliente" span2>
                                         <select value={form.clienteId} onChange={set("clienteId")} className={selectCls}>
                                             <option value="">Seleccionar cliente...</option>
-                                            {clientes.map(c => <option key={c.id} value={c.id}>{c.name} 鈥?{c.company}</option>)}
+                                            {clientes.map(c => <option key={c.id} value={c.id}>{c.name} -{c.company}</option>)}
                                         </select>
                                     </Field>
                                     <Field label="Ruta" span2>
@@ -865,7 +860,7 @@ export default function ViajesPage() {
                                     <Field label="Veh铆culo">
                                         <select value={form.vehicleId} onChange={set("vehicleId")} className={selectCls}>
                                             <option value="">Seleccionar veh铆culo...</option>
-                                            {vehicles.map(v => <option key={v.id} value={v.id}>{v.plate} 鈥?{v.brand} {v.model}</option>)}
+                                            {vehicles.map(v => <option key={v.id} value={v.id}>{v.plate} -{v.brand} {v.model}</option>)}
                                         </select>
                                     </Field>
                                     <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-2">Detalles</p>
@@ -953,7 +948,7 @@ export default function ViajesPage() {
                                     {gastoActivo?.comprobado ? (
                                         <div className="flex items-center justify-between">
                                             <span className="px-3 py-1.5 rounded-full text-xs font-bold bg-green-500/20 text-green-300">
-                                                鉁?Ya tiene ticket 鈥?no se cobra al operador
+                                                 tiene ticket -no se cobra al operador
                                             </span>
                                             <button onClick={handleQuitarTicket} type="button"
                                                 className="text-xs text-red-400 hover:text-red-300 font-bold">
@@ -988,3 +983,9 @@ export default function ViajesPage() {
         </div>
     );
 }
+
+
+
+
+
+

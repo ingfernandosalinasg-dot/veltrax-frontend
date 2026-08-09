@@ -10,8 +10,8 @@ const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
 const inputCls  = "w-full bg-white/5 border border-cyan-400/10 rounded-xl px-4 py-3 text-white outline-none focus:border-cyan-400/40 transition-all text-sm";
 const selectCls = "w-full bg-[#020617] border border-cyan-400/10 rounded-xl px-4 py-3 text-white outline-none focus:border-cyan-400/40 transition-all text-sm";
 
-function fmxn(n) { if (n == null) return "鈥?; return "$" + Number(n).toLocaleString("es-MX", { minimumFractionDigits: 2 }); }
-function fnum(n) { if (n == null) return "鈥?; return Number(n).toLocaleString("es-MX"); }
+function fmxn(n) { if (n == null) return "-"; return "$" + Number(n).toLocaleString("es-MX", { minimumFractionDigits: 2 }); }
+function fnum(n) { if (n == null) return "-"; return Number(n).toLocaleString("es-MX"); }
 
 const OC_STATUS_COLORS = {
     PENDIENTE:  "text-yellow-300 bg-yellow-500/10 border-yellow-400/30",
@@ -121,8 +121,7 @@ export default function OrdenesCompraPage() {
                 })
             });
             if (res.ok) {
-                showMsg(true, "Orden de compra creada 鉁?);
-                setShowModal(false);
+                showMsg(true, "Orden de compra creada");setShowModal(false);
                 setForm({ licitacionId:"", partidaId:"", proveedorId:"", cantidad:"", precioUnitario:"", notas:"" });
                 fetchAll();
             } else {
@@ -223,7 +222,7 @@ export default function OrdenesCompraPage() {
                     <select value={filtroLic} onChange={e => setFiltroLic(e.target.value)}
                         className="bg-[#020617] border border-cyan-400/10 rounded-xl px-4 py-2 text-white outline-none text-sm">
                         <option value="">Todas las licitaciones</option>
-                        {licitaciones.map(l => <option key={l.id} value={l.id}>{l.folio} 鈥?{l.titulo}</option>)}
+                        {licitaciones.map(l => <option key={l.id} value={l.id}>{l.folio} -{l.titulo}</option>)}
                     </select>
                     <span className="text-gray-500 text-sm self-center">{filtradas.length} OC 路 {fmxn(totalActivo)}</span>
                 </div>
@@ -258,14 +257,14 @@ export default function OrdenesCompraPage() {
                                             </button>
                                         </td>
                                         <td className="px-4 py-3">
-                                            <p className="text-cyan-300 font-black text-xs">{oc.licitacionFolio || "鈥?}</p>
+                                            <p className="text-cyan-300 font-black text-xs">{oc.licitacionFolio || "-"}</p>
                                             <p className="text-gray-400 text-xs truncate max-w-xs">{oc.licitacionTitulo || ""}</p>
                                         </td>
                                         <td className="px-4 py-3 text-white max-w-xs">
-                                            <p className="font-bold truncate">{oc.partidaDescripcion || "鈥?}</p>
+                                            <p className="font-bold truncate">{oc.partidaDescripcion || "-"}</p>
                                             {oc.partidaClave && <p className="text-gray-500 text-xs">{oc.partidaClave}</p>}
                                         </td>
-                                        <td className="px-4 py-3 text-gray-300 whitespace-nowrap">{oc.proveedorNombre || "鈥?}</td>
+                                        <td className="px-4 py-3 text-gray-300 whitespace-nowrap">{oc.proveedorNombre || "-"}</td>
                                         <td className="px-4 py-3 text-white font-bold text-right whitespace-nowrap">{fnum(oc.cantidad)} {oc.unidad}</td>
                                         <td className="px-4 py-3 text-white text-right whitespace-nowrap">{fmxn(oc.precioUnitario)}</td>
                                         <td className="px-4 py-3 text-green-300 font-black text-right whitespace-nowrap">{fmxn(oc.total)}</td>
@@ -336,8 +335,8 @@ export default function OrdenesCompraPage() {
                                 <div>
                                     <label className="text-gray-400 text-xs mb-1 block">Licitaci贸n (GANADA) *</label>
                                     <select value={form.licitacionId} onChange={setF("licitacionId")} className={selectCls}>
-                                        <option value="">鈥?Seleccionar licitaci贸n 鈥?/option>
-                                        {licitaciones.map(l => <option key={l.id} value={l.id}>{l.folio} 鈥?{l.titulo}</option>)}
+                                        <option value="">-Seleccionar licitaci贸n </option>
+                                        {licitaciones.map(l => <option key={l.id} value={l.id}>{l.folio} -{l.titulo}</option>)}
                                     </select>
                                 </div>
 
@@ -345,7 +344,7 @@ export default function OrdenesCompraPage() {
                                 <div>
                                     <label className="text-gray-400 text-xs mb-1 block">Partida del fallo *</label>
                                     <select value={form.partidaId} onChange={setF("partidaId")} className={selectCls} disabled={!form.licitacionId}>
-                                        <option value="">鈥?Seleccionar partida 鈥?/option>
+                                        <option value="">-Seleccionar partida </option>
                                         {partidasLic.map(p => <option key={p.id} value={p.id}>{p.clave ? `[${p.clave}] ` : ""}{p.descripcion}</option>)}
                                     </select>
                                 </div>
@@ -366,7 +365,7 @@ export default function OrdenesCompraPage() {
                                 <div>
                                     <label className="text-gray-400 text-xs mb-1 block">Proveedor *</label>
                                     <select value={form.proveedorId} onChange={setF("proveedorId")} className={selectCls}>
-                                        <option value="">鈥?Seleccionar proveedor 鈥?/option>
+                                        <option value="">-Seleccionar proveedor </option>
                                         {proveedores.map(p => <option key={p.id} value={p.id}>{p.nombre || p.razonSocial}</option>)}
                                     </select>
                                 </div>
@@ -480,3 +479,9 @@ export default function OrdenesCompraPage() {
         </div>
     );
 }
+
+
+
+
+
+

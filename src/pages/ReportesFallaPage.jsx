@@ -191,7 +191,7 @@ export default function ReportesFallaPage() {
                                     <motion.tr key={r.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }}
                                         className="border-b border-cyan-400/5 hover:bg-cyan-500/5 transition-all">
                                         <td className="py-4 pr-4 font-bold text-cyan-300 text-sm">{r.folio}</td>
-                                        <td className="py-4 pr-4 text-sm flex items-center gap-2"><FaTruck className="text-gray-500" /> {r.vehiclePlaca || "—"}</td>
+                                        <td className="py-4 pr-4 text-sm flex items-center gap-2"><FaTruck className="text-gray-500" /> {r.vehiclePlaca || "-"}</td>
                                         <td className="py-4 pr-4"><span className={`px-2 py-1 rounded-lg border text-xs font-bold ${prioridadColor(r.prioridad)}`}>{r.prioridad}</span></td>
                                         <td className="py-4 pr-4 text-gray-300 text-sm max-w-xs truncate">{r.descripcion}</td>
                                         <td className="py-4 pr-4 text-gray-400 text-sm">{r.fecha}</td>
@@ -236,7 +236,7 @@ export default function ReportesFallaPage() {
                                 <Field label="Unidad">
                                     <select value={form.vehicleId} onChange={set("vehicleId")} className={selectCls}>
                                         <option value="">Seleccionar unidad...</option>
-                                        {vehicles.map(v => <option key={v.id} value={v.id}>{v.plate} — {v.brand} {v.model}</option>)}
+                                        {vehicles.map(v => <option key={v.id} value={v.id}>{v.plate} - {v.brand} {v.model}</option>)}
                                     </select>
                                 </Field>
                                 <Field label="Reportado por (opcional)">
@@ -279,7 +279,7 @@ export default function ReportesFallaPage() {
                             <div className="flex justify-between items-center p-6 pb-0">
                                 <div>
                                     <h2 className="text-2xl font-black text-purple-300">Convertir a Orden de Servicio</h2>
-                                    <p className="text-gray-400 text-sm mt-1">{reporteActivo.folio} — {reporteActivo.vehiclePlaca}</p>
+                                    <p className="text-gray-400 text-sm mt-1">{reporteActivo.folio} - {reporteActivo.vehiclePlaca}</p>
                                 </div>
                                 <button onClick={() => setShowConvModal(false)} className="text-gray-400 hover:text-white text-xl"><FaTimes /></button>
                             </div>
@@ -295,7 +295,7 @@ export default function ReportesFallaPage() {
                                 <Field label="Proveedor / Taller">
                                     <select value={convForm.proveedorId} onChange={setC("proveedorId")} className={selectCls}>
                                         <option value="">Seleccionar proveedor...</option>
-                                        {proveedores.map(p => <option key={p.id} value={p.id}>{p.nombre}{p.razonSocial ? ` — ${p.razonSocial}` : ""}</option>)}
+                                        {proveedores.map(p => <option key={p.id} value={p.id}>{p.nombre}{p.razonSocial ? ` - ${p.razonSocial}` : ""}</option>)}
                                     </select>
                                     {proveedores.length === 0 && (
                                         <p className="text-yellow-400 text-xs mt-1">No tienes proveedores registrados. <a href="/proveedores" className="underline">Agregar proveedor</a></p>
@@ -327,4 +327,8 @@ export default function ReportesFallaPage() {
         </div>
     );
 }
+
+
+
+
 

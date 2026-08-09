@@ -85,7 +85,7 @@ function Field({ label, children, span2 = false }) {
 
 // Picker para cat谩logos SAT cargados en BD (Carta Porte 3.1)
 function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2 = false }) {
-    const [query,   setQuery]   = useState(value ? `${value} 鈥?${valueDesc || ""}` : "");
+    const [query,   setQuery]   = useState(value ? `${value} -${valueDesc || ""}` : "");
     const [results, setResults] = useState([]);
     const [open,    setOpen]    = useState(false);
     const [loading, setLoading] = useState(false);
@@ -113,7 +113,7 @@ function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2
     };
 
     const seleccionar = (item) => {
-        setQuery(`${item.clave} 鈥?${item.descripcion}`);
+        setQuery(`${item.clave} -${item.descripcion}`);
         setOpen(false);
         onChange(item.clave, item.descripcion);
     };
@@ -134,7 +134,7 @@ function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2
                 {value && (
                     <div className="mt-1 px-3 py-1 rounded-lg bg-cyan-500/10 border border-cyan-400/20 text-xs text-cyan-300 flex items-center gap-2">
                         <span className="font-mono font-bold">{value}</span>
-                        <span className="text-gray-400">鈥?/span>
+                        <span className="text-gray-400"></span>
                         <span className="truncate">{valueDesc}</span>
                     </div>
                 )}
@@ -287,16 +287,16 @@ export default function RemitentesPage() {
                                             <div className="font-bold text-white">{item.nombre}</div>
                                             {item.razonSocial && <div className="text-xs text-gray-500">{item.razonSocial}</div>}
                                         </td>
-                                        <td className="py-4 pr-6 text-cyan-300 font-mono text-sm">{item.rfc || "鈥?}</td>
+                                        <td className="py-4 pr-6 text-cyan-300 font-mono text-sm">{item.rfc || "-"}</td>
                                         <td className="py-4 pr-6">
                                             {item.regimenFiscal ? (
                                                 <span className="px-2 py-1 rounded-lg bg-purple-500/10 text-purple-300 text-xs font-mono font-bold">
                                                     {item.regimenFiscal}
                                                 </span>
-                                            ) : <span className="text-gray-600">鈥?/span>}
+                                            ) : <span className="text-gray-600"></span>}
                                         </td>
-                                        <td className="py-4 pr-6 text-gray-400">{item.ciudad || "鈥?}</td>
-                                        <td className="py-4 pr-6 text-gray-400">{item.telefono || "鈥?}</td>
+                                        <td className="py-4 pr-6 text-gray-400">{item.ciudad || "-"}</td>
+                                        <td className="py-4 pr-6 text-gray-400">{item.telefono || "-"}</td>
                                         <td className="py-4 pr-6">
                                             <span className={`px-3 py-1 rounded-full border text-xs font-bold ${item.status === "Activo" ? "text-green-300 bg-green-500/10 border-green-400/30" : "text-red-300 bg-red-500/10 border-red-400/30"}`}>
                                                 {item.status}
@@ -358,7 +358,7 @@ export default function RemitentesPage() {
                                                     setForm(prev => ({ ...prev, regimenFiscal: e.target.value, regimenFiscalDesc: reg?.desc || "" }));
                                                 }} className={selectCls}>
                                                     <option value="">Seleccionar r茅gimen fiscal...</option>
-                                                    {REGIMENES.map(r => <option key={r.clave} value={r.clave}>{r.clave} 鈥?{r.desc}</option>)}
+                                                    {REGIMENES.map(r => <option key={r.clave} value={r.clave}>{r.clave} -{r.desc}</option>)}
                                                 </select>
                                             </Field>
                                             <Field label="Uso CFDI (SAT)" span2>
@@ -367,7 +367,7 @@ export default function RemitentesPage() {
                                                     setForm(prev => ({ ...prev, usoCfdi: e.target.value, usoCfdiDesc: uso?.desc || "" }));
                                                 }} className={selectCls}>
                                                     <option value="">Seleccionar uso de CFDI...</option>
-                                                    {USOS_CFDI.map(u => <option key={u.clave} value={u.clave}>{u.clave} 鈥?{u.desc}</option>)}
+                                                    {USOS_CFDI.map(u => <option key={u.clave} value={u.clave}>{u.clave} -{u.desc}</option>)}
                                                 </select>
                                             </Field>
                                             <Field label="Num. Reg. ID Trib. (extranjeros)" span2>
@@ -428,4 +428,8 @@ export default function RemitentesPage() {
         </div>
     );
 }
+
+
+
+
 

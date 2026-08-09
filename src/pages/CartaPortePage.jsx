@@ -74,7 +74,7 @@ function Field({ label, children, span2 = false }) {
 
 // Buscador de cat谩logos SAT en tiempo real
 function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2 = false }) {
-    const [query,     setQuery]     = useState(value ? `${value} 鈥?${valueDesc || ""}` : "");
+    const [query,     setQuery]     = useState(value ? `${value} -${valueDesc || ""}` : "");
     const [results,   setResults]   = useState([]);
     const [open,      setOpen]      = useState(false);
     const [loading,   setLoading]   = useState(false);
@@ -102,7 +102,7 @@ function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2
     };
 
     const seleccionar = (item) => {
-        setQuery(`${item.clave} 鈥?${item.descripcion}`);
+        setQuery(`${item.clave} -${item.descripcion}`);
         setOpen(false);
         setResults([]);
         onChange(item.clave, item.descripcion);
@@ -138,7 +138,7 @@ function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2
                 {value && (
                     <div className="mt-1 px-3 py-1 rounded-lg bg-cyan-500/10 border border-cyan-400/20 text-xs text-cyan-300 flex items-center gap-2">
                         <span className="font-mono font-bold">{value}</span>
-                        <span className="text-gray-400">鈥?/span>
+                        <span className="text-gray-400"></span>
                         <span className="truncate">{valueDesc}</span>
                     </div>
                 )}
@@ -190,7 +190,7 @@ function CatalogPicker({ label, placeholder, items, selectedId, onSelect, onClea
                 {selected && (
                     <span onClick={e => { e.stopPropagation(); onClear(); setOpen(false); }}
                         className="text-xs text-gray-500 hover:text-red-400 border border-white/10 rounded px-2 py-0.5 transition-colors">
-                        鉁?Limpiar
+                        
                     </span>
                 )}
             </button>
@@ -232,7 +232,7 @@ function generarPDF(carta, mercancias = []) {
             <td>${m.cantidad} ${m.claveUnidad || ""}</td>
             <td>${m.peso} kg</td><td>${m.volumen||"-"} m鲁</td>
             <td>$${Number(m.valor||0).toLocaleString()} ${carta.moneda}</td>
-            <td>${m.claveEmbalaje ? m.claveEmbalaje+" 鈥?" : ""}${m.claveEmbalajeDesc||"-"}</td>
+            <td>${m.claveEmbalaje ? m.claveEmbalaje+" -" : ""}${m.claveEmbalajeDesc||"-"}</td>
             <td>${m.marcas||"-"}</td><td>${m.estadoMercancia}</td>
             <td>${m.esPeligrosa ? "鈿狅笍 "+m.claseONU : "No"}</td>
         </tr>`).join("");
@@ -259,7 +259,7 @@ function generarPDF(carta, mercancias = []) {
         <div style="color:#888">Tipo: ${carta.tipoCarta} &nbsp;|&nbsp; Emisi贸n: ${carta.fechaEmision} &nbsp;${carta.lugarEmision||""}</div>
         <div style="margin-top:6px"><span class="estado">${carta.status}</span></div>
     </div></div>
-    <div class="titulo">Carta de Porte 鈥?Documento de Transporte</div>
+    <div class="titulo">Carta de Porte -Documento de Transporte</div>
     <div class="grid2">
         <div class="sec"><h3>Remitente</h3>
             <div class="campo"><label>Nombre/Empresa</label><span>${carta.remitenteNombre||"-"}</span></div>
@@ -277,14 +277,14 @@ function generarPDF(carta, mercancias = []) {
             <div class="campo"><label>Empresa</label><span>${carta.transportistaNombre||"-"}</span></div>
             <div class="campo"><label>Conductor</label><span>${carta.conductorNombre||"-"}</span></div>
             <div class="campo"><label>Licencia</label><span>${carta.conductorLicencia||"-"}</span></div>
-            <div class="campo"><label>Veh铆culo / Placas</label><span>${[carta.vehiculoTipo,carta.vehiculoPlacas].filter(Boolean).join(" 鈥?")}</span></div>
+            <div class="campo"><label>Veh铆culo / Placas</label><span>${[carta.vehiculoTipo,carta.vehiculoPlacas].filter(Boolean).join(" -")}</span></div>
             ${carta.configAutotransporte ? `<div class="campo"><label>Config. Autotransporte (SAT)</label><span style="font-family:monospace;color:#0891b2">${carta.configAutotransporte}</span> ${carta.configAutotransporteDesc||""}</div>` : ""}
             ${carta.tipoPermiso ? `<div class="campo"><label>Tipo Permiso SCT (SAT)</label><span style="font-family:monospace;color:#0891b2">${carta.tipoPermiso}</span> ${carta.tipoPermisoDesc||""}</div>` : ""}
             ${carta.figuraTransporte ? `<div class="campo"><label>Figura Transporte (SAT)</label><span style="font-family:monospace;color:#0891b2">${carta.figuraTransporte}</span> ${carta.figuraTransporteDesc||""}</div>` : ""}
         </div>
         <div class="sec"><h3>Ruta</h3>
-            <div class="campo"><label>Origen</label><span>${carta.lugarCarga||"-"} ${carta.fechaCarga ? "鈥?"+carta.fechaCarga : ""}</span></div>
-            <div class="campo"><label>Destino</label><span>${carta.lugarDescarga||"-"} ${carta.fechaDescarga ? "鈥?"+carta.fechaDescarga : ""}</span></div>
+            <div class="campo"><label>Origen</label><span>${carta.lugarCarga||"-"} ${carta.fechaCarga ? "-"+carta.fechaCarga : ""}</span></div>
+            <div class="campo"><label>Destino</label><span>${carta.lugarDescarga||"-"} ${carta.fechaDescarga ? "-"+carta.fechaDescarga : ""}</span></div>
         </div>
     </div>
     <div class="sec" style="margin-bottom:18px"><h3>Mercanc铆as</h3>
@@ -535,7 +535,7 @@ export default function CartaPortePage() {
                     {(filtroStatus || filtroBusq || filtroFecha) && (
                         <button onClick={() => { setFiltroStatus(""); setFiltroBusq(""); setFiltroFecha(""); }}
                             className="px-5 py-3 rounded-2xl border border-red-400/20 text-red-400 hover:bg-red-500/10 transition-all text-sm font-bold">
-                            鉁?Limpiar filtros
+                             filtros
                         </button>
                     )}
                 </div>
@@ -560,14 +560,14 @@ export default function CartaPortePage() {
                                 {cartasFiltradas.map(c => (
                                     <tr key={c.id} className="border-b border-cyan-400/5 hover:bg-cyan-500/5 transition-all">
                                         <td className="py-4 pr-4 font-bold text-cyan-300">{c.folio}</td>
-                                        <td className="py-4 pr-4 text-gray-400 text-xs">{c.tipoCarta?.split(" ")[0]||"鈥?}</td>
-                                        <td className="py-4 pr-4">{c.remitenteNombre||"鈥?}</td>
-                                        <td className="py-4 pr-4">{c.destinatarioNombre||"鈥?}</td>
-                                        <td className="py-4 pr-4 text-gray-400 text-sm">{c.lugarCarga||"鈥?} 鈫?{c.lugarDescarga||"鈥?}</td>
-                                        <td className="py-4 pr-4">{c.conductorNombre||"鈥?}</td>
-                                        <td className="py-4 pr-4 text-gray-400">{c.vehiculoPlacas||"鈥?}</td>
-                                        <td className="py-4 pr-4 text-gray-400">{c.fechaEmision||"鈥?}</td>
-                                        <td className="py-4 pr-4 text-gray-400">{c.fechaDescarga||"鈥?}</td>
+                                        <td className="py-4 pr-4 text-gray-400 text-xs">{c.tipoCarta?.split(" ")[0]|| "-"}</td>
+                                        <td className="py-4 pr-4">{c.remitenteNombre|| "-"}</td>
+                                        <td className="py-4 pr-4">{c.destinatarioNombre|| "-"}</td>
+                                        <td className="py-4 pr-4 text-gray-400 text-sm">{c.lugarCarga|| "-"} 鈫?{c.lugarDescarga|| "-"}</td>
+                                        <td className="py-4 pr-4">{c.conductorNombre|| "-"}</td>
+                                        <td className="py-4 pr-4 text-gray-400">{c.vehiculoPlacas|| "-"}</td>
+                                        <td className="py-4 pr-4 text-gray-400">{c.fechaEmision|| "-"}</td>
+                                        <td className="py-4 pr-4 text-gray-400">{c.fechaDescarga|| "-"}</td>
                                         <td className="py-4 pr-4">
                                             <span className={`px-3 py-1 rounded-full border text-sm font-bold ${estadoColor[c.status]||"text-gray-300 bg-white/5 border-white/10"}`}>
                                                 {c.status}
@@ -728,7 +728,7 @@ export default function CartaPortePage() {
                                             <option value="">Seleccionar veh铆culo registrado...</option>
                                             {vehiculos.map(v => (
                                                 <option key={v.id} value={v.id}>
-                                                    {v.plate} 鈥?{v.brand} {v.model} {v.year}
+                                                    {v.plate} -{v.brand} {v.model} {v.year}
                                                     {v.configAutotransporte ? ` | Config: ${v.configAutotransporte}` : ""}
                                                 </option>
                                             ))}
@@ -746,7 +746,7 @@ export default function CartaPortePage() {
                                             <option value="">Seleccionar operador registrado...</option>
                                             {operadores.map(o => (
                                                 <option key={o.id} value={o.id}>
-                                                    {o.name} {o.apellidos} 鈥?Lic: {o.licenseNumber || "鈥?}
+                                                    {o.name} {o.apellidos} -Lic: {o.licenseNumber || "-"}
                                                     {o.figuraTransporte ? ` | Figura: ${o.figuraTransporte}` : ""}
                                                 </option>
                                             ))}
@@ -792,7 +792,7 @@ export default function CartaPortePage() {
                             {activeTab === "ruta" && (
                                 <div className="space-y-5">
                                     <div className="grid grid-cols-2 gap-4 p-5 rounded-2xl border border-cyan-500/20 bg-cyan-500/5">
-                                        <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest">Origen 鈥?Punto de Carga</p>
+                                        <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest">Origen -Punto de Carga</p>
                                         <Field label="Lugar de Carga">
                                             <input value={form.lugarCarga} onChange={set("lugarCarga")} placeholder="Ciudad de origen" className={inputCls} />
                                         </Field>
@@ -807,7 +807,7 @@ export default function CartaPortePage() {
                                         </Field>
                                     </div>
                                     <div className="grid grid-cols-2 gap-4 p-5 rounded-2xl border border-green-500/20 bg-green-500/5">
-                                        <p className="col-span-2 text-green-400 text-xs font-bold uppercase tracking-widest">Destino 鈥?Punto de Descarga</p>
+                                        <p className="col-span-2 text-green-400 text-xs font-bold uppercase tracking-widest">Destino -Punto de Descarga</p>
                                         <Field label="Lugar de Descarga">
                                             <input value={form.lugarDescarga} onChange={set("lugarDescarga")} placeholder="Ciudad de destino" className={inputCls} />
                                         </Field>
@@ -836,12 +836,12 @@ export default function CartaPortePage() {
                                             <div className="flex items-center justify-between">
                                                 <span className="text-cyan-300 font-bold text-sm flex items-center gap-2">
                                                     <span className="w-6 h-6 rounded-full bg-cyan-500/20 border border-cyan-400/30 flex items-center justify-center text-xs">{idx+1}</span>
-                                                    Mercanc铆a #{idx+1}{m.descripcion ? ` 鈥?${m.descripcion}` : ""}
+                                                    Mercanc铆a #{idx+1}{m.descripcion ? ` -${m.descripcion}` : ""}
                                                 </span>
                                                 {mercancias.length > 1 && (
                                                     <button onClick={() => setMercancias(ms => ms.filter((_,i) => i !== idx))}
                                                         className="px-3 py-1 rounded-lg bg-red-500/10 border border-red-400/20 text-red-400 text-xs font-bold hover:bg-red-500/20 transition-all">
-                                                        鉁?Eliminar
+                                                        
                                                     </button>
                                                 )}
                                             </div>
@@ -918,7 +918,7 @@ export default function CartaPortePage() {
                                                 {m.esPeligrosa && (
                                                     <Field label="Clase / N煤mero ONU" span2>
                                                         <input value={m.claseONU} onChange={setMerc(idx,"claseONU")}
-                                                            placeholder="Ej: Clase 3 鈥?L铆quidos inflamables, UN1203" className={inputCls} />
+                                                            placeholder="Ej: Clase 3 -L铆quidos inflamables, UN1203" className={inputCls} />
                                                     </Field>
                                                 )}
                                             </div>
@@ -973,11 +973,11 @@ export default function CartaPortePage() {
                                     </Field>
                                     <div className="p-5 rounded-2xl border border-cyan-400/10 bg-white/5 grid grid-cols-3 gap-4">
                                         {[
-                                            { label:"Folio",        value: form.folio||"鈥? },
-                                            { label:"Remitente",    value: form.remitenteNombre||"鈥? },
-                                            { label:"Destinatario", value: form.destinatarioNombre||"鈥? },
-                                            { label:"Origen",       value: form.lugarCarga||"鈥? },
-                                            { label:"Destino",      value: form.lugarDescarga||"鈥? },
+                                            { label:"Folio",        value: form.folio||"-" },
+                                            { label:"Remitente",    value: form.remitenteNombre||"-" },
+                                            { label:"Destinatario", value: form.destinatarioNombre||"-" },
+                                            { label:"Origen",       value: form.lugarCarga||"-" },
+                                            { label:"Destino",      value: form.lugarDescarga||"-" },
                                             { label:"Mercanc铆as",   value: `${mercancias.length} partida(s)` },
                                         ].map(s => (
                                             <div key={s.label}>
@@ -1007,3 +1007,7 @@ export default function CartaPortePage() {
         </div>
     );
 }
+
+
+
+

@@ -32,7 +32,7 @@ function Field({ label, children, span2 = false }) {
 }
 
 function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2 = false }) {
-    const [query,   setQuery]   = useState(value ? `${value} 鈥?${valueDesc || ""}` : "");
+    const [query,   setQuery]   = useState(value ? `${value} -${valueDesc || ""}` : "");
     const [results, setResults] = useState([]);
     const [open,    setOpen]    = useState(false);
     const [loading, setLoading] = useState(false);
@@ -60,7 +60,7 @@ function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2
     };
 
     const seleccionar = (item) => {
-        setQuery(`${item.clave} 鈥?${item.descripcion}`);
+        setQuery(`${item.clave} -${item.descripcion}`);
         setOpen(false);
         onChange(item.clave, item.descripcion);
     };
@@ -81,7 +81,7 @@ function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2
                 {value && (
                     <div className="mt-1 px-3 py-1 rounded-lg bg-cyan-500/10 border border-cyan-400/20 text-xs text-cyan-300 flex items-center gap-2">
                         <span className="font-mono font-bold">{value}</span>
-                        <span className="text-gray-400">鈥?/span>
+                        <span className="text-gray-400"></span>
                         <span className="truncate">{valueDesc}</span>
                     </div>
                 )}
@@ -224,7 +224,7 @@ export default function VehiclesPage() {
                                         <td className="py-4 pr-5 font-bold">{v.brand}</td>
                                         <td className="py-4 pr-5 text-gray-300">{v.model}</td>
                                         <td className="py-4 pr-5 text-gray-400">{v.year}</td>
-                                        <td className="py-4 pr-5 text-gray-400 text-sm">{v.tipo || "鈥?}</td>
+                                        <td className="py-4 pr-5 text-gray-400 text-sm">{v.tipo || "-"}</td>
                                         <td className="py-4 pr-5">
                                             <span className="flex items-center gap-2 text-orange-300 font-bold text-sm">
                                                 <FaTachometerAlt size={12} /> {(v.odometroKm || 0).toLocaleString()} km
@@ -233,12 +233,12 @@ export default function VehiclesPage() {
                                         <td className="py-4 pr-5">
                                             {v.configAutotransporte
                                                 ? <span className="px-2 py-1 rounded-lg bg-cyan-500/10 text-cyan-300 text-xs font-mono font-bold">{v.configAutotransporte}</span>
-                                                : <span className="text-gray-600">鈥?/span>}
+                                                : <span className="text-gray-600"></span>}
                                         </td>
                                         <td className="py-4 pr-5">
                                             {v.tipoPermiso
                                                 ? <span className="px-2 py-1 rounded-lg bg-purple-500/10 text-purple-300 text-xs font-mono font-bold">{v.tipoPermiso}</span>
-                                                : <span className="text-gray-600">鈥?/span>}
+                                                : <span className="text-gray-600"></span>}
                                         </td>
                                         <td className="py-4 pr-5">
                                             <span className={`px-3 py-1 rounded-full border text-xs font-bold ${
@@ -327,7 +327,7 @@ export default function VehiclesPage() {
 
                                     {/* SECCI脫N SAT */}
                                     <div className="col-span-2 p-4 rounded-2xl bg-cyan-500/5 border border-cyan-400/20">
-                                        <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-4">Claves SAT 鈥?Carta Porte 3.1</p>
+                                        <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-4">Claves SAT -Carta Porte 3.1</p>
                                         <div className="grid grid-cols-2 gap-4">
                                             <SatPicker label="Configuraci贸n Autotransporte (SAT)" tipo="c_ConfigAutotransporte"
                                                 value={form.configAutotransporte} valueDesc={form.configAutotransporteDesc}
@@ -378,3 +378,7 @@ export default function VehiclesPage() {
         </div>
     );
 }
+
+
+
+

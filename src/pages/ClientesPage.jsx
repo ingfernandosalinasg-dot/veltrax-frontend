@@ -205,19 +205,19 @@ export default function ClientesPage() {
                                             <div className="font-bold text-white">{c.nombre}</div>
                                             {c.razonSocial && <div className="text-xs text-gray-500">{c.razonSocial}</div>}
                                         </td>
-                                        <td className="py-4 pr-5 text-cyan-300 font-mono text-sm">{c.rfc || "鈥?}</td>
+                                        <td className="py-4 pr-5 text-cyan-300 font-mono text-sm">{c.rfc || "-"}</td>
                                         <td className="py-4 pr-5">
                                             {c.regimenFiscal
                                                 ? <span className="px-2 py-1 rounded-lg bg-purple-500/10 text-purple-300 text-xs font-mono font-bold">{c.regimenFiscal}</span>
-                                                : <span className="text-gray-600">鈥?/span>}
+                                                : <span className="text-gray-600"></span>}
                                         </td>
                                         <td className="py-4 pr-5">
                                             <span className={`px-3 py-1 rounded-full border text-xs font-bold ${tipoColor[c.tipo] || "text-gray-300 bg-white/5 border-white/10"}`}>
                                                 {c.tipo}
                                             </span>
                                         </td>
-                                        <td className="py-4 pr-5 text-gray-400">{c.ciudad || "鈥?}</td>
-                                        <td className="py-4 pr-5 text-gray-400">{c.telefono || "鈥?}</td>
+                                        <td className="py-4 pr-5 text-gray-400">{c.ciudad || "-"}</td>
+                                        <td className="py-4 pr-5 text-gray-400">{c.telefono || "-"}</td>
                                         <td className="py-4 pr-5 text-gray-400">{c.creditoDias && c.creditoDias !== "0" ? `${c.creditoDias} d铆as` : "Contado"}</td>
                                         <td className="py-4 pr-5">
                                             <span className={`px-3 py-1 rounded-full border text-xs font-bold ${c.status === "Activo" ? "text-green-300 bg-green-500/10 border-green-400/30" : "text-red-300 bg-red-500/10 border-red-400/30"}`}>
@@ -281,7 +281,7 @@ export default function ClientesPage() {
                                                     setForm(prev => ({ ...prev, regimenFiscal: e.target.value, regimenFiscalDesc: reg?.desc || "" }));
                                                 }} className={selectCls}>
                                                     <option value="">Seleccionar r茅gimen fiscal...</option>
-                                                    {REGIMENES.map(r => <option key={r.clave} value={r.clave}>{r.clave} 鈥?{r.desc}</option>)}
+                                                    {REGIMENES.map(r => <option key={r.clave} value={r.clave}>{r.clave} -{r.desc}</option>)}
                                                 </select>
                                             </Field>
                                             <Field label="Uso CFDI (SAT)" span2>
@@ -290,7 +290,7 @@ export default function ClientesPage() {
                                                     setForm(prev => ({ ...prev, usoCfdi: e.target.value, usoCfdiDesc: uso?.desc || "" }));
                                                 }} className={selectCls}>
                                                     <option value="">Seleccionar uso de CFDI...</option>
-                                                    {USOS_CFDI.map(u => <option key={u.clave} value={u.clave}>{u.clave} 鈥?{u.desc}</option>)}
+                                                    {USOS_CFDI.map(u => <option key={u.clave} value={u.clave}>{u.clave} -{u.desc}</option>)}
                                                 </select>
                                             </Field>
                                             <Field label="Num. Reg. ID Trib. (extranjeros)" span2>
@@ -299,7 +299,7 @@ export default function ClientesPage() {
                                             <ValidacionRegimenUso regimen={form.regimenFiscal} uso={form.usoCfdi} />
                                         </div>
                                         <p className="text-purple-300/60 text-xs mt-3">
-                                            El c贸digo postal fiscal se captura abajo, en la secci贸n de Direcci贸n 鈥?se usa el mismo dato para timbrado y domicilio.
+                                            El c贸digo postal fiscal se captura abajo, en la secci贸n de Direcci贸n -se usa el mismo dato para timbrado y domicilio.
                                         </p>
                                     </div>
 
@@ -362,4 +362,8 @@ export default function ClientesPage() {
         </div>
     );
 }
+
+
+
+
 

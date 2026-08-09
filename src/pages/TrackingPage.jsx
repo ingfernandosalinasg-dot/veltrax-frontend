@@ -108,7 +108,7 @@ export default function TrackingPage() {
                 body: JSON.stringify({
                     ...form,
                     vehicleId:   Number(form.vehicleId),
-                    vehicleName: vehiculo ? `${vehiculo.plate} 鈥?${vehiculo.brand}` : "",
+                    vehicleName: vehiculo ? `${vehiculo.plate} -${vehiculo.brand}` : "",
                     latitude:    Number(form.latitude),
                     longitude:   Number(form.longitude),
                     speed:       Number(form.speed),
@@ -172,7 +172,7 @@ export default function TrackingPage() {
                             <option value="">Seleccionar viaje...</option>
                             {viajes.map(v => (
                                 <option key={v.id} value={v.id}>
-                                    #{v.id} 鈥?{v.clienteNombre || "Sin cliente"} | {v.origen || "?"} 鈫?{v.destino || "?"}
+                                    #{v.id} -{v.clienteNombre || "Sin cliente"} | {v.origen || "?"} 鈫?{v.destino || "?"}
                                 </option>
                             ))}
                         </select>
@@ -293,7 +293,7 @@ export default function TrackingPage() {
                                     <select value={form.vehicleId} onChange={e => setForm({ ...form, vehicleId: e.target.value })}
                                         className="w-full bg-[#020617] border border-cyan-400/10 rounded-xl px-5 py-3 text-white outline-none">
                                         <option value="">Seleccionar veh铆culo...</option>
-                                        {vehicles.map(v => <option key={v.id} value={v.id}>{v.plate} 鈥?{v.brand} {v.model}</option>)}
+                                        {vehicles.map(v => <option key={v.id} value={v.id}>{v.plate} -{v.brand} {v.model}</option>)}
                                     </select>
                                 </div>
                                 {[
@@ -335,3 +335,7 @@ export default function TrackingPage() {
         </div>
     );
 }
+
+
+
+

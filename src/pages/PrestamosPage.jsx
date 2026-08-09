@@ -85,8 +85,7 @@ export default function PrestamosPage() {
             const method = editando ? 'PUT' : 'POST';
             const res = await fetch(url, { method, headers, body: JSON.stringify({ ...form, montoTotal: Number(form.montoTotal) }) });
             if (res.ok) {
-                showMsg(true, editando ? 'Pr茅stamo actualizado 鉁? : 'Pr茅stamo registrado 鉁?);
-                setShowModal(false);
+                showMsg(true, editando ? 'Préstamo actualizado': 'Préstamo registrado');setShowModal(false);
                 fetchAll();
             } else {
                 showMsg(false, 'Error al guardar');
@@ -118,8 +117,7 @@ export default function PrestamosPage() {
                 body: JSON.stringify({ monto: Number(abonoMonto), fecha: abonoFecha })
             });
             if (res.ok) {
-                showMsg(true, 'Abono registrado 鉁?);
-                setAbonoMonto('');
+                showMsg(true, 'Abono registrado');setAbonoMonto('');
                 fetchAbonos(prestamoSel.id);
                 fetchAll();
             } else { showMsg(false, 'Error al registrar abono'); }
@@ -381,3 +379,9 @@ export default function PrestamosPage() {
         </div>
     );
 }
+
+
+
+
+
+

@@ -85,7 +85,7 @@ export default function BitacoraPage() {
                     <h1 className="text-5xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">
                         BIT脕CORA
                     </h1>
-                    <p className="text-gray-400 mt-2">Historial completo de eventos 鈥?qui茅n hizo qu茅 y cu谩ndo</p>
+                    <p className="text-gray-400 mt-2">Historial completo de eventos -qui茅n hizo qu茅 y cu谩ndo</p>
                 </motion.div>
 
                 {/* Stats r谩pidos */}
@@ -146,7 +146,7 @@ export default function BitacoraPage() {
                         {buscarFolio && (
                             <button onClick={() => { setBuscarFolio(""); fetchAll(); }}
                                 className="px-4 py-2 rounded-xl bg-white/5 border border-white/10 text-gray-400 text-sm font-bold hover:bg-white/10 transition-all">
-                                鉁?Limpiar
+                                
                             </button>
                         )}
                     </div>
@@ -186,17 +186,17 @@ export default function BitacoraPage() {
                                                 </span>
                                             </td>
                                             <td className="py-3 pr-4">
-                                                <span className="font-black text-cyan-300 text-xs">{e.folioReferencia || "鈥?}</span>
+                                                <span className="font-black text-cyan-300 text-xs">{e.folioReferencia || "-"}</span>
                                             </td>
                                             <td className="py-3 pr-4">
                                                 <span className={`px-2 py-1 rounded-lg border text-xs font-bold ${accionColor(e.accion)}`}>
                                                     {e.accion}
                                                 </span>
                                             </td>
-                                            <td className="py-3 pr-4 text-gray-500 text-xs">{e.statusAnterior || "鈥?}</td>
-                                            <td className="py-3 pr-4 text-gray-300 text-xs">{e.statusNuevo || "鈥?}</td>
-                                            <td className="py-3 pr-4 text-white text-xs font-bold">{e.usuario || "鈥?}</td>
-                                            <td className="py-3 pr-4 text-gray-400 text-xs max-w-xs truncate">{e.descripcion || "鈥?}</td>
+                                            <td className="py-3 pr-4 text-gray-500 text-xs">{e.statusAnterior || "-"}</td>
+                                            <td className="py-3 pr-4 text-gray-300 text-xs">{e.statusNuevo || "-"}</td>
+                                            <td className="py-3 pr-4 text-white text-xs font-bold">{e.usuario || "-"}</td>
+                                            <td className="py-3 pr-4 text-gray-400 text-xs max-w-xs truncate">{e.descripcion || "-"}</td>
                                         </motion.tr>
                                     ))}
                                 </tbody>
@@ -208,3 +208,7 @@ export default function BitacoraPage() {
         </div>
     );
 }
+
+
+
+

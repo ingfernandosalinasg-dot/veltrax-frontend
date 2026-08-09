@@ -137,7 +137,7 @@ export default function UmbralesPage() {
                                                 {metricaLabel[u.metrica] || u.metrica}
                                             </span>
                                         </td>
-                                        <td className="py-4 pr-4 text-gray-300">{u.valorMinimo?.toLocaleString() ?? "鈥?}</td>
+                                        <td className="py-4 pr-4 text-gray-300">{u.valorMinimo?.toLocaleString() ?? "-"}</td>
                                         <td className="py-4 pr-4 text-yellow-300 font-bold">
                                             {u.tipoBono === "PORCENTAJE" ? `${u.valorBono}% del ingreso` : `$${(u.valorBono || 0).toLocaleString()}`}
                                         </td>
@@ -208,4 +208,8 @@ export default function UmbralesPage() {
         </div>
     );
 }
+
+
+
+
 

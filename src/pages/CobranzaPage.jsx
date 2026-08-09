@@ -248,14 +248,14 @@ export default function CobranzaPage() {
                                         <motion.tr key={f.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
                                             className="border-b border-cyan-400/5 hover:bg-cyan-500/5 transition-all">
                                             <td className="py-4 pr-4 font-bold text-cyan-300">{f.folio}</td>
-                                            <td className="py-4 pr-4 font-bold">{f.clienteNombre || "鈥?}</td>
-                                            <td className="py-4 pr-4 text-gray-400 font-mono text-xs">{f.rfc || "鈥?}</td>
+                                            <td className="py-4 pr-4 font-bold">{f.clienteNombre || "-"}</td>
+                                            <td className="py-4 pr-4 text-gray-400 font-mono text-xs">{f.rfc || "-"}</td>
                                             <td className="py-4 pr-4 text-white font-bold">${(f.total||0).toLocaleString()}</td>
                                             <td className="py-4 pr-4 text-green-300">${(f.pagado||0).toLocaleString()}</td>
                                             <td className="py-4 pr-4 text-yellow-300 font-black">${saldo.toLocaleString()}</td>
-                                            <td className="py-4 pr-4 text-gray-400 text-sm">{f.fechaVencimiento || "鈥?}</td>
+                                            <td className="py-4 pr-4 text-gray-400 text-sm">{f.fechaVencimiento || "-"}</td>
                                             <td className={`py-4 pr-4 text-sm ${diasColor}`}>
-                                                {dias === null ? "鈥? : dias < 0 ? `${Math.abs(dias)}d vencida` : `${dias}d`}
+                                                {dias === null ? "-" : dias < 0 ? `${Math.abs(dias)}d vencida` : `${dias}d`}
                                             </td>
                                             <td className="py-4 pr-4">
                                                 <span className={`px-3 py-1 rounded-full border text-xs font-bold ${statusColor(f.status)}`}>
@@ -295,7 +295,7 @@ export default function CobranzaPage() {
                             <div className="flex justify-between items-center p-8 pb-4">
                                 <div>
                                     <h2 className="text-2xl font-black text-cyan-300">Registrar Pago</h2>
-                                    <p className="text-gray-400 text-sm mt-1">{facturaActiva.folio} 鈥?{facturaActiva.clienteNombre}</p>
+                                    <p className="text-gray-400 text-sm mt-1">{facturaActiva.folio} -{facturaActiva.clienteNombre}</p>
                                 </div>
                                 <button onClick={() => setShowPagoModal(false)} className="text-gray-400 hover:text-white text-2xl"><FaTimes /></button>
                             </div>
@@ -336,14 +336,14 @@ export default function CobranzaPage() {
                                         <Field label="Forma de Pago (SAT)" span2>
                                             <select value={formPago.formaPago} onChange={setP("formaPago")} className={selectCls}>
                                                 {FORMAS_PAGO_SAT.map(f => (
-                                                    <option key={f.clave} value={f.clave}>{f.clave} 鈥?{f.desc}</option>
+                                                    <option key={f.clave} value={f.clave}>{f.clave} -{f.desc}</option>
                                                 ))}
                                             </select>
                                         </Field>
                                         <Field label="M茅todo de Pago (SAT)" span2>
                                             <select value={formPago.metodoPago} onChange={setP("metodoPago")} className={selectCls}>
                                                 {METODOS_PAGO_SAT.map(m => (
-                                                    <option key={m.clave} value={m.clave}>{m.clave} 鈥?{m.desc}</option>
+                                                    <option key={m.clave} value={m.clave}>{m.clave} -{m.desc}</option>
                                                 ))}
                                             </select>
                                         </Field>
@@ -382,7 +382,7 @@ export default function CobranzaPage() {
                             <div className="flex justify-between items-center p-8 pb-4">
                                 <div>
                                     <h2 className="text-2xl font-black text-cyan-300 flex items-center gap-3"><FaHistory /> Historial de Pagos</h2>
-                                    <p className="text-gray-400 text-sm mt-1">{facturaActiva.folio} 鈥?{facturaActiva.clienteNombre}</p>
+                                    <p className="text-gray-400 text-sm mt-1">{facturaActiva.folio} -{facturaActiva.clienteNombre}</p>
                                 </div>
                                 <button onClick={() => setShowPagosModal(false)} className="text-gray-400 hover:text-white text-2xl"><FaTimes /></button>
                             </div>
@@ -419,3 +419,7 @@ export default function CobranzaPage() {
         </div>
     );
 }
+
+
+
+

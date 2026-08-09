@@ -68,7 +68,7 @@ export default function MantenimientosPage() {
                     <select value={vehicleSel} onChange={e => setVehicleSel(e.target.value)}
                         className="w-full md:w-96 bg-[#020617] border border-cyan-400/10 rounded-xl px-5 py-3 text-white outline-none focus:border-cyan-400/40 transition-all">
                         <option value="">Seleccionar unidad...</option>
-                        {vehicles.map(v => <option key={v.id} value={v.id}>{v.plate} 鈥?{v.brand} {v.model}</option>)}
+                        {vehicles.map(v => <option key={v.id} value={v.id}>{v.plate} -{v.brand} {v.model}</option>)}
                     </select>
                 </div>
 
@@ -84,7 +84,7 @@ export default function MantenimientosPage() {
                         <div className="grid grid-cols-4 gap-6 mb-8">
                             <div className="rounded-3xl bg-white/5 border border-cyan-400/10 backdrop-blur-xl p-6 flex items-center gap-5">
                                 <FaTruck className="text-4xl text-cyan-400" />
-                                <div><p className="text-gray-400">Unidad</p><h2 className="text-2xl font-black">{vehicleActual?.plate || "鈥?}</h2></div>
+                                <div><p className="text-gray-400">Unidad</p><h2 className="text-2xl font-black">{vehicleActual?.plate || "-"}</h2></div>
                             </div>
                             <div className="rounded-3xl bg-white/5 border border-orange-400/10 backdrop-blur-xl p-6 flex items-center gap-5">
                                 <FaTachometerAlt className="text-4xl text-orange-400" />
@@ -122,9 +122,9 @@ export default function MantenimientosPage() {
                                                         <span className="text-cyan-300 font-bold text-sm">{item.folio}</span>
                                                         <span className={`px-2 py-0.5 rounded-full border text-xs font-bold ${statusColor(item.status)}`}>{item.status}</span>
                                                         {item._tipo === "REPORTE" && <span className="px-2 py-0.5 rounded-full bg-yellow-500/10 text-yellow-300 text-xs font-bold">Reporte de Falla</span>}
-                                                        {item._tipo === "ORDEN"   && <span className="px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 text-xs font-bold">{item.tipo} 鈥?Orden</span>}
+                                                        {item._tipo === "ORDEN"   && <span className="px-2 py-0.5 rounded-full bg-cyan-500/10 text-cyan-300 text-xs font-bold">{item.tipo} -Orden</span>}
                                                     </div>
-                                                    <span className="text-gray-500 text-xs">{item._fecha || "鈥?}</span>
+                                                    <span className="text-gray-500 text-xs">{item._fecha || "-"}</span>
                                                 </div>
                                                 <p className="text-gray-300 text-sm">{item.descripcion}</p>
                                                 {item._tipo === "ORDEN" && (
@@ -147,3 +147,7 @@ export default function MantenimientosPage() {
         </div>
     );
 }
+
+
+
+

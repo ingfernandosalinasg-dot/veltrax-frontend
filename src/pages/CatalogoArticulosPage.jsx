@@ -76,7 +76,7 @@ export default function CatalogoArticulosPage() {
             a.marca?.toLowerCase().includes(busqueda.toLowerCase()) ||
             a.registroSanitario?.toLowerCase().includes(busqueda.toLowerCase()));
 
-    const fmt = n => n ? "$"+Number(n).toLocaleString("es-MX", { minimumFractionDigits:2 }) : "—";
+    const fmt = n => n ? "$"+Number(n).toLocaleString("es-MX", { minimumFractionDigits:2 }) : "-";
 
     return (
         <div className="flex min-h-screen bg-[#020617] text-white overflow-hidden">
@@ -131,15 +131,15 @@ export default function CatalogoArticulosPage() {
                             {filtrados.map((a,i) => (
                                 <motion.tr key={a.id} initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:i*0.04 }}
                                     className="border-b border-cyan-400/5 hover:bg-cyan-500/5 transition-all">
-                                    <td className="py-4 pr-4 font-mono text-cyan-300 text-sm">{a.clave||"—"}</td>
+                                    <td className="py-4 pr-4 font-mono text-cyan-300 text-sm">{a.clave||"-"}</td>
                                     <td className="py-4 pr-4 text-white font-bold max-w-xs"><p className="truncate">{a.descripcion}</p></td>
-                                    <td className="py-4 pr-4 text-gray-300 text-sm">{a.marca||"—"}</td>
+                                    <td className="py-4 pr-4 text-gray-300 text-sm">{a.marca||"-"}</td>
                                     <td className="py-4 pr-4">
-                                        <span className="px-2 py-0.5 rounded-full bg-purple-500/20 border border-purple-400/20 text-purple-300 text-xs font-bold">{a.categoria||"—"}</span>
+                                        <span className="px-2 py-0.5 rounded-full bg-purple-500/20 border border-purple-400/20 text-purple-300 text-xs font-bold">{a.categoria||"-"}</span>
                                     </td>
-                                    <td className="py-4 pr-4 text-gray-400 text-sm">{a.unidad||"—"}</td>
+                                    <td className="py-4 pr-4 text-gray-400 text-sm">{a.unidad||"-"}</td>
                                     <td className="py-4 pr-4 text-green-300 font-bold">{fmt(a.precioReferencia)}</td>
-                                    <td className="py-4 pr-4 text-gray-400 text-sm font-mono">{a.registroSanitario||"—"}</td>
+                                    <td className="py-4 pr-4 text-gray-400 text-sm font-mono">{a.registroSanitario||"-"}</td>
                                     <td className="py-4">
                                         <div className="flex gap-2">
                                             <button onClick={() => openEdit(a)} className="p-2 rounded-xl bg-yellow-500/10 border border-yellow-400/20 text-yellow-400 hover:bg-yellow-500/20 transition-all"><FaEdit size={12}/></button>
@@ -196,3 +196,7 @@ export default function CatalogoArticulosPage() {
         </div>
     );
 }
+
+
+
+

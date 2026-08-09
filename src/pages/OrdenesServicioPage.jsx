@@ -189,10 +189,10 @@ export default function OrdenesServicioPage() {
                                                 {o.folio}
                                                 {o.reporteFallaFolio && <p className="text-gray-500 text-xs font-normal">desde {o.reporteFallaFolio}</p>}
                                             </td>
-                                            <td className="py-4 pr-4 text-sm flex items-center gap-2"><FaTruck className="text-gray-500" /> {o.vehiclePlaca || "—"}</td>
+                                            <td className="py-4 pr-4 text-sm flex items-center gap-2"><FaTruck className="text-gray-500" /> {o.vehiclePlaca || "-"}</td>
                                             <td className="py-4 pr-4 text-gray-300 text-sm">{o.tipo}</td>
-                                            <td className="py-4 pr-4 text-gray-300 text-sm">{o.taller || "—"}</td>
-                                            <td className="py-4 pr-4 text-gray-400 text-sm">{o.fechaEntrada || "—"}</td>
+                                            <td className="py-4 pr-4 text-gray-300 text-sm">{o.taller || "-"}</td>
+                                            <td className="py-4 pr-4 text-gray-400 text-sm">{o.fechaEntrada || "-"}</td>
                                             <td className="py-4 pr-4 text-sm">
                                                 {o.status === "COMPLETADA"
                                                     ? <span className="text-green-300 font-bold">${(o.costoFinal || 0).toLocaleString()}</span>
@@ -237,7 +237,7 @@ export default function OrdenesServicioPage() {
                                 <Field label="Unidad">
                                     <select value={form.vehicleId} onChange={set("vehicleId")} className={selectCls}>
                                         <option value="">Seleccionar unidad...</option>
-                                        {vehicles.map(v => <option key={v.id} value={v.id}>{v.plate} — {v.brand} {v.model}</option>)}
+                                        {vehicles.map(v => <option key={v.id} value={v.id}>{v.plate} - {v.brand} {v.model}</option>)}
                                     </select>
                                 </Field>
                                 <Field label="Tipo de servicio">
@@ -251,7 +251,7 @@ export default function OrdenesServicioPage() {
                                 <Field label="Proveedor / Taller">
                                     <select value={form.proveedorId} onChange={set("proveedorId")} className={selectCls}>
                                         <option value="">Seleccionar proveedor...</option>
-                                        {proveedores.map(p => <option key={p.id} value={p.id}>{p.nombre}{p.razonSocial ? ` — ${p.razonSocial}` : ""}</option>)}
+                                        {proveedores.map(p => <option key={p.id} value={p.id}>{p.nombre}{p.razonSocial ? ` - ${p.razonSocial}` : ""}</option>)}
                                     </select>
                                     {proveedores.length === 0 && (
                                         <p className="text-yellow-400 text-xs mt-1">No tienes proveedores registrados. <a href="/proveedores" className="underline">Agregar proveedor</a></p>
@@ -294,7 +294,7 @@ export default function OrdenesServicioPage() {
                             <div className="flex justify-between items-center p-6 pb-0">
                                 <div>
                                     <h2 className="text-2xl font-black text-green-300">Completar Orden</h2>
-                                    <p className="text-gray-400 text-sm mt-1">{ordenActiva.folio} — {ordenActiva.vehiclePlaca}</p>
+                                    <p className="text-gray-400 text-sm mt-1">{ordenActiva.folio} - {ordenActiva.vehiclePlaca}</p>
                                 </div>
                                 <button onClick={() => setShowCompletarModal(false)} className="text-gray-400 hover:text-white text-xl"><FaTimes /></button>
                             </div>
@@ -319,4 +319,8 @@ export default function OrdenesServicioPage() {
         </div>
     );
 }
+
+
+
+
 

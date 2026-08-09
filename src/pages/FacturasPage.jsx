@@ -266,7 +266,7 @@ export default function FacturasPage() {
                                             {TIPOS_FACTURA.find(t => t.id===f.tipoFactura)?.label || f.tipoFactura || "Concepto"}
                                         </span>
                                     </td>
-                                    <td className="py-4 pr-4 text-white text-sm">{f.cliente?.name || f.receptorRazonSocial || "鈥?}</td>
+                                    <td className="py-4 pr-4 text-white text-sm">{f.cliente?.name || f.receptorRazonSocial || "-"}</td>
                                     <td className="py-4 pr-4 text-gray-400 text-sm">{f.fecha}</td>
                                     <td className="py-4 pr-4 text-gray-300 text-sm">${f.subtotal?.toLocaleString("es-MX",{minimumFractionDigits:2})}</td>
                                     <td className="py-4 pr-4 text-gray-300 text-sm">${f.iva?.toLocaleString("es-MX",{minimumFractionDigits:2})}</td>
@@ -314,7 +314,7 @@ export default function FacturasPage() {
                             <div className="flex justify-between items-center p-8 pb-0 flex-shrink-0">
                                 <div>
                                     <h2 className="text-3xl font-black text-cyan-300">
-                                        {step===1 ? "Nueva Factura 鈥?Elige el tipo" : (TIPOS_FACTURA.find(t=>t.id===tipoFactura)?.icon+" "+TIPOS_FACTURA.find(t=>t.id===tipoFactura)?.label)}
+                                        {step===1 ? "Nueva Factura -Elige el tipo" : (TIPOS_FACTURA.find(t=>t.id===tipoFactura)?.icon+" "+TIPOS_FACTURA.find(t=>t.id===tipoFactura)?.label)}
                                     </h2>
                                     {step===2 && <button onClick={() => setStep(1)} className="text-gray-500 text-sm mt-1 hover:text-gray-300">鈫?Cambiar tipo</button>}
                                 </div>
@@ -347,7 +347,7 @@ export default function FacturasPage() {
                                                 <h3 className="text-cyan-400 font-bold mb-3 text-sm uppercase tracking-widest">Viaje a Facturar</h3>
                                                 <select value={form.orderId} onChange={onOrderChange} className={selectCls}>
                                                     <option value="">Seleccionar viaje...</option>
-                                                    {orders.map(o => <option key={o.id} value={o.id}>{o.folio||"#"+o.id} 鈥?{o.cliente?.name||""} {o.cost?"($"+o.cost.toLocaleString()+")":""}</option>)}
+                                                    {orders.map(o => <option key={o.id} value={o.id}>{o.folio||"#"+o.id} -{o.cliente?.name||""} {o.cost?"($"+o.cost.toLocaleString()+")":""}</option>)}
                                                 </select>
                                             </div>
                                         )}
@@ -357,7 +357,7 @@ export default function FacturasPage() {
                                                 <select value={form.facturaRelacionadaId} onChange={setF("facturaRelacionadaId")} className={selectCls}>
                                                     <option value="">Seleccionar factura...</option>
                                                     {facturas.filter(f=>f.tipoFactura!=="NOTA_CARGO"&&f.tipoFactura!=="NOTA_CREDITO").map(f => (
-                                                        <option key={f.id} value={f.id}>{f.serie}{f.folio} 鈥?{f.cliente?.name||f.receptorRazonSocial} 鈥?${f.total?.toLocaleString()}</option>
+                                                        <option key={f.id} value={f.id}>{f.serie}{f.folio} -{f.cliente?.name||f.receptorRazonSocial} -${f.total?.toLocaleString()}</option>
                                                     ))}
                                                 </select>
                                             </div>
@@ -383,7 +383,7 @@ export default function FacturasPage() {
                                             <h3 className="text-cyan-400 font-bold mb-3 text-sm uppercase tracking-widest">Receptor</h3>
                                             {tipoFactura==="GLOBAL" ? (
                                                 <div className="p-4 rounded-2xl bg-purple-500/10 border border-purple-400/20 text-purple-300 text-sm">
-                                                    RFC: <strong>XAXX010101000 鈥?PUBLICO EN GENERAL</strong>
+                                                    RFC: <strong>XAXX010101000 -PUBLICO EN GENERAL</strong>
                                                     <div className="mt-3 grid grid-cols-2 gap-4">
                                                         <div><label className="text-gray-400 text-xs mb-1 block">Regimen Fiscal</label><input value={form.receptorRegimenFiscal} onChange={setF("receptorRegimenFiscal")} className={inputCls} placeholder="616" /></div>
                                                         <div><label className="text-gray-400 text-xs mb-1 block">Codigo Postal</label><input value={form.receptorCodigoPostal} onChange={setF("receptorCodigoPostal")} className={inputCls} placeholder="64000" /></div>
@@ -471,3 +471,7 @@ export default function FacturasPage() {
         </div>
     );
 }
+
+
+
+

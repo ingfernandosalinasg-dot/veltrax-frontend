@@ -109,8 +109,8 @@ async function analizarConIA(file, onProgress) {
     return JSON.parse(raw.replace(/```json|```/g,"").trim());
 }
 
-function fmxn(n){ if(n==null)return"—"; return"$"+Number(n).toLocaleString("es-MX",{minimumFractionDigits:2}); }
-function fnum(n){ if(n==null)return"—"; return Number(n).toLocaleString("es-MX"); }
+function fmxn(n){ if(n==null)return"-"; return"$"+Number(n).toLocaleString("es-MX",{minimumFractionDigits:2}); }
+function fnum(n){ if(n==null)return"-"; return Number(n).toLocaleString("es-MX"); }
 
 function SeccionIA({titulo,icon,children,defaultOpen=true}){
     const[open,setOpen]=useState(defaultOpen);
@@ -132,7 +132,7 @@ function KV({label,value}){
     return(
         <div className="flex items-start gap-2 py-2 border-b border-white/5 last:border-0">
             <span className="text-gray-400 text-xs w-44 flex-shrink-0 pt-0.5">{label}</span>
-            <span className="text-white text-sm font-bold flex-1">{value||"—"}</span>
+            <span className="text-white text-sm font-bold flex-1">{value||"-"}</span>
         </div>
     );
 }
@@ -155,10 +155,10 @@ function TablaArticulos({articulos}){
                 <tbody>
                     {articulos.map((a,i)=>(
                         <motion.tr key={i} initial={{opacity:0}} animate={{opacity:1}} transition={{delay:i*0.025}} className="border-b border-white/5 hover:bg-cyan-500/5 transition-all">
-                            <td className="py-3 pr-3 font-black text-cyan-300 whitespace-nowrap">{a.clave||"—"}</td>
-                            <td className="py-3 pr-3 text-white max-w-xs"><p className="font-bold leading-tight">{a.descripcion||"—"}</p>{a.notas&&<p className="text-gray-500 text-xs mt-0.5">{a.notas}</p>}</td>
-                            <td className="py-3 pr-3 text-gray-300 whitespace-nowrap">{a.marca||"—"}</td>
-                            <td className="py-3 pr-3 text-gray-400 whitespace-nowrap">{a.unidad||"—"}</td>
+                            <td className="py-3 pr-3 font-black text-cyan-300 whitespace-nowrap">{a.clave||"-"}</td>
+                            <td className="py-3 pr-3 text-white max-w-xs"><p className="font-bold leading-tight">{a.descripcion||"-"}</p>{a.notas&&<p className="text-gray-500 text-xs mt-0.5">{a.notas}</p>}</td>
+                            <td className="py-3 pr-3 text-gray-300 whitespace-nowrap">{a.marca||"-"}</td>
+                            <td className="py-3 pr-3 text-gray-400 whitespace-nowrap">{a.unidad||"-"}</td>
                             <td className="py-3 pr-3 text-yellow-300 font-black text-right whitespace-nowrap">{fnum(a.cantidad_minima)}</td>
                             <td className="py-3 pr-3 text-green-300 font-black text-right whitespace-nowrap">{fnum(a.cantidad_maxima)}</td>
                             <td className="py-3 pr-3 text-white font-bold text-right whitespace-nowrap">{fmxn(a.precio_unitario)}</td>
@@ -211,7 +211,7 @@ function TabAnalisisIA(){
                 <input ref={inputRef} type="file" accept=".pdf" className="hidden" onChange={e=>elegirArchivo(e.target.files[0])}/>
                 <FaUpload className="text-cyan-400 text-3xl mx-auto mb-3"/>
                 <p className="text-white font-bold">Arrastra el PDF de la licitación aquí</p>
-                <p className="text-gray-500 text-sm mt-1">o haz clic — sin límite de tamaño</p>
+                <p className="text-gray-500 text-sm mt-1">o haz clic - sin límite de tamaño</p>
             </div>)}
             {archivo&&!resultado&&(<div className="flex items-center gap-3 bg-white/5 border border-cyan-400/10 rounded-xl px-4 py-3 mb-3">
                 <FaFileAlt className="text-red-400 flex-shrink-0"/>
@@ -230,7 +230,7 @@ function TabAnalisisIA(){
                 <div className="flex gap-2 flex-wrap mb-4">{SUB_TABS.map(t=>(<button key={t.key} onClick={()=>setSubTab(t.key)} className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold transition-all ${subTab===t.key?"bg-cyan-500/20 border border-cyan-400/30 text-cyan-300":"bg-white/5 border border-white/5 text-gray-400 hover:bg-white/10"}`}>{t.icon} {t.label}</button>))}</div>
                 {subTab==="articulos"&&(<SeccionIA titulo={`Partidas / Artículos (${resultado.articulos?.length||0})`} icon={<FaTable/>}><div className="flex gap-4 mb-4 text-xs flex-wrap"><span className="flex items-center gap-1.5 text-yellow-300"><span className="w-3 h-3 rounded-full bg-yellow-400/30 border border-yellow-400/50 inline-block"/>Cantidad mínima</span><span className="flex items-center gap-1.5 text-green-300"><span className="w-3 h-3 rounded-full bg-green-400/30 border border-green-400/50 inline-block"/>Cantidad máxima</span><span className="flex items-center gap-1.5 text-blue-300"><span className="w-3 h-3 rounded-full bg-blue-400/30 border border-blue-400/50 inline-block"/>Registro sanitario</span></div><TablaArticulos articulos={resultado.articulos}/></SeccionIA>)}
                 {subTab==="ficha"&&(<SeccionIA titulo="Ficha general" icon={<FaFileAlt/>}><KV label="Número de licitación" value={resultado.ficha?.numero}/><KV label="Entidad convocante" value={resultado.ficha?.entidad}/><KV label="Objeto del contrato" value={resultado.ficha?.objeto}/><KV label="Categoría" value={resultado.ficha?.categoria}/><KV label="Fecha de fallo" value={resultado.ficha?.fecha_fallo}/><KV label="Fecha límite oferta" value={resultado.ficha?.fecha_limite_oferta}/><KV label="Duración del contrato" value={resultado.ficha?.duracion_contrato}/><KV label="Lugar de ejecución" value={resultado.ficha?.lugar}/><KV label="Presupuesto referencial" value={resultado.ficha?.presupuesto}/><KV label="Plazo entrega (días)" value={resultado.ficha?.plazo_entrega_dias}/><KV label="Acepta parcialidad" value={resultado.ficha?.acepta_parcialidad}/><KV label="Sectorizado" value={resultado.ficha?.sectorizado}/></SeccionIA>)}
-                {subTab==="financiero"&&(<div><SeccionIA titulo="Análisis financiero" icon={<FaRoute/>}><div className="grid grid-cols-2 gap-3 mb-4">{[{label:"Valor total estimado",value:fmxn(resultado.financiero?.valor_total_estimado)},{label:"Peso del precio (eval.)",value:resultado.financiero?.criterio_precio_pct!=null?`${resultado.financiero.criterio_precio_pct}%`:"—"},{label:"Garantía requerida",value:resultado.financiero?.garantia},{label:"Forma de pago",value:resultado.financiero?.forma_pago},{label:"Penalidades",value:resultado.financiero?.penalidades}].map((item,i)=>(<div key={i} className="bg-white/5 rounded-xl p-3"><p className="text-gray-400 text-xs mb-1">{item.label}</p><p className="text-white font-bold text-sm">{item.value||"—"}</p></div>))}</div><p className="text-gray-300 text-sm leading-relaxed">{resultado.financiero?.analisis}</p></SeccionIA><SeccionIA titulo="Criterios de evaluación" icon={<FaShieldAlt/>}><p className="text-gray-300 text-sm mb-3">{resultado.evaluacion?.criterios}</p>{resultado.evaluacion?.requisitos_tecnicos?.length>0&&(<><p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-2">Requisitos técnicos</p><TagIA items={resultado.evaluacion.requisitos_tecnicos} color="cyan"/></>)}{resultado.evaluacion?.condiciones_clave?.length>0&&(<ul className="mt-4 space-y-2">{resultado.evaluacion.condiciones_clave.map((c,i)=>(<li key={i} className="flex gap-2 text-sm text-gray-300"><span className="text-cyan-400 mt-0.5 flex-shrink-0">▸</span>{c}</li>))}</ul>)}</SeccionIA></div>)}
+                {subTab==="financiero"&&(<div><SeccionIA titulo="Análisis financiero" icon={<FaRoute/>}><div className="grid grid-cols-2 gap-3 mb-4">{[{label:"Valor total estimado",value:fmxn(resultado.financiero?.valor_total_estimado)},{label:"Peso del precio (eval.)",value:resultado.financiero?.criterio_precio_pct!=null?`${resultado.financiero.criterio_precio_pct}%`:"-"},{label:"Garantía requerida",value:resultado.financiero?.garantia},{label:"Forma de pago",value:resultado.financiero?.forma_pago},{label:"Penalidades",value:resultado.financiero?.penalidades}].map((item,i)=>(<div key={i} className="bg-white/5 rounded-xl p-3"><p className="text-gray-400 text-xs mb-1">{item.label}</p><p className="text-white font-bold text-sm">{item.value||"-"}</p></div>))}</div><p className="text-gray-300 text-sm leading-relaxed">{resultado.financiero?.analisis}</p></SeccionIA><SeccionIA titulo="Criterios de evaluación" icon={<FaShieldAlt/>}><p className="text-gray-300 text-sm mb-3">{resultado.evaluacion?.criterios}</p>{resultado.evaluacion?.requisitos_tecnicos?.length>0&&(<><p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-2">Requisitos técnicos</p><TagIA items={resultado.evaluacion.requisitos_tecnicos} color="cyan"/></>)}{resultado.evaluacion?.condiciones_clave?.length>0&&(<ul className="mt-4 space-y-2">{resultado.evaluacion.condiciones_clave.map((c,i)=>(<li key={i} className="flex gap-2 text-sm text-gray-300"><span className="text-cyan-400 mt-0.5 flex-shrink-0">▸</span>{c}</li>))}</ul>)}</SeccionIA></div>)}
                 {subTab==="riesgos"&&(<div><SeccionIA titulo="Riesgos identificados" icon={<FaExclamationTriangle/>}><TagIA items={resultado.riesgos} color="red"/><p className="text-gray-300 text-sm mt-4 leading-relaxed">{resultado.analisis_riesgos}</p></SeccionIA><SeccionIA titulo="Oportunidades" icon={<FaCheckCircle/>}><TagIA items={resultado.oportunidades} color="green"/></SeccionIA><SeccionIA titulo="Hoja de ruta" icon={<FaRoute/>} defaultOpen={false}><ol className="space-y-3">{(resultado.pasos||[]).map((p,i)=>(<li key={i} className="flex gap-3 text-sm text-gray-300"><span className="w-6 h-6 rounded-full bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 text-xs font-black flex items-center justify-center flex-shrink-0 mt-0.5">{i+1}</span>{p}</li>))}</ol>{resultado.documentos_clave&&(<div className="mt-4 bg-white/5 rounded-xl p-3"><p className="text-cyan-400 text-xs font-bold mb-1">Documentos a preparar:</p><p className="text-gray-300 text-sm">{resultado.documentos_clave}</p></div>)}</SeccionIA><SeccionIA titulo="Recomendación estratégica" icon={<FaRobot/>} defaultOpen={false}><p className="text-gray-300 text-sm leading-relaxed">{resultado.recomendacion}</p></SeccionIA></div>)}
             </motion.div>)}
         </div>
@@ -374,7 +374,7 @@ function TabAdjudicado({ licitacion, licitacionId, onActualizar }) {
                 <div className="bg-white/5 border border-cyan-400/10 rounded-2xl p-4">
                     <p className="text-gray-400 text-xs mb-1">Monto Adjudicado</p>
                     <p className="text-2xl font-black text-green-300">
-                        {licitacion?.montoAdjudicado ? `$${Number(licitacion.montoAdjudicado).toLocaleString("es-MX")}` : "—"}
+                        {licitacion?.montoAdjudicado ? `$${Number(licitacion.montoAdjudicado).toLocaleString("es-MX")}` : "-"}
                     </p>
                 </div>
                 <div className="bg-white/5 border border-cyan-400/10 rounded-2xl p-4">
@@ -424,7 +424,7 @@ function TabAdjudicado({ licitacion, licitacionId, onActualizar }) {
                                     </div>
                                     <p className="text-white font-bold text-sm">{partida.descripcion}</p>
                                     <div className="flex gap-4 mt-1 text-xs text-gray-400 flex-wrap">
-                                        <span>Unidad: <span className="text-white">{partida.unidad||"—"}</span></span>
+                                        <span>Unidad: <span className="text-white">{partida.unidad||"-"}</span></span>
                                         <span className="text-yellow-300">Mín: {fnum(partida.cantidadMinima)}</span>
                                         <span className="text-green-300">Máx: {fnum(partida.cantidadMaxima)}</span>
                                         <span>Precio u.: <span className="text-white">{fmxn(partida.precioUnitario)}</span></span>
@@ -468,10 +468,10 @@ function TabAdjudicado({ licitacion, licitacionId, onActualizar }) {
                                     <tr key={oc.id} className={`border-b border-white/5 ${oc.status==="CANCELADA"?"opacity-40":""}`}>
                                         <td className="px-4 py-3 font-black text-cyan-300">{oc.folio||`OC-${oc.id}`}</td>
                                         <td className="px-4 py-3 text-white max-w-xs">
-                                            <p className="font-bold truncate">{oc.partidaDescripcion||"—"}</p>
+                                            <p className="font-bold truncate">{oc.partidaDescripcion||"-"}</p>
                                             {oc.partidaClave&&<p className="text-gray-500 text-xs">{oc.partidaClave}</p>}
                                         </td>
-                                        <td className="px-4 py-3 text-gray-300 whitespace-nowrap">{oc.proveedorNombre||"—"}</td>
+                                        <td className="px-4 py-3 text-gray-300 whitespace-nowrap">{oc.proveedorNombre||"-"}</td>
                                         <td className="px-4 py-3 text-white font-bold text-right whitespace-nowrap">{fnum(oc.cantidad)} {oc.unidad}</td>
                                         <td className="px-4 py-3 text-white text-right whitespace-nowrap">{fmxn(oc.precioUnitario)}</td>
                                         <td className="px-4 py-3 text-green-300 font-black text-right whitespace-nowrap">{fmxn(oc.total)}</td>
@@ -594,7 +594,7 @@ function TabAdjudicado({ licitacion, licitacionId, onActualizar }) {
                                 <div>
                                     <label className="text-gray-400 text-xs mb-1 block">Proveedor *</label>
                                     <select value={ocForm.proveedorId} onChange={e=>setOcForm(f=>({...f,proveedorId:e.target.value}))} className={selectCls}>
-                                        <option value="">— Seleccionar proveedor —</option>
+                                        <option value="">- Seleccionar proveedor -</option>
                                         {proveedores.map(p=>(<option key={p.id} value={p.id}>{p.nombre||p.razonSocial}</option>))}
                                     </select>
                                 </div>
@@ -788,11 +788,11 @@ export default function LicitacionesPage() {
                                     <motion.tr key={l.id} initial={{opacity:0}} animate={{opacity:1}} transition={{delay:i*0.03}}
                                         className="border-b border-cyan-400/5 hover:bg-cyan-500/5 transition-all cursor-pointer" onClick={()=>abrirExpediente(l)}>
                                         <td className="py-3 pr-4 font-black text-cyan-300 text-xs">{l.folio}</td>
-                                        <td className="py-3 pr-4 text-white font-bold max-w-xs truncate">{l.titulo||"—"}</td>
-                                        <td className="py-3 pr-4 text-gray-300">{l.dependencia||"—"}</td>
-                                        <td className="py-3 pr-4 text-gray-400 text-xs">{l.tipoLicitacion||"—"}</td>
-                                        <td className="py-3 pr-4 text-green-300 font-bold">{l.montoEstimado?`$${l.montoEstimado.toLocaleString("es-MX",{minimumFractionDigits:0})}`:"—"}</td>
-                                        <td className="py-3 pr-4 text-gray-400 text-xs">{l.fechaFallo||"—"}</td>
+                                        <td className="py-3 pr-4 text-white font-bold max-w-xs truncate">{l.titulo||"-"}</td>
+                                        <td className="py-3 pr-4 text-gray-300">{l.dependencia||"-"}</td>
+                                        <td className="py-3 pr-4 text-gray-400 text-xs">{l.tipoLicitacion||"-"}</td>
+                                        <td className="py-3 pr-4 text-green-300 font-bold">{l.montoEstimado?`$${l.montoEstimado.toLocaleString("es-MX",{minimumFractionDigits:0})}`:"-"}</td>
+                                        <td className="py-3 pr-4 text-gray-400 text-xs">{l.fechaFallo||"-"}</td>
                                         <td className="py-3 pr-4" onClick={e=>e.stopPropagation()}>
                                             <span className={`px-2 py-1 rounded-full border text-xs font-bold ${STATUS_COLORS[l.status]||"text-gray-300"}`}>{l.status}</span>
                                         </td>
@@ -825,7 +825,7 @@ export default function LicitacionesPage() {
                                         {esGanada&&<span className="px-2 py-0.5 rounded-full bg-green-500/20 border border-green-400/30 text-green-300 text-xs font-bold flex items-center gap-1"><FaShoppingCart size={9}/> OC habilitadas</span>}
                                     </div>
                                     <h2 className="text-2xl font-black text-white">{expediente.licitacion?.titulo}</h2>
-                                    <p className="text-gray-400 text-sm">{expediente.licitacion?.dependencia} — {expediente.licitacion?.estado}</p>
+                                    <p className="text-gray-400 text-sm">{expediente.licitacion?.dependencia} - {expediente.licitacion?.estado}</p>
                                 </div>
                                 <div className="flex items-center gap-3">
                                     <div className="text-right">
@@ -860,9 +860,9 @@ export default function LicitacionesPage() {
                                             {label:"Tipo de Contrato",value:expediente.licitacion?.tipoContrato},
                                             {label:"Estado",value:expediente.licitacion?.estado},
                                             {label:"Municipio",value:expediente.licitacion?.municipio},
-                                            {label:"Monto Estimado",value:expediente.licitacion?.montoEstimado?`$${expediente.licitacion.montoEstimado.toLocaleString("es-MX")}`:"—"},
-                                            {label:"Monto Propuesto",value:expediente.licitacion?.montoPropuesto?`$${expediente.licitacion.montoPropuesto.toLocaleString("es-MX")}`:"—"},
-                                            {label:"Monto Adjudicado",value:expediente.licitacion?.montoAdjudicado?`$${expediente.licitacion.montoAdjudicado.toLocaleString("es-MX")}`:"—"},
+                                            {label:"Monto Estimado",value:expediente.licitacion?.montoEstimado?`$${expediente.licitacion.montoEstimado.toLocaleString("es-MX")}`:"-"},
+                                            {label:"Monto Propuesto",value:expediente.licitacion?.montoPropuesto?`$${expediente.licitacion.montoPropuesto.toLocaleString("es-MX")}`:"-"},
+                                            {label:"Monto Adjudicado",value:expediente.licitacion?.montoAdjudicado?`$${expediente.licitacion.montoAdjudicado.toLocaleString("es-MX")}`:"-"},
                                             {label:"Contacto",value:expediente.licitacion?.contactoNombre},
                                             {label:"Teléfono Contacto",value:expediente.licitacion?.contactoTelefono},
                                             {label:"Email Contacto",value:expediente.licitacion?.contactoEmail},
@@ -870,7 +870,7 @@ export default function LicitacionesPage() {
                                         ].map((item,i)=>(
                                             <div key={i} className="bg-white/5 rounded-xl p-4">
                                                 <p className="text-gray-400 text-xs mb-1">{item.label}</p>
-                                                <p className="text-white font-bold text-sm">{item.value||"—"}</p>
+                                                <p className="text-white font-bold text-sm">{item.value||"-"}</p>
                                             </div>
                                         ))}
                                         {expediente.licitacion?.notas&&(<div className="col-span-2 bg-white/5 rounded-xl p-4"><p className="text-gray-400 text-xs mb-1">Notas</p><p className="text-white text-sm">{expediente.licitacion.notas}</p></div>)}
@@ -882,7 +882,7 @@ export default function LicitacionesPage() {
                                     <div className="space-y-5">
                                         {Object.entries(docsPorCategoria(expediente.documentos)).map(([cat,docs])=>(
                                             <div key={cat}>
-                                                <h3 className="text-cyan-400 font-bold text-xs uppercase tracking-widest mb-3">{cat} — {docs.filter(d=>d.status==="CARGADO").length}/{docs.length} cargados</h3>
+                                                <h3 className="text-cyan-400 font-bold text-xs uppercase tracking-widest mb-3">{cat} - {docs.filter(d=>d.status==="CARGADO").length}/{docs.length} cargados</h3>
                                                 <div className="space-y-2">
                                                     {docs.map(doc=>(
                                                         <div key={doc.id} className={`flex items-center justify-between p-4 rounded-xl border ${doc.status==="CARGADO"?"bg-green-500/5 border-green-400/20":"bg-white/5 border-white/10"}`}>
@@ -966,7 +966,7 @@ export default function LicitacionesPage() {
                                                 <div key={i} className={`flex items-center justify-between p-4 rounded-xl border ${pasado?"bg-white/5 border-white/5 opacity-60":hoy7?"bg-yellow-500/10 border-yellow-400/30":"bg-white/5 border-cyan-400/10"}`}>
                                                     <div className="flex items-center gap-3"><span className="text-xl">{f.icon}</span><p className="text-white font-bold text-sm">{f.label}</p></div>
                                                     <div className="text-right">
-                                                        <p className={`font-bold ${pasado?"text-gray-500":hoy7?"text-yellow-300":"text-cyan-300"}`}>{f.value||"—"}</p>
+                                                        <p className={`font-bold ${pasado?"text-gray-500":hoy7?"text-yellow-300":"text-cyan-300"}`}>{f.value||"-"}</p>
                                                         {hoy7&&<p className="text-yellow-400 text-xs">⚠️ Próximo</p>}
                                                         {pasado&&f.value&&<p className="text-gray-500 text-xs">✓ Pasado</p>}
                                                     </div>
@@ -979,7 +979,7 @@ export default function LicitacionesPage() {
                                 {/* Análisis IA */}
                                 {tabExp==="analisis"&&<TabAnalisisIA/>}
 
-                                {/* Adjudicado / OC — solo si GANADA */}
+                                {/* Adjudicado / OC - solo si GANADA */}
                                 {tabExp==="adjudicado"&&esGanada&&(
                                     <TabAdjudicado
                                         licitacion={expediente.licitacion}
@@ -1082,3 +1082,7 @@ export default function LicitacionesPage() {
         </div>
     );
 }
+
+
+
+

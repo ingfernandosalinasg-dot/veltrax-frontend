@@ -68,12 +68,12 @@ export default function ServiciosCompletadosPage() {
                                     <motion.tr key={o.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }}
                                         className="border-b border-cyan-400/5 hover:bg-cyan-500/5 transition-all">
                                         <td className="py-4 pr-4 font-bold text-cyan-300 text-sm">{o.folio}</td>
-                                        <td className="py-4 pr-4 text-sm flex items-center gap-2"><FaTruck className="text-gray-500" /> {o.vehiclePlaca || "—"}</td>
+                                        <td className="py-4 pr-4 text-sm flex items-center gap-2"><FaTruck className="text-gray-500" /> {o.vehiclePlaca || "-"}</td>
                                         <td className="py-4 pr-4 text-gray-300 text-sm flex items-center gap-2"><FaTools className="text-gray-500" size={12} /> {o.tipo}</td>
-                                        <td className="py-4 pr-4 text-gray-300 text-sm">{o.taller || "—"}</td>
-                                        <td className="py-4 pr-4 text-gray-400 text-sm">{o.fechaEntrada || "—"}</td>
-                                        <td className="py-4 pr-4 text-gray-400 text-sm">{o.fechaSalidaReal || "—"}</td>
-                                        <td className="py-4 pr-4 text-gray-400 text-sm max-w-[160px] truncate">{o.refacciones || "—"}</td>
+                                        <td className="py-4 pr-4 text-gray-300 text-sm">{o.taller || "-"}</td>
+                                        <td className="py-4 pr-4 text-gray-400 text-sm">{o.fechaEntrada || "-"}</td>
+                                        <td className="py-4 pr-4 text-gray-400 text-sm">{o.fechaSalidaReal || "-"}</td>
+                                        <td className="py-4 pr-4 text-gray-400 text-sm max-w-[160px] truncate">{o.refacciones || "-"}</td>
                                         <td className="py-4 pr-4 text-green-300 font-bold">${(o.costoFinal || 0).toLocaleString()}</td>
                                     </motion.tr>
                                 ))}
@@ -85,4 +85,8 @@ export default function ServiciosCompletadosPage() {
         </div>
     );
 }
+
+
+
+
 

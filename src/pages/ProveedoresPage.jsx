@@ -183,16 +183,16 @@ export default function ProveedoresPage() {
                                             <div className="font-bold text-white">{p.nombre}</div>
                                             {p.razonSocial && <div className="text-xs text-gray-500">{p.razonSocial}</div>}
                                         </td>
-                                        <td className="py-4 pr-6 text-cyan-300 font-mono text-sm">{p.rfc || "鈥?}</td>
+                                        <td className="py-4 pr-6 text-cyan-300 font-mono text-sm">{p.rfc || "-"}</td>
                                         <td className="py-4 pr-6">
                                             <span className={`px-2 py-1 rounded-full border text-xs font-bold ${rolColor[p.rol] || "text-gray-300 bg-white/5 border-white/10"}`}>
                                                 {p.rol}
                                             </span>
                                         </td>
                                         <td className="py-4 pr-6 text-gray-400">{p.ciudad}{p.pais ? `, ${p.pais}` : ""}</td>
-                                        <td className="py-4 pr-6 text-gray-400 text-sm">{p.tipoCarga || "鈥?}</td>
-                                        <td className="py-4 pr-6 text-gray-400">{p.contactoPrincipal || "鈥?}</td>
-                                        <td className="py-4 pr-6 text-gray-400">{p.telefono || "鈥?}</td>
+                                        <td className="py-4 pr-6 text-gray-400 text-sm">{p.tipoCarga || "-"}</td>
+                                        <td className="py-4 pr-6 text-gray-400">{p.contactoPrincipal || "-"}</td>
+                                        <td className="py-4 pr-6 text-gray-400">{p.telefono || "-"}</td>
                                         <td className="py-4 pr-6">
                                             <span className={`px-3 py-1 rounded-full border text-xs font-bold ${p.status === "Activo" ? "text-green-300 bg-green-500/10 border-green-400/30" : "text-red-300 bg-red-500/10 border-red-400/30"}`}>
                                                 {p.status}
@@ -315,4 +315,8 @@ export default function ProveedoresPage() {
         </div>
     );
 }
+
+
+
+
 

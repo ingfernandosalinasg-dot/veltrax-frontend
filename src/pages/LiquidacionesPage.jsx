@@ -100,20 +100,20 @@ function generarPDFLiquidacion(liq, gastos) {
     const filaGastos = gastosCobrados.map((g, i) => `
         <tr>
             <td>${i + 1}</td>
-            <td>${g.categoria || "鈥?}</td>
-            <td>${g.tipo || "鈥?}</td>
-            <td>${g.descripcion || "鈥?}</td>
-            <td>${g.fecha || "鈥?}</td>
+            <td>${g.categoria || "-"}</td>
+            <td>${g.tipo || "-"}</td>
+            <td>${g.descripcion || "-"}</td>
+            <td>${g.fecha || "-"}</td>
             <td style="color:red">-$${(g.monto || 0).toLocaleString()}</td>
-            <td>${g.status || "鈥?}</td>
+            <td>${g.status || "-"}</td>
         </tr>`).join("");
 
     const filaAbsorbidos = gastosAbsorbidos.map((g, i) => `
         <tr>
             <td>${i + 1}</td>
-            <td>${g.tipo || "鈥?}</td>
-            <td>${g.descripcion || "鈥?}</td>
-            <td>${g.fecha || "鈥?}</td>
+            <td>${g.tipo || "-"}</td>
+            <td>${g.descripcion || "-"}</td>
+            <td>${g.fecha || "-"}</td>
             <td style="color:#16a34a">$${(g.monto || 0).toLocaleString()}</td>
         </tr>`).join("");
 
@@ -122,7 +122,7 @@ function generarPDFLiquidacion(liq, gastos) {
         POR_MILLA:   `${liq.millasRecorridas} millas 脳 $${liq.tarifaMilla}/milla`,
         PORCENTAJE:  `${liq.porcentajeFlete}% del flete ($${liq.ordenCosto?.toLocaleString()})`,
         VIAJE_FIJO:  `Viaje fijo acordado`,
-    }[liq.esquemaPago] || "鈥?;
+    }[liq.esquemaPago] || "-";
 
     const esPeriodo = liq.modo === "PERIODO";
 
@@ -156,24 +156,24 @@ function generarPDFLiquidacion(liq, gastos) {
         <div class="logo">VELTRAX</div>
         <div>
             <div style="font-size:16px;font-weight:bold">Liquidaci贸n #${liq.id}</div>
-            <div style="color:#888">Fecha: ${liq.fechaLiquidacion || "鈥?}</div>
+            <div style="color:#888">Fecha: ${liq.fechaLiquidacion || "-"}</div>
             <div style="margin-top:6px"><span class="badge">${liq.status}</span></div>
         </div>
     </div>
-    <div class="titulo">Liquidaci贸n de Operador${esPeriodo ? " 鈥?Por Per铆odo" : ""}</div>
+    <div class="titulo">Liquidaci贸n de Operador${esPeriodo ? " -Por Per铆odo" : ""}</div>
     <div class="grid2">
         <div class="sec"><h3>Operador</h3>
-            <div class="campo"><label>Nombre</label><span>${liq.driverNombre || "鈥?}</span></div>
+            <div class="campo"><label>Nombre</label><span>${liq.driverNombre || "-"}</span></div>
         </div>
         ${esPeriodo ? `
         <div class="sec"><h3>Per铆odo</h3>
-            <div class="campo"><label>Del</label><span>${liq.periodoInicio || "鈥?}</span></div>
-            <div class="campo"><label>Al</label><span>${liq.periodoFin || "鈥?}</span></div>
+            <div class="campo"><label>Del</label><span>${liq.periodoInicio || "-"}</span></div>
+            <div class="campo"><label>Al</label><span>${liq.periodoFin || "-"}</span></div>
         </div>` : `
         <div class="sec"><h3>Viaje</h3>
-            <div class="campo"><label>ID</label><span>#${liq.orderId || "鈥?}</span></div>
-            <div class="campo"><label>Cliente</label><span>${liq.clienteNombre || "鈥?}</span></div>
-            <div class="campo"><label>Ruta</label><span>${liq.ordenOrigen || "鈥?} 鈫?${liq.ordenDestino || "鈥?}</span></div>
+            <div class="campo"><label>ID</label><span>#${liq.orderId || "-"}</span></div>
+            <div class="campo"><label>Cliente</label><span>${liq.clienteNombre || "-"}</span></div>
+            <div class="campo"><label>Ruta</label><span>${liq.ordenOrigen || "-"} 鈫?${liq.ordenDestino || "-"}</span></div>
             <div class="campo"><label>Costo flete</label><span>$${(liq.ordenCosto || 0).toLocaleString()}</span></div>
         </div>`}
     </div>
@@ -188,13 +188,13 @@ function generarPDFLiquidacion(liq, gastos) {
         <tbody>${filaGastos}</tbody></table>
     </div>` : ""}
     ${gastosAbsorbidos.length > 0 ? `
-    <div class="sec" style="margin-bottom:18px; border-color:#16a34a"><h3 style="color:#16a34a">馃Ь Gastos Comprobados (Absorbidos por la Empresa 鈥?NO se descuentan)</h3>
+    <div class="sec" style="margin-bottom:18px; border-color:#16a34a"><h3 style="color:#16a34a">馃Ь Gastos Comprobados (Absorbidos por la Empresa -NO se descuentan)</h3>
         <table><thead><tr><th>#</th><th>Tipo</th><th>Descripci贸n</th><th>Fecha</th><th>Monto</th></tr></thead>
         <tbody>${filaAbsorbidos}</tbody></table>
     </div>` : ""}
     ${liq.montoDescuentoPrestamo ? `
     <div class="sec" style="margin-bottom:18px"><h3>Descuento de Pr茅stamo</h3>
-        <div class="campo"><label>Folio pr茅stamo</label><span>${liq.prestamoFolio || "鈥?}</span></div>
+        <div class="campo"><label>Folio pr茅stamo</label><span>${liq.prestamoFolio || "-"}</span></div>
         <div class="campo"><label>Monto descontado</label><span style="color:red">-$${liq.montoDescuentoPrestamo.toLocaleString()}</span></div>
     </div>` : ""}
     ${(liq.bonoCarga || liq.bonoDescarga || liq.bonoManiobras || liq.bonoProductividad || liq.bonoUmbrales) ? `
@@ -213,9 +213,9 @@ function generarPDFLiquidacion(liq, gastos) {
     </div>
     ${liq.notas ? `<div class="sec" style="margin-top:18px"><h3>Notas</h3><p>${liq.notas}</p></div>` : ""}
     ${liq.status === "Pagada" ? `
-    <div class="sec" style="margin-top:18px; border-color:#16a34a"><h3 style="color:#16a34a">鉁?Comprobante de Pago</h3>
-        <div class="campo"><label>Fecha de pago</label><span>${liq.fechaPago || "鈥?}</span></div>
-        <div class="campo"><label>Forma de pago</label><span>${liq.formaPago || "鈥?}</span></div>
+    <div class="sec" style="margin-top:18px; border-color:#16a34a"><h3 style="color:#16a34a"> de Pago</h3>
+        <div class="campo"><label>Fecha de pago</label><span>${liq.fechaPago || "-"}</span></div>
+        <div class="campo"><label>Forma de pago</label><span>${liq.formaPago || "-"}</span></div>
         ${liq.referenciaPago ? `<div class="campo"><label>Referencia</label><span>${liq.referenciaPago}</span></div>` : ""}
     </div>` : ""}
     <div class="footer">
@@ -570,16 +570,16 @@ export default function LiquidacionesPage() {
                                     <motion.tr key={l.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
                                         className="border-b border-cyan-400/5 hover:bg-cyan-500/5 transition-all">
                                         <td className="py-4 pr-4 font-bold text-cyan-300">#{l.id}</td>
-                                        <td className="py-4 pr-4 font-bold">{l.driverNombre || "鈥?}</td>
+                                        <td className="py-4 pr-4 font-bold">{l.driverNombre || "-"}</td>
                                         <td className="py-4 pr-4">
                                             <span className={`px-2 py-1 rounded-lg text-xs font-bold ${l.modo === "PERIODO" ? "bg-purple-500/10 text-purple-300" : "bg-cyan-500/10 text-cyan-300"}`}>
                                                 {l.modo === "PERIODO" ? "Per铆odo" : "Viaje"}
                                             </span>
                                         </td>
                                         <td className="py-4 pr-4 text-gray-400 text-sm">
-                                            {l.modo === "PERIODO" ? `${l.periodoInicio || "鈥?} 鈫?${l.periodoFin || "鈥?}` : `#${l.orderId || "鈥?}`}
+                                            {l.modo === "PERIODO" ? `${l.periodoInicio || "-"} 鈫?${l.periodoFin || "-"}` : `#${l.orderId || "-"}`}
                                         </td>
-                                        <td className="py-4 pr-4 text-gray-300">{l.clienteNombre || "鈥?}</td>
+                                        <td className="py-4 pr-4 text-gray-300">{l.clienteNombre || "-"}</td>
                                         <td className="py-4 pr-4">
                                             <span className="px-2 py-1 rounded-lg bg-cyan-500/10 text-cyan-300 text-xs font-bold">
                                                 {l.esquemaPago}
@@ -658,7 +658,7 @@ export default function LiquidacionesPage() {
                                                 <option value="">Seleccionar viaje...</option>
                                                 {viajes.map(v => (
                                                     <option key={v.id} value={v.id}>
-                                                        #{v.id} 鈥?{v.clienteNombre || "Sin cliente"} | {v.origen || "?"} 鈫?{v.destino || "?"} | ${(v.cost || 0).toLocaleString()}
+                                                        #{v.id} -{v.clienteNombre || "Sin cliente"} | {v.origen || "?"} 鈫?{v.destino || "?"} | ${(v.cost || 0).toLocaleString()}
                                                     </option>
                                                 ))}
                                             </select>
@@ -770,7 +770,7 @@ export default function LiquidacionesPage() {
                                             <option value="">Sin pr茅stamo / no aplicar</option>
                                             {prestamos.map(p => (
                                                 <option key={p.id} value={p.id}>
-                                                    {p.folio} 鈥?Saldo: ${(p.saldoPendiente || 0).toLocaleString()} ({p.motivo || "sin motivo"})
+                                                    {p.folio} -Saldo: ${(p.saldoPendiente || 0).toLocaleString()} ({p.motivo || "sin motivo"})
                                                 </option>
                                             ))}
                                         </select>
@@ -834,7 +834,7 @@ export default function LiquidacionesPage() {
                                                 return (
                                                     <div key={g.id} className="flex justify-between items-center text-xs text-gray-400">
                                                         <span className="flex items-center gap-2">
-                                                            {g.tipo} 鈥?{g.descripcion}
+                                                            {g.tipo} -{g.descripcion}
                                                             {g.categoria !== "Anticipo" && (
                                                                 g.comprobado
                                                                     ? <span className="px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-300 text-[10px] font-bold">馃Ь comprobado</span>
@@ -887,7 +887,7 @@ export default function LiquidacionesPage() {
                             <div className="flex justify-between items-center p-6 pb-0 flex-shrink-0">
                                 <div>
                                     <h2 className="text-2xl font-black text-green-300">Registrar Pago</h2>
-                                    <p className="text-gray-400 text-sm mt-1">{liquidacionActiva.folio} 鈥?{liquidacionActiva.driverNombre}</p>
+                                    <p className="text-gray-400 text-sm mt-1">{liquidacionActiva.folio} -{liquidacionActiva.driverNombre}</p>
                                 </div>
                                 <button onClick={() => setShowPagoModal(false)} className="text-gray-400 hover:text-white text-xl"><FaTimes /></button>
                             </div>
@@ -930,3 +930,7 @@ export default function LiquidacionesPage() {
         </div>
     );
 }
+
+
+
+

@@ -32,7 +32,7 @@ function Field({ label, children, span2 = false }) {
 }
 
 function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2 = false }) {
-    const [query,   setQuery]   = useState(value ? `${value} 鈥?${valueDesc || ""}` : "");
+    const [query,   setQuery]   = useState(value ? `${value} -${valueDesc || ""}` : "");
     const [results, setResults] = useState([]);
     const [open,    setOpen]    = useState(false);
     const [loading, setLoading] = useState(false);
@@ -60,7 +60,7 @@ function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2
     };
 
     const seleccionar = (item) => {
-        setQuery(`${item.clave} 鈥?${item.descripcion}`);
+        setQuery(`${item.clave} -${item.descripcion}`);
         setOpen(false);
         onChange(item.clave, item.descripcion);
     };
@@ -81,7 +81,7 @@ function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2
                 {value && (
                     <div className="mt-1 px-3 py-1 rounded-lg bg-cyan-500/10 border border-cyan-400/20 text-xs text-cyan-300 flex items-center gap-2">
                         <span className="font-mono font-bold">{value}</span>
-                        <span className="text-gray-400">鈥?/span>
+                        <span className="text-gray-400"></span>
                         <span className="truncate">{valueDesc}</span>
                     </div>
                 )}
@@ -228,19 +228,19 @@ export default function OperadoresPage() {
                                                 <div className="font-bold">{o.name} {o.apellidos}</div>
                                                 <div className="text-xs text-gray-500">{o.email}</div>
                                             </td>
-                                            <td className="py-4 pr-5 text-cyan-300 font-mono text-xs">{o.rfcOperador || "鈥?}</td>
+                                            <td className="py-4 pr-5 text-cyan-300 font-mono text-xs">{o.rfcOperador || "-"}</td>
                                             <td className="py-4 pr-5">
                                                 {o.figuraTransporte
                                                     ? <span className="px-2 py-1 rounded-lg bg-cyan-500/10 text-cyan-300 text-xs font-mono font-bold">{o.figuraTransporte}</span>
-                                                    : <span className="text-gray-600">鈥?/span>}
+                                                    : <span className="text-gray-600"></span>}
                                             </td>
-                                            <td className="py-4 pr-5 text-cyan-300 font-mono text-sm">{o.licenseNumber || "鈥?}</td>
+                                            <td className="py-4 pr-5 text-cyan-300 font-mono text-sm">{o.licenseNumber || "-"}</td>
                                             <td className={`py-4 pr-5 font-bold text-sm ${vigColor}`}>
-                                                {o.licenseExpiration || "鈥?}
+                                                {o.licenseExpiration || "-"}
                                                 {dias !== null && <div className="text-xs font-normal">{dias < 0 ? "Vencida" : `${dias} d铆as`}</div>}
                                             </td>
-                                            <td className="py-4 pr-5 text-cyan-300 font-mono text-sm">{o.vehiculoPlacas || "鈥?}</td>
-                                            <td className="py-4 pr-5 text-gray-400">{o.telefono || "鈥?}</td>
+                                            <td className="py-4 pr-5 text-cyan-300 font-mono text-sm">{o.vehiculoPlacas || "-"}</td>
+                                            <td className="py-4 pr-5 text-gray-400">{o.telefono || "-"}</td>
                                             <td className="py-4 pr-5">
                                                 <span className={`px-3 py-1 rounded-full border text-xs font-bold ${
                                                     o.status === "Disponible" ? "text-green-300 bg-green-500/10 border-green-400/30" :
@@ -309,7 +309,7 @@ export default function OperadoresPage() {
 
                                     {/* SECCI脫N SAT */}
                                     <div className="col-span-2 p-4 rounded-2xl bg-cyan-500/5 border border-cyan-400/20">
-                                        <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-4">Claves SAT 鈥?Carta Porte 3.1</p>
+                                        <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-4">Claves SAT -Carta Porte 3.1</p>
                                         <div className="grid grid-cols-2 gap-4">
                                             <SatPicker label="Figura Transporte (SAT)" tipo="c_FiguraTransporte"
                                                 value={form.figuraTransporte} valueDesc={form.figuraTransporteDesc}
@@ -330,12 +330,12 @@ export default function OperadoresPage() {
                                     </Field>
                                     <Field label="Tipo de licencia">
                                         <select value={form.licenciaTipo} onChange={set("licenciaTipo")} className={selectCls}>
-                                            <option value="A">A 鈥?Motocicleta</option>
-                                            <option value="B">B 鈥?Autom贸vil</option>
-                                            <option value="C">C 鈥?Cami贸n unitario</option>
-                                            <option value="D">D 鈥?Autob煤s</option>
-                                            <option value="E">E 鈥?Tractocami贸n (Trailer)</option>
-                                            <option value="F">F 鈥?Motobomba</option>
+                                            <option value="A">A -Motocicleta</option>
+                                            <option value="B">B -Autom贸vil</option>
+                                            <option value="C">C -Cami贸n unitario</option>
+                                            <option value="D">D -Autob煤s</option>
+                                            <option value="E">E -Tractocami贸n (Trailer)</option>
+                                            <option value="F">F -Motobomba</option>
                                         </select>
                                     </Field>
                                     <Field label="Vigencia de licencia">
@@ -399,3 +399,7 @@ export default function OperadoresPage() {
         </div>
     );
 }
+
+
+
+

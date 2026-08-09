@@ -25,8 +25,8 @@ function Field({ label, children, span2 = false }) {
 }
 
 function RutaTag({ ruta }) {
-    const origen  = ruta.remitente?.ciudad  || ruta.remitente?.nombre  || "鈥?;
-    const destino = ruta.destinatario?.ciudad || ruta.destinatario?.nombre || "鈥?;
+    const origen  = ruta.remitente?.ciudad  || ruta.remitente?.nombre  || "-";
+    const destino = ruta.destinatario?.ciudad || ruta.destinatario?.nombre || "-";
     return (
         <div className="flex items-center gap-2 text-sm">
             <span className="text-cyan-300 font-bold">{origen}</span>
@@ -210,10 +210,10 @@ export default function RutasPage() {
                                         className="border-b border-cyan-400/5 hover:bg-cyan-500/5 transition-all">
                                         <td className="py-4 pr-4 font-bold text-cyan-300">#{r.id}</td>
                                         <td className="py-4 pr-4"><RutaTag ruta={r} /></td>
-                                        <td className="py-4 pr-4 text-gray-300 text-sm">{r.cliente?.name || "鈥?}</td>
-                                        <td className="py-4 pr-4 text-gray-300 text-sm">{r.distanciaKm ? `${r.distanciaKm} km` : "鈥?}</td>
-                                        <td className="py-4 pr-4 text-gray-300 text-sm">{r.tiempoEstimado || "鈥?}</td>
-                                        <td className="py-4 pr-4 text-green-300 font-bold">{r.tarifa ? `$${r.tarifa.toLocaleString()}` : "鈥?}</td>
+                                        <td className="py-4 pr-4 text-gray-300 text-sm">{r.cliente?.name || "-"}</td>
+                                        <td className="py-4 pr-4 text-gray-300 text-sm">{r.distanciaKm ? `${r.distanciaKm} km` : "-"}</td>
+                                        <td className="py-4 pr-4 text-gray-300 text-sm">{r.tiempoEstimado || "-"}</td>
+                                        <td className="py-4 pr-4 text-green-300 font-bold">{r.tarifa ? `$${r.tarifa.toLocaleString()}` : "-"}</td>
                                         <td className="py-4 pr-4">
                                             <span className={`px-3 py-1 rounded-full border text-xs font-bold ${
                                                 r.status === "Activa"
@@ -256,7 +256,7 @@ export default function RutasPage() {
                                             <div className="text-center">
                                                 <p className="text-gray-500 text-xs mb-1">ORIGEN</p>
                                                 <p className="text-cyan-300 font-black text-lg">
-                                                    {remitenteSeleccionado?.ciudad || remitenteSeleccionado?.nombre || "鈥?}
+                                                    {remitenteSeleccionado?.ciudad || remitenteSeleccionado?.nombre || "-"}
                                                 </p>
                                                 <p className="text-gray-500 text-xs">{remitenteSeleccionado?.nombre}</p>
                                             </div>
@@ -264,7 +264,7 @@ export default function RutasPage() {
                                             <div className="text-center">
                                                 <p className="text-gray-500 text-xs mb-1">DESTINO</p>
                                                 <p className="text-purple-300 font-black text-lg">
-                                                    {destinatarioSeleccionado?.ciudad || destinatarioSeleccionado?.nombre || "鈥?}
+                                                    {destinatarioSeleccionado?.ciudad || destinatarioSeleccionado?.nombre || "-"}
                                                 </p>
                                                 <p className="text-gray-500 text-xs">{destinatarioSeleccionado?.nombre}</p>
                                             </div>
@@ -278,7 +278,7 @@ export default function RutasPage() {
                                             <option value="">Seleccionar remitente...</option>
                                             {remitentes.map(r => (
                                                 <option key={r.id} value={r.id}>
-                                                    {r.nombre} {r.ciudad ? `鈥?${r.ciudad}` : ""}
+                                                    {r.nombre} {r.ciudad ? `-${r.ciudad}` : ""}
                                                 </option>
                                             ))}
                                         </select>
@@ -288,7 +288,7 @@ export default function RutasPage() {
                                             <option value="">Seleccionar destinatario...</option>
                                             {destinatarios.map(d => (
                                                 <option key={d.id} value={d.id}>
-                                                    {d.nombre} {d.ciudad ? `鈥?${d.ciudad}` : ""}
+                                                    {d.nombre} {d.ciudad ? `-${d.ciudad}` : ""}
                                                 </option>
                                             ))}
                                         </select>
@@ -346,4 +346,8 @@ export default function RutasPage() {
         </div>
     );
 }
+
+
+
+
 
