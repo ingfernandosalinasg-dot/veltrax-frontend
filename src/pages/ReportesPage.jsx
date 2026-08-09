@@ -4,7 +4,7 @@ import Topbar from "../components/Topbar";
 import { FaFilePdf, FaFileExcel, FaFilter, FaSyncAlt } from "react-icons/fa";
 import { motion } from "framer-motion";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "https://veltrax-api-production.up.railway.app";
 
 const MODULOS = [
     {
@@ -378,6 +378,7 @@ export default function ReportesPage() {
         </div>
     );
 }
+
 
 
 

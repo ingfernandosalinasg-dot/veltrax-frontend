@@ -4,7 +4,7 @@ import Topbar from "../components/Topbar";
 import { FaIdCard, FaPlus, FaTrash, FaEdit, FaTimes, FaCheck, FaSearch } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "https://veltrax-api-production.up.railway.app";
 
 const emptyForm = {
     name: "", apellidos: "", telefono: "", email: "",
@@ -399,6 +399,7 @@ export default function OperadoresPage() {
         </div>
     );
 }
+
 
 
 

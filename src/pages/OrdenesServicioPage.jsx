@@ -5,7 +5,7 @@ import { FaTools, FaPlus, FaTrash, FaTimes, FaCheck, FaArrowRight,
          FaClock, FaMoneyBillWave, FaTruck, FaClipboardCheck } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "https://veltrax-api-production.up.railway.app";
 
 const TIPOS_ORDEN = ["Preventivo", "Correctivo"];
 const FLUJO = ["PENDIENTE", "EN_PROCESO", "COMPLETADA"];
@@ -319,6 +319,7 @@ export default function OrdenesServicioPage() {
         </div>
     );
 }
+
 
 
 

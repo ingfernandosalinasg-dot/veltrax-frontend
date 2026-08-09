@@ -6,7 +6,7 @@ import {
     FaExclamationTriangle, FaTruck, FaMapMarkerAlt, FaUser, FaBox, FaSearch
 } from "react-icons/fa";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "https://veltrax-api-production.up.railway.app";
 
 const estadoColor = {
     "Activa":      "text-cyan-300 bg-cyan-500/10 border-cyan-400/30",
@@ -1007,6 +1007,7 @@ export default function CartaPortePage() {
         </div>
     );
 }
+
 
 
 

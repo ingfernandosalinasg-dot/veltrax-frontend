@@ -4,7 +4,7 @@ import Topbar from "../components/Topbar";
 import { FaClipboardCheck, FaMoneyBillWave, FaTruck, FaChartLine, FaTools } from "react-icons/fa";
 import { motion } from "framer-motion";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "https://veltrax-api-production.up.railway.app";
 
 export default function ServiciosCompletadosPage() {
     const [ordenes, setOrdenes] = useState([]);
@@ -85,6 +85,7 @@ export default function ServiciosCompletadosPage() {
         </div>
     );
 }
+
 
 
 

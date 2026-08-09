@@ -7,7 +7,7 @@ import { FaRoute, FaPlus, FaTruck, FaCheckCircle, FaClock, FaTrash, FaTimes,
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "https://veltrax-api-production.up.railway.app";
 
 const FLUJO = ["PENDIENTE", "ASIGNADO", "EN_RUTA", "ENTREGADO", "FACTURADO", "COBRADO"];
 
@@ -983,6 +983,7 @@ export default function ViajesPage() {
         </div>
     );
 }
+
 
 
 

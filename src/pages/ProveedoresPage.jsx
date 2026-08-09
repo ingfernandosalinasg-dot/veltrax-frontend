@@ -5,7 +5,7 @@ import CodigoPostalInput from "../components/CodigoPostalInput";
 import { FaWarehouse, FaPlus, FaTrash, FaEdit, FaTimes, FaCheck } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "https://veltrax-api-production.up.railway.app";
 
 const rolColor = {
     "Remitente":           "text-cyan-300 bg-cyan-500/10 border-cyan-400/30",
@@ -315,6 +315,7 @@ export default function ProveedoresPage() {
         </div>
     );
 }
+
 
 
 

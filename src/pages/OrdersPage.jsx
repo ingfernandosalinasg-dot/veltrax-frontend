@@ -7,7 +7,7 @@ import {
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "https://veltrax-api-production.up.railway.app";
 
 const estadoColor = {
     "Pendiente":   "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
@@ -267,6 +267,7 @@ function OrdersPage() {
 }
 
 export default OrdersPage;
+
 
 
 

@@ -5,7 +5,7 @@ import { FaWrench, FaTruck, FaExclamationTriangle, FaTools, FaCheckCircle,
          FaMoneyBillWave, FaHistory, FaClock, FaTachometerAlt } from "react-icons/fa";
 import { motion } from "framer-motion";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "https://veltrax-api-production.up.railway.app";
 
 const statusColor = (s) => {
     if (s === "PENDIENTE")  return "text-yellow-300 bg-yellow-500/10 border-yellow-400/30";
@@ -147,6 +147,7 @@ export default function MantenimientosPage() {
         </div>
     );
 }
+
 
 
 

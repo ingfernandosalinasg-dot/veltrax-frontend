@@ -6,7 +6,7 @@ import { FaPlus, FaTimes, FaCheck, FaTrash, FaEdit,
          FaExclamationTriangle, FaToggleOn, FaToggleOff } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "https://veltrax-api-production.up.railway.app";
 const inputCls  = "w-full bg-white/5 border border-cyan-400/10 rounded-xl px-4 py-3 text-white outline-none focus:border-cyan-400/40 transition-all text-sm";
 const selectCls = "w-full bg-[#020617] border border-cyan-400/10 rounded-xl px-4 py-3 text-white outline-none focus:border-cyan-400/40 transition-all text-sm";
 
@@ -472,6 +472,7 @@ export default function LicenciasPage() {
         </div>
     );
 }
+
 
 
 

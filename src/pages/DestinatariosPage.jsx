@@ -6,7 +6,7 @@ import ValidacionRegimenUso from "../components/ValidacionRegimenUso";
 import { FaPlus, FaTrash, FaEdit, FaTimes, FaCheck, FaMapMarkerAlt } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "https://veltrax-api-production.up.railway.app";
 
 const emptyForm = {
     nombre: "", razonSocial: "", rfc: "",
@@ -328,6 +328,7 @@ export default function DestinatariosPage() {
         </div>
     );
 }
+
 
 
 

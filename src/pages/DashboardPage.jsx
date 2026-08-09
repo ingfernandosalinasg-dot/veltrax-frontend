@@ -9,7 +9,7 @@ import { motion } from "framer-motion";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip,
          ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "https://veltrax-api-production.up.railway.app";
 const fmt  = n => "$"+Number(n||0).toLocaleString("es-MX", { minimumFractionDigits:2 });
 const fmtM = n => "$"+Number(n||0).toLocaleString("es-MX", { maximumFractionDigits:0 });
 
@@ -355,6 +355,7 @@ export default function DashboardPage() {
         </div>
     );
 }
+
 
 
 

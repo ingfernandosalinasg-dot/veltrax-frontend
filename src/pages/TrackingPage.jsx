@@ -7,7 +7,7 @@ import L from "leaflet";
 import { FaSatellite, FaTruck, FaRoute, FaWifi, FaPlus, FaTimes, FaMapMarkerAlt } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "https://veltrax-api-production.up.railway.app";
 
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -335,6 +335,7 @@ export default function TrackingPage() {
         </div>
     );
 }
+
 
 
 

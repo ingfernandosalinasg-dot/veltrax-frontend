@@ -4,7 +4,7 @@ import Topbar from "../components/Topbar";
 import { FaTrophy, FaPlus, FaTrash, FaEdit, FaTimes, FaCheck, FaToggleOn, FaToggleOff } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "https://veltrax-api-production.up.railway.app";
 
 const emptyForm = {
     nombre: "", metrica: "VIAJES", valorMinimo: "", tipoBono: "FIJO", valorBono: "", activo: true
@@ -208,6 +208,7 @@ export default function UmbralesPage() {
         </div>
     );
 }
+
 
 
 

@@ -5,7 +5,7 @@ import { FaMoneyBillWave, FaPlus, FaTrash, FaEdit, FaTimes, FaCheck, FaFilePdf, 
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams } from "react-router-dom";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "https://veltrax-api-production.up.railway.app";
 
 const emptyForm = {
     modo: "VIAJE", // VIAJE | PERIODO
@@ -930,6 +930,7 @@ export default function LiquidacionesPage() {
         </div>
     );
 }
+
 
 
 

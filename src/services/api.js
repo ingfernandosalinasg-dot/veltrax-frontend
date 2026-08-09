@@ -1,7 +1,7 @@
 ﻿import axios from "axios";
 
 const API = axios.create({
-    baseURL: "http://localhost:8081"
+    baseURL: import.meta.env.VITE_API_URL || "https://veltrax-api-production.up.railway.app"
 });
 
 API.interceptors.request.use((config) => {
@@ -18,3 +18,4 @@ API.interceptors.request.use((config) => {
 });
 
 export default API;
+

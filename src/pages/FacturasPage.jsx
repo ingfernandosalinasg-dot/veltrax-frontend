@@ -5,7 +5,7 @@ import Topbar from "../components/Topbar";
 import { FaPlus, FaFilePdf, FaTrash, FaFileInvoiceDollar, FaTimes, FaCheck } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "https://veltrax-api-production.up.railway.app";
 
 const TIPOS_FACTURA = [
     { id: "VIAJE",        label: "Por Viaje",       icon: "馃殯", desc: "Factura vinculada a un viaje especifico",        color: "cyan" },
@@ -471,6 +471,7 @@ export default function FacturasPage() {
         </div>
     );
 }
+
 
 
 

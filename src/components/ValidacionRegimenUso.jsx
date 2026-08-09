@@ -1,7 +1,7 @@
 ﻿import { useState, useEffect } from "react";
 import { FaExclamationTriangle, FaCheckCircle } from "react-icons/fa";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "https://veltrax-api-production.up.railway.app";
 
 /**
  * ValidacionRegimenUso
@@ -59,6 +59,7 @@ export default function ValidacionRegimenUso({ regimen, uso }) {
         </div>
     );
 }
+
 
 
 

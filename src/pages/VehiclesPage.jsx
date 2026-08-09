@@ -4,7 +4,7 @@ import Topbar from "../components/Topbar";
 import { FaTruck, FaTools, FaCheckCircle, FaRoad, FaPlus, FaTrash, FaTimes, FaEdit, FaSearch, FaTachometerAlt } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = import.meta.env.VITE_API_URL || "http://localhost:8081";
+const API = import.meta.env.VITE_API_URL || "https://veltrax-api-production.up.railway.app";
 
 const emptyForm = {
     plate: "", brand: "", model: "", year: "",
@@ -378,6 +378,7 @@ export default function VehiclesPage() {
         </div>
     );
 }
+
 
 
 

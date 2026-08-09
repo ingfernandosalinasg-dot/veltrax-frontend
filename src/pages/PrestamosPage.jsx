@@ -5,7 +5,7 @@ import { FaPlus, FaTimes, FaCheck, FaTrash, FaEdit, FaMoneyBillWave,
          FaUserTie, FaHistory } from 'react-icons/fa';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const API = 'http://localhost:8081';
+const API = 'https://veltrax-api-production.up.railway.app';
 
 const inputCls  = 'w-full bg-white/5 border border-cyan-400/10 rounded-xl px-4 py-3 text-white outline-none focus:border-cyan-400/40 transition-all text-sm';
 const selectCls = 'w-full bg-[#020617] border border-cyan-400/10 rounded-xl px-4 py-3 text-white outline-none focus:border-cyan-400/40 transition-all text-sm';
@@ -379,6 +379,7 @@ export default function PrestamosPage() {
         </div>
     );
 }
+
 
 
 
