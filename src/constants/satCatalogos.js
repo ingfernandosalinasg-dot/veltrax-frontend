@@ -42,3 +42,4 @@ export const OBJETOS_IMPUESTO = [
   { id: "03", name: "03 - Sí objeto de impuesto y no obligado al desglose" },
   { id: "04", name: "04 - Sí objeto de impuesto y no causa impuesto" }
 ];
+
