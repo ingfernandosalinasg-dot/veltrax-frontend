@@ -1,4 +1,4 @@
-// Catálogos Oficiales SAT para CFDI 4.0
+﻿// Catálogos Oficiales SAT para CFDI 4.0
 
 export const REGIMENES_FISCALES = [
   { id: "601", name: "601 - General de Ley Personas Morales" },

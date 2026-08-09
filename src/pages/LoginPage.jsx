@@ -40,7 +40,7 @@ function LoginPage() {
 
             console.log(error);
 
-            alert(error?.response?.data?.error || "Correo, Contraseña o RFC de empresa incorrectos");
+            alert(error?.response?.data?.error || "Correo, contraseña o RFC de empresa incorrectos");
         }
     };
 
@@ -284,6 +284,8 @@ function LoginPage() {
 }
 
 export default LoginPage;
+
+
 
 
 
