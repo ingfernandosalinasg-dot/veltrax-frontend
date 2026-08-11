@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { FaSearch, FaBell, FaUserCircle } from "react-icons/fa";
 import { motion } from "framer-motion";
 
