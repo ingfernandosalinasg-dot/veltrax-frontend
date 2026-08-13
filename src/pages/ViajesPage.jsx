@@ -433,7 +433,7 @@ export default function ViajesPage() {
     return (
         <div className="flex min-h-screen bg-[#020617] text-white overflow-hidden">
             <Sidebar />
-            <div className="flex-1 p-10 overflow-auto relative">
+            <div className="flex-1 p-5 md:p-10 overflow-auto relative">
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
                     style={{ backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.1) 1px,transparent 1px)`, backgroundSize: "40px 40px" }} />
                 <Topbar />
@@ -447,7 +447,7 @@ export default function ViajesPage() {
                 <motion.div initial={{ opacity: 0, y: -30 }} animate={{ opacity: 1, y: 0 }}
                     className="mb-12 flex justify-between items-center">
                     <div>
-                        <h1 className="text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">GESTIÓN DE VIAJES</h1>
+                        <h1 className="text-3xl md:text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">GESTIÓN DE VIAJES</h1>
                         <p className="text-gray-400 mt-4 text-xl">Control de rutas y operadores</p>
                     </div>
                     <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={openNew}
@@ -456,7 +456,7 @@ export default function ViajesPage() {
                     </motion.button>
                 </motion.div>
 
-                <div className="grid grid-cols-3 gap-6 mb-10">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
                     {[
                         { label: "En Ruta",     value: enRuta,     icon: <FaTruck /> },
                         { label: "Completados", value: completado, icon: <FaCheckCircle /> },
@@ -590,7 +590,7 @@ export default function ViajesPage() {
                         {/* TAB: GASTOS / ANTICIPOS */}
                         {tabPanel === "gastos" && (
                             <>
-                                <div className="grid grid-cols-2 gap-3 p-4 flex-shrink-0">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 flex-shrink-0">
                                     <div className="rounded-2xl bg-yellow-500/10 border border-yellow-400/20 p-4">
                                         <p className="text-yellow-400 text-xs font-bold uppercase">Anticipos</p>
                                         <p className="text-2xl font-black text-yellow-300 mt-1">${totalAnticipos.toLocaleString()}</p>
@@ -763,7 +763,7 @@ export default function ViajesPage() {
                                 <button onClick={() => setShowEvidencia(false)} className="text-gray-400 hover:text-white text-xl"><FaTimes /></button>
                             </div>
                             <div className="flex-1 overflow-y-auto px-6 py-4 space-y-5">
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className="text-gray-400 text-xs mb-1 block">Nombre de quien recibe</label>
                                         <input value={receptorNombre} onChange={e => setReceptorNombre(e.target.value)} className={inputCls} placeholder="Juan Pérez" />
@@ -830,7 +830,7 @@ export default function ViajesPage() {
                                 <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-white text-2xl"><FaTimes /></button>
                             </div>
                             <div className="flex-1 overflow-y-auto px-8 py-6">
-                                <div className="grid grid-cols-2 gap-5">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                     <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest">Asignación</p>
                                     <Field label="Cliente" span2>
                                         <select value={form.clienteId} onChange={set("clienteId")} className={selectCls}>
@@ -918,7 +918,7 @@ export default function ViajesPage() {
                                     <label className="text-gray-400 text-sm mb-2 block">Descripción</label>
                                     <input value={gastoForm.descripcion} onChange={setG("descripcion")} placeholder="Detalle..." className={inputCls} />
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className="text-gray-400 text-sm mb-2 block">Monto ($)</label>
                                         <input type="number" value={gastoForm.monto} onChange={setG("monto")} placeholder="0.00" className={inputCls} />
