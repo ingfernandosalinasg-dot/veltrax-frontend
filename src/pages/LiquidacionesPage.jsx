@@ -517,14 +517,14 @@ export default function LiquidacionesPage() {
     return (
         <div className="flex min-h-screen bg-[#020617] text-white overflow-hidden">
             <Sidebar />
-            <div className="flex-1 p-10 overflow-auto relative">
+            <div className="flex-1 p-5 md:p-10 overflow-auto relative">
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
                     style={{ backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.1) 1px,transparent 1px)`, backgroundSize: "40px 40px" }} />
                 <Topbar />
 
                 <motion.div initial={{ opacity: 0, y: -30 }} animate={{ opacity: 1, y: 0 }} className="mb-12 flex justify-between items-center">
                     <div>
-                        <h1 className="text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">LIQUIDACIONES</h1>
+                        <h1 className="text-3xl md:text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">LIQUIDACIONES</h1>
                         <p className="text-gray-400 mt-4 text-xl">Control de pagos a operadores</p>
                     </div>
                     <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={openNew}
@@ -536,7 +536,7 @@ export default function LiquidacionesPage() {
                 {/* Sección agregada: qué hace el módulo y sus pantallas */}
                 <ModuloShowcase />
 
-                <div className="grid grid-cols-4 gap-6 mb-10">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
                     {[
                         { label: "Total",     value: liquidaciones.length, color: "text-cyan-400",   border: "border-cyan-500/20" },
                         { label: "Aprobadas", value: aprobadas,            color: "text-blue-400",   border: "border-blue-500/20" },
@@ -626,7 +626,7 @@ export default function LiquidacionesPage() {
                             </div>
 
                             <div className="flex-1 overflow-y-auto px-8 py-6">
-                                <div className="grid grid-cols-2 gap-5">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
 
                                     {/* Toggle modo VIAJE / PERIODO */}
                                     <div className="col-span-2 flex gap-3 mb-2">
@@ -682,7 +682,7 @@ export default function LiquidacionesPage() {
                                     </Field>
 
                                     {form.modo === "PERIODO" && periodoPreview && (
-                                        <div className="col-span-2 grid grid-cols-3 gap-3 p-4 rounded-xl bg-purple-500/5 border border-purple-400/20">
+                                        <div className="col-span-1 sm:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-xl bg-purple-500/5 border border-purple-400/20">
                                             <div className="text-center">
                                                 <p className="text-gray-400 text-xs">Viajes en período</p>
                                                 <p className="text-purple-300 font-black text-xl">{periodoPreview.numViajes}</p>
