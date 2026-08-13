@@ -126,16 +126,16 @@ export default function DashboardPage() {
     return (
         <div className="flex min-h-screen bg-[#020617] text-white overflow-hidden">
             <Sidebar />
-            <div className="flex-1 p-10 overflow-auto relative">
+            <div className="flex-1 p-5 md:p-10 overflow-auto relative">
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
                     style={{ backgroundImage:"linear-gradient(rgba(255,255,255,0.1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.1) 1px,transparent 1px)", backgroundSize:"40px 40px" }} />
                 <Topbar />
 
                 <motion.div initial={{ opacity:0, y:-30 }} animate={{ opacity:1, y:0 }} className="mb-10">
-                    <div className="flex items-end gap-4">
+                    <div className="flex flex-wrap items-end gap-4">
                         <div>
                             <p className="text-gray-400 text-lg">Bienvenido de vuelta,</p>
-                            <h1 className="text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">{usuario}</h1>
+                            <h1 className="text-3xl md:text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">{usuario}</h1>
                         </div>
                         <div className="mb-2 px-4 py-2 rounded-full bg-green-500/10 border border-green-400/20 text-green-300 text-sm flex items-center gap-2">
                             <FaBolt /> Sistema Online
@@ -149,7 +149,7 @@ export default function DashboardPage() {
                     <div className="h-px flex-1 bg-cyan-400/20" />
                 </div>
 
-                <div className="grid grid-cols-4 gap-5 mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
                     {[
                         { label:"En Ruta",     value:enRuta,          sub:"viajes activos",  color:"text-cyan-300",   icon:<FaTruck />,          bg:"bg-cyan-500/10 border-cyan-400/20" },
                         { label:"Pendientes",  value:pendientes,       sub:"por asignar",     color:"text-yellow-300", icon:<FaClock />,          bg:"bg-yellow-500/10 border-yellow-400/20" },
@@ -168,7 +168,7 @@ export default function DashboardPage() {
                     ))}
                 </div>
 
-                <div className="grid grid-cols-2 gap-6 mb-8">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                     <motion.div initial={{ opacity:0, x:-20 }} animate={{ opacity:1, x:0 }} transition={{ delay:0.4 }}
                         className="rounded-3xl bg-white/5 border border-cyan-400/10 p-6">
                         <h3 className="text-cyan-300 font-black mb-4">Ingresos Ultimos 6 Meses</h3>
@@ -208,7 +208,7 @@ export default function DashboardPage() {
                     </motion.div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-6 mb-10">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
                     <motion.div initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.5 }}
                         className="rounded-3xl bg-white/5 border border-cyan-400/10 p-6">
                         <h3 className="text-cyan-300 font-black mb-4 flex items-center gap-2"><FaMoneyBillWave /> Cartera de Cobranza</h3>
@@ -252,7 +252,7 @@ export default function DashboardPage() {
                     <div className="h-px flex-1 bg-purple-400/20" />
                 </div>
 
-                <div className="grid grid-cols-4 gap-5 mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
                     {[
                         { label:"Lics. Ganadas",   value:licsGanadas,          sub:"adjudicadas",    color:"text-green-300",  icon:<FaGavel />,       bg:"bg-green-500/10 border-green-400/20" },
                         { label:"En Pipeline",     value:licsPipeline,          sub:"en proceso",     color:"text-yellow-300", icon:<FaChartLine />,   bg:"bg-yellow-500/10 border-yellow-400/20" },
@@ -271,7 +271,7 @@ export default function DashboardPage() {
                     ))}
                 </div>
 
-                <div className="grid grid-cols-2 gap-6 mb-10">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
                     <motion.div initial={{ opacity:0, x:-20 }} animate={{ opacity:1, x:0 }} transition={{ delay:0.6 }}
                         className="rounded-3xl bg-white/5 border border-purple-400/10 p-6">
                         <h3 className="text-purple-300 font-black mb-4">Licitaciones por Status</h3>
@@ -314,7 +314,7 @@ export default function DashboardPage() {
                     <div className="h-px flex-1 bg-yellow-400/20" />
                 </div>
 
-                <div className="grid grid-cols-4 gap-5 mb-10">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-10">
                     {[
                         { label:"Clientes Activos", value:tenants?.activos||0,    sub:"con licencia vigente", color:"text-green-300",  icon:<FaUsers />,  bg:"bg-green-500/10 border-green-400/20" },
                         { label:"En Prueba",        value:tenants?.prueba||0,     sub:"periodo de prueba",    color:"text-cyan-300",   icon:<FaCrown />,  bg:"bg-cyan-500/10 border-cyan-400/20" },
