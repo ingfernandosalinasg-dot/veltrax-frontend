@@ -5,7 +5,7 @@ import {
     FaFileDownload, FaBoxOpen, FaShoppingCart, FaTags
 } from "react-icons/fa";
 import { Link, useLocation } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { FaFileInvoiceDollar, FaBuilding } from "react-icons/fa";
 import { FaBox } from "react-icons/fa";
 import { FaHistory } from "react-icons/fa";
@@ -13,10 +13,17 @@ import { FaGavel } from "react-icons/fa";
 import { FaUserShield, FaShieldAlt } from "react-icons/fa";
 import { FaHandHoldingUsd, FaTrophy } from "react-icons/fa";
 import { FaPills } from "react-icons/fa";
-import { FaExclamationTriangle, FaTools, FaClipboardCheck, FaWrench } from "react-icons/fa";
+import { FaExclamationTriangle, FaTools, FaClipboardCheck, FaWrench, FaBars, FaTimes } from "react-icons/fa";
+import { useState, useEffect } from "react";
 
 function Sidebar() {
     const location = useLocation();
+    const [mobileOpen, setMobileOpen] = useState(false);
+
+    // Cierra el menú móvil automáticamente cada vez que cambias de página
+    useEffect(() => {
+        setMobileOpen(false);
+    }, [location.pathname]);
 
     // ── GIRO TRANSPORTE ──────────────────────────────────────
     const transporte = [
@@ -96,7 +103,44 @@ function Sidebar() {
     const isAdmin = localStorage.getItem("role") === "ADMIN";
 
     return (
-        <div className="w-[260px] h-screen flex flex-col justify-between p-4 bg-[#020617] border-r border-cyan-500/10 backdrop-blur-xl relative h-screen overflow-y-auto">
+        <>
+            {/* Botón hamburguesa: solo visible en móvil, flotante arriba a la izquierda */}
+            <button
+                onClick={() => setMobileOpen(true)}
+                className={`md:hidden fixed top-4 left-4 z-50 w-11 h-11 rounded-xl bg-[#020617] border border-cyan-500/30 text-cyan-300 flex items-center justify-center shadow-lg transition-opacity ${mobileOpen ? "opacity-0 pointer-events-none" : "opacity-100"}`}
+                aria-label="Abrir menú"
+            >
+                <FaBars />
+            </button>
+
+            {/* Fondo oscuro detrás del menú, solo en móvil cuando está abierto */}
+            <AnimatePresence>
+                {mobileOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setMobileOpen(false)}
+                        className="md:hidden fixed inset-0 bg-black/60 z-40"
+                    />
+                )}
+            </AnimatePresence>
+
+            <div className={`
+                w-[260px] h-screen flex flex-col justify-between p-4 bg-[#020617] border-r border-cyan-500/10 backdrop-blur-xl relative overflow-y-auto
+                fixed inset-y-0 left-0 z-40 transition-transform duration-300 ease-in-out
+                md:static md:translate-x-0
+                ${mobileOpen ? "translate-x-0" : "-translate-x-full"}
+            `}>
+                {/* Botón cerrar: solo visible en móvil, dentro del menú abierto */}
+                <button
+                    onClick={() => setMobileOpen(false)}
+                    className="md:hidden absolute top-4 right-4 z-10 w-9 h-9 rounded-lg bg-white/5 border border-white/10 text-gray-300 flex items-center justify-center"
+                    aria-label="Cerrar menú"
+                >
+                    <FaTimes />
+                </button>
+
             <div className="absolute inset-0 opacity-20 pointer-events-none"
                 style={{ background: "radial-gradient(circle at top,#06b6d4,transparent 60%)" }} />
 
@@ -193,7 +237,8 @@ function Sidebar() {
                     <FaSignOutAlt /> Cerrar Sesión
                 </motion.button>
             </div>
-        </div>
+            </div>
+        </>
     );
 }
 
