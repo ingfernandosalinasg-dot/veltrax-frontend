@@ -12,10 +12,16 @@ function Topbar() {
             animate={{ opacity: 1, y: 0 }}
             className="
                 flex
+                flex-col
+                sm:flex-row
                 justify-between
-                items-center
+                items-stretch
+                sm:items-center
+                gap-4
+                sm:gap-3
                 mb-10
-                px-6
+                px-4
+                sm:px-6
                 py-4
                 rounded-2xl
                 bg-white/5
@@ -24,39 +30,39 @@ function Topbar() {
                 backdrop-blur-xl
             "
         >
-            {/* BUSCADOR */}
-            <div className="flex items-center gap-3 bg-black/20 px-5 py-3 rounded-xl border border-cyan-400/10 w-80">
-                <FaSearch className="text-cyan-400" />
+            {/* BUSCADOR: ancho completo en móvil, fijo en escritorio */}
+            <div className="flex items-center gap-3 bg-black/20 px-4 sm:px-5 py-3 rounded-xl border border-cyan-400/10 w-full sm:w-80 pl-14 sm:pl-5 md:pl-5">
+                <FaSearch className="text-cyan-400 flex-shrink-0" />
                 <input
                     type="text"
                     placeholder="Buscar..."
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    className="bg-transparent outline-none text-white placeholder-gray-500 w-full text-lg"
+                    className="bg-transparent outline-none text-white placeholder-gray-500 w-full text-base sm:text-lg min-w-0"
                 />
             </div>
 
-            {/* DERECHA */}
-            <div className="flex items-center gap-6">
+            {/* DERECHA: se acomoda en fila en móvil, sin salirse de pantalla */}
+            <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-6 flex-wrap">
 
-                {/* ESTADO */}
-                <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-green-400 shadow-[0_0_10px_rgba(0,255,0,0.8)]" />
-                    <span className="text-green-400 font-semibold">Sistema Online</span>
+                {/* ESTADO: texto se oculta en pantallas muy chicas, solo queda el punto verde */}
+                <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="w-3 h-3 rounded-full bg-green-400 shadow-[0_0_10px_rgba(0,255,0,0.8)] flex-shrink-0" />
+                    <span className="text-green-400 font-semibold text-sm hidden md:inline">Sistema Online</span>
                 </div>
 
                 {/* NOTIFICACIONES */}
-                <div className="relative cursor-pointer">
-                    <FaBell className="text-2xl text-gray-400 hover:text-cyan-300 transition-all" />
+                <div className="relative cursor-pointer flex-shrink-0">
+                    <FaBell className="text-xl sm:text-2xl text-gray-400 hover:text-cyan-300 transition-all" />
                     <span className="absolute -top-1 -right-1 w-4 h-4 bg-cyan-400 rounded-full text-xs flex items-center justify-center text-black font-bold">
                         3
                     </span>
                 </div>
 
-                {/* USUARIO */}
-                <div className="flex items-center gap-3 cursor-pointer">
-                    <FaUserCircle className="text-4xl text-cyan-300" />
-                    <div>
+                {/* USUARIO: nombre/rol se ocultan en móvil, solo queda el ícono */}
+                <div className="flex items-center gap-3 cursor-pointer flex-shrink-0">
+                    <FaUserCircle className="text-3xl sm:text-4xl text-cyan-300" />
+                    <div className="hidden sm:block">
                         <p className="text-white font-bold text-sm">Admin</p>
                         <p className="text-gray-400 text-xs">Veltrax ERP</p>
                     </div>
