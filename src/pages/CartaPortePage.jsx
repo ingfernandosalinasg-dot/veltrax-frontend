@@ -38,8 +38,13 @@ const emptyMerc = {
     estadoMercancia:"Bueno", esPeligrosa:false, claseONU:"",
 };
 
+const TIPOS_COMPROBANTE = [
+    { value: "Ingreso",  label: "CFDI de Ingreso con Carta Porte",  desc: "Cobras por el servicio de transporte a un cliente (autotransporte de carga)." },
+    { value: "Traslado", label: "CFDI de Traslado con Carta Porte", desc: "Mueves mercancía propia con recursos internos, sin cobrar servicio de transporte." },
+];
+
 const emptyForm = {
-    folio:"", tipoCarta:"CMR - Carretera Internacional", fechaEmision:"", lugarEmision:"", moneda:"MXN",
+    folio:"", tipoCarta:"CMR - Carretera Internacional", tipoComprobante:"Ingreso", fechaEmision:"", lugarEmision:"", moneda:"MXN",
     remitenteId:"",
     remitenteNombre:"", remitenteRFC:"", remitenteDireccion:"", remitenteCiudad:"",
     remitenteEstado:"", remitentePais:"México", remitenteTelefono:"", remitenteEmail:"",
@@ -74,7 +79,7 @@ function Field({ label, children, span2 = false }) {
 
 // Buscador de catálogos SAT en tiempo real
 function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2 = false }) {
-    const [query,     setQuery]     = useState(value ? `${value} -${valueDesc || ""}` : "");
+    const [query,     setQuery]     = useState(value ? `${value} - ${valueDesc || ""}` : "");
     const [results,   setResults]   = useState([]);
     const [open,      setOpen]      = useState(false);
     const [loading,   setLoading]   = useState(false);
@@ -102,7 +107,7 @@ function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2
     };
 
     const seleccionar = (item) => {
-        setQuery(`${item.clave} -${item.descripcion}`);
+        setQuery(`${item.clave} - ${item.descripcion}`);
         setOpen(false);
         setResults([]);
         onChange(item.clave, item.descripcion);
@@ -138,7 +143,7 @@ function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2
                 {value && (
                     <div className="mt-1 px-3 py-1 rounded-lg bg-cyan-500/10 border border-cyan-400/20 text-xs text-cyan-300 flex items-center gap-2">
                         <span className="font-mono font-bold">{value}</span>
-                        <span className="text-gray-400"></span>
+                        <span className="text-gray-400">—</span>
                         <span className="truncate">{valueDesc}</span>
                     </div>
                 )}
@@ -190,7 +195,7 @@ function CatalogPicker({ label, placeholder, items, selectedId, onSelect, onClea
                 {selected && (
                     <span onClick={e => { e.stopPropagation(); onClear(); setOpen(false); }}
                         className="text-xs text-gray-500 hover:text-red-400 border border-white/10 rounded px-2 py-0.5 transition-colors">
-                        
+                        ✕
                     </span>
                 )}
             </button>
@@ -232,7 +237,7 @@ function generarPDF(carta, mercancias = []) {
             <td>${m.cantidad} ${m.claveUnidad || ""}</td>
             <td>${m.peso} kg</td><td>${m.volumen||"-"} m³</td>
             <td>$${Number(m.valor||0).toLocaleString()} ${carta.moneda}</td>
-            <td>${m.claveEmbalaje ? m.claveEmbalaje+" -" : ""}${m.claveEmbalajeDesc||"-"}</td>
+            <td>${m.claveEmbalaje ? m.claveEmbalaje+" - " : ""}${m.claveEmbalajeDesc||"-"}</td>
             <td>${m.marcas||"-"}</td><td>${m.estadoMercancia}</td>
             <td>${m.esPeligrosa ? "⚠️ "+m.claseONU : "No"}</td>
         </tr>`).join("");
@@ -257,9 +262,9 @@ function generarPDF(carta, mercancias = []) {
     <div class="header"><div class="logo">VELTRAX</div><div>
         <div style="font-size:16px;font-weight:bold">Folio: ${carta.folio}</div>
         <div style="color:#888">Tipo: ${carta.tipoCarta} &nbsp;|&nbsp; Emisión: ${carta.fechaEmision} &nbsp;${carta.lugarEmision||""}</div>
-        <div style="margin-top:6px"><span class="estado">${carta.status}</span></div>
+        <div style="margin-top:6px"><span class="estado">${carta.status}</span> <span class="estado" style="background:${carta.tipoComprobante === "Traslado" ? "#f3e8ff" : "#e0f7fa"};color:${carta.tipoComprobante === "Traslado" ? "#7e22ce" : "#0891b2"}">CFDI ${carta.tipoComprobante || "Ingreso"}</span></div>
     </div></div>
-    <div class="titulo">Carta de Porte -Documento de Transporte</div>
+    <div class="titulo">Carta de Porte - Documento de Transporte</div>
     <div class="grid2">
         <div class="sec"><h3>Remitente</h3>
             <div class="campo"><label>Nombre/Empresa</label><span>${carta.remitenteNombre||"-"}</span></div>
@@ -277,14 +282,14 @@ function generarPDF(carta, mercancias = []) {
             <div class="campo"><label>Empresa</label><span>${carta.transportistaNombre||"-"}</span></div>
             <div class="campo"><label>Conductor</label><span>${carta.conductorNombre||"-"}</span></div>
             <div class="campo"><label>Licencia</label><span>${carta.conductorLicencia||"-"}</span></div>
-            <div class="campo"><label>Vehículo / Placas</label><span>${[carta.vehiculoTipo,carta.vehiculoPlacas].filter(Boolean).join(" -")}</span></div>
+            <div class="campo"><label>Vehículo / Placas</label><span>${[carta.vehiculoTipo,carta.vehiculoPlacas].filter(Boolean).join(" - ")}</span></div>
             ${carta.configAutotransporte ? `<div class="campo"><label>Config. Autotransporte (SAT)</label><span style="font-family:monospace;color:#0891b2">${carta.configAutotransporte}</span> ${carta.configAutotransporteDesc||""}</div>` : ""}
             ${carta.tipoPermiso ? `<div class="campo"><label>Tipo Permiso SCT (SAT)</label><span style="font-family:monospace;color:#0891b2">${carta.tipoPermiso}</span> ${carta.tipoPermisoDesc||""}</div>` : ""}
             ${carta.figuraTransporte ? `<div class="campo"><label>Figura Transporte (SAT)</label><span style="font-family:monospace;color:#0891b2">${carta.figuraTransporte}</span> ${carta.figuraTransporteDesc||""}</div>` : ""}
         </div>
         <div class="sec"><h3>Ruta</h3>
-            <div class="campo"><label>Origen</label><span>${carta.lugarCarga||"-"} ${carta.fechaCarga ? "-"+carta.fechaCarga : ""}</span></div>
-            <div class="campo"><label>Destino</label><span>${carta.lugarDescarga||"-"} ${carta.fechaDescarga ? "-"+carta.fechaDescarga : ""}</span></div>
+            <div class="campo"><label>Origen</label><span>${carta.lugarCarga||"-"} ${carta.fechaCarga ? "- "+carta.fechaCarga : ""}</span></div>
+            <div class="campo"><label>Destino</label><span>${carta.lugarDescarga||"-"} ${carta.fechaDescarga ? "- "+carta.fechaDescarga : ""}</span></div>
         </div>
     </div>
     <div class="sec" style="margin-bottom:18px"><h3>Mercancías</h3>
@@ -470,7 +475,14 @@ export default function CartaPortePage() {
     const handleSubmit = async () => {
         setLoading(true);
         try {
-            const payload = { ...form, mercancias, precioTransporte: Number(form.precioTransporte)||0, seguroValor: Number(form.seguroValor)||0 };
+            const esTraslado = form.tipoComprobante === "Traslado";
+            const payload = {
+                ...form,
+                mercancias,
+                precioTransporte: esTraslado ? 0 : (Number(form.precioTransporte)||0),
+                formaPago: esTraslado ? "" : form.formaPago,
+                seguroValor: Number(form.seguroValor)||0,
+            };
             const url    = editando ? `${API}/cartas-porte/${editando}` : `${API}/cartas-porte`;
             const method = editando ? "PUT" : "POST";
             await fetch(url, { method, headers, body: JSON.stringify(payload) });
@@ -493,83 +505,88 @@ export default function CartaPortePage() {
     return (
         <div className="flex min-h-screen bg-[#020617] text-white overflow-hidden">
             <Sidebar />
-            <div className="flex-1 p-10 overflow-auto relative">
+            <div className="flex-1 p-5 md:p-10 overflow-auto relative w-full min-w-0">
                 <Topbar />
 
-                <div className="mb-12 flex justify-between items-center">
+                <div className="mb-12 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
                     <div>
-                        <h1 className="text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">CARTAS PORTE</h1>
-                        <p className="text-gray-400 mt-4 text-xl">Documentos de transporte con claves SAT</p>
+                        <h1 className="text-3xl md:text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">CARTAS PORTE</h1>
+                        <p className="text-gray-400 mt-4 text-lg md:text-xl">Documentos de transporte con claves SAT</p>
                     </div>
                     <button onClick={openNew}
-                        className="flex items-center gap-3 px-8 py-4 rounded-2xl bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 font-bold text-lg hover:bg-cyan-500/20 transition-all">
+                        className="w-full sm:w-auto flex items-center justify-center gap-3 px-8 py-4 rounded-2xl bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 font-bold text-lg hover:bg-cyan-500/20 transition-all">
                         <FaPlus /> Nueva Carta Porte
                     </button>
                 </div>
 
-                <div className="grid grid-cols-4 gap-6 mb-10">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 md:gap-6 mb-10">
                     {[
                         { label:"Total",       value:cartas.length, color:"text-cyan-400",  border:"border-cyan-500/20" },
                         { label:"Activas",     value:activas,       color:"text-cyan-300",  border:"border-cyan-500/20" },
                         { label:"En Tránsito", value:enTransito,    color:"text-blue-400",  border:"border-blue-500/20" },
                         { label:"Entregadas",  value:entregadas,    color:"text-green-400", border:"border-green-500/20" },
                     ].map((s, i) => (
-                        <div key={i} className={`rounded-3xl bg-white/5 border ${s.border} p-6 flex items-center gap-5`}>
-                            <FaFileAlt className={`text-4xl ${s.color}`} />
-                            <div><p className="text-gray-400">{s.label}</p><h2 className={`text-4xl font-black ${s.color}`}>{s.value}</h2></div>
+                        <div key={i} className={`rounded-3xl bg-white/5 border ${s.border} p-4 md:p-6 flex items-center gap-3 md:gap-5`}>
+                            <FaFileAlt className={`text-2xl md:text-4xl ${s.color} flex-shrink-0`} />
+                            <div className="min-w-0"><p className="text-gray-400 text-sm md:text-base truncate">{s.label}</p><h2 className={`text-2xl md:text-4xl font-black ${s.color}`}>{s.value}</h2></div>
                         </div>
                     ))}
                 </div>
 
-                <div className="mb-6 flex flex-wrap gap-4">
+                <div className="mb-6 flex flex-col sm:flex-row flex-wrap gap-4">
                     <input value={filtroBusq} onChange={e => setFiltroBusq(e.target.value)}
                         placeholder="Buscar por folio, remitente, destinatario..."
-                        className="flex-1 min-w-[250px] bg-white/5 border border-cyan-400/10 rounded-2xl px-6 py-3 text-white outline-none focus:border-cyan-400/40 transition-all" />
+                        className="flex-1 min-w-0 w-full sm:min-w-[250px] bg-white/5 border border-cyan-400/10 rounded-2xl px-6 py-3 text-white outline-none focus:border-cyan-400/40 transition-all" />
                     <select value={filtroStatus} onChange={e => setFiltroStatus(e.target.value)}
-                        className="bg-[#020617] border border-cyan-400/10 rounded-2xl px-5 py-3 text-white outline-none">
+                        className="w-full sm:w-auto bg-[#020617] border border-cyan-400/10 rounded-2xl px-5 py-3 text-white outline-none">
                         <option value="">Todos los estados</option>
                         <option>Activa</option><option>En Tránsito</option><option>Entregada</option><option>Cancelada</option>
                     </select>
                     <input type="month" value={filtroFecha} onChange={e => setFiltroFecha(e.target.value)}
-                        className="bg-[#020617] border border-cyan-400/10 rounded-2xl px-5 py-3 text-white outline-none" />
+                        className="w-full sm:w-auto bg-[#020617] border border-cyan-400/10 rounded-2xl px-5 py-3 text-white outline-none" />
                     {(filtroStatus || filtroBusq || filtroFecha) && (
                         <button onClick={() => { setFiltroStatus(""); setFiltroBusq(""); setFiltroFecha(""); }}
-                            className="px-5 py-3 rounded-2xl border border-red-400/20 text-red-400 hover:bg-red-500/10 transition-all text-sm font-bold">
-                             filtros
+                            className="w-full sm:w-auto px-5 py-3 rounded-2xl border border-red-400/20 text-red-400 hover:bg-red-500/10 transition-all text-sm font-bold">
+                            Limpiar filtros
                         </button>
                     )}
                 </div>
 
-                <div className="rounded-3xl bg-white/5 border border-cyan-400/10 p-8">
-                    <h2 className="text-3xl font-black text-cyan-300 mb-2 flex items-center gap-3"><FaFileAlt /> Cartas Porte Registradas</h2>
+                <div className="rounded-3xl bg-white/5 border border-cyan-400/10 p-4 md:p-8">
+                    <h2 className="text-2xl md:text-3xl font-black text-cyan-300 mb-2 flex items-center gap-3"><FaFileAlt /> Cartas Porte Registradas</h2>
                     <p className="text-gray-500 text-sm mb-8">Mostrando {cartasFiltradas.length} de {cartas.length}</p>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="text-gray-400 border-b border-cyan-400/10 text-sm">
-                                    {["Folio","Tipo","Remitente","Destinatario","Ruta","Conductor","Vehículo","Emisión","Entrega","Estado","Acciones"]
-                                        .map(h => <th key={h} className="pb-4 pr-4">{h}</th>)}
+                                    {["Folio","CFDI","Tipo","Remitente","Destinatario","Ruta","Conductor","Vehículo","Emisión","Entrega","Estado","Acciones"]
+                                        .map(h => <th key={h} className="pb-4 pr-4 whitespace-nowrap">{h}</th>)}
                                 </tr>
                             </thead>
                             <tbody>
                                 {cartasFiltradas.length === 0 && (
-                                    <tr><td colSpan={11} className="py-10 text-center text-gray-500">
+                                    <tr><td colSpan={12} className="py-10 text-center text-gray-500">
                                         {cartas.length === 0 ? "No hay cartas porte registradas" : "No hay resultados"}
                                     </td></tr>
                                 )}
                                 {cartasFiltradas.map(c => (
                                     <tr key={c.id} className="border-b border-cyan-400/5 hover:bg-cyan-500/5 transition-all">
-                                        <td className="py-4 pr-4 font-bold text-cyan-300">{c.folio}</td>
-                                        <td className="py-4 pr-4 text-gray-400 text-xs">{c.tipoCarta?.split(" ")[0]|| "-"}</td>
-                                        <td className="py-4 pr-4">{c.remitenteNombre|| "-"}</td>
-                                        <td className="py-4 pr-4">{c.destinatarioNombre|| "-"}</td>
-                                        <td className="py-4 pr-4 text-gray-400 text-sm">{c.lugarCarga|| "-"} →{c.lugarDescarga|| "-"}</td>
-                                        <td className="py-4 pr-4">{c.conductorNombre|| "-"}</td>
-                                        <td className="py-4 pr-4 text-gray-400">{c.vehiculoPlacas|| "-"}</td>
-                                        <td className="py-4 pr-4 text-gray-400">{c.fechaEmision|| "-"}</td>
-                                        <td className="py-4 pr-4 text-gray-400">{c.fechaDescarga|| "-"}</td>
+                                        <td className="py-4 pr-4 font-bold text-cyan-300 whitespace-nowrap">{c.folio}</td>
+                                        <td className="py-4 pr-4 whitespace-nowrap">
+                                            <span className={`px-2 py-1 rounded-full border text-xs font-bold ${c.tipoComprobante === "Traslado" ? "text-purple-300 bg-purple-500/10 border-purple-400/30" : "text-cyan-300 bg-cyan-500/10 border-cyan-400/30"}`}>
+                                                {c.tipoComprobante || "Ingreso"}
+                                            </span>
+                                        </td>
+                                        <td className="py-4 pr-4 text-gray-400 text-xs whitespace-nowrap">{c.tipoCarta?.split(" ")[0]|| "-"}</td>
+                                        <td className="py-4 pr-4 whitespace-nowrap">{c.remitenteNombre|| "-"}</td>
+                                        <td className="py-4 pr-4 whitespace-nowrap">{c.destinatarioNombre|| "-"}</td>
+                                        <td className="py-4 pr-4 text-gray-400 text-sm whitespace-nowrap">{c.lugarCarga|| "-"} → {c.lugarDescarga|| "-"}</td>
+                                        <td className="py-4 pr-4 whitespace-nowrap">{c.conductorNombre|| "-"}</td>
+                                        <td className="py-4 pr-4 text-gray-400 whitespace-nowrap">{c.vehiculoPlacas|| "-"}</td>
+                                        <td className="py-4 pr-4 text-gray-400 whitespace-nowrap">{c.fechaEmision|| "-"}</td>
+                                        <td className="py-4 pr-4 text-gray-400 whitespace-nowrap">{c.fechaDescarga|| "-"}</td>
                                         <td className="py-4 pr-4">
-                                            <span className={`px-3 py-1 rounded-full border text-sm font-bold ${estadoColor[c.status]||"text-gray-300 bg-white/5 border-white/10"}`}>
+                                            <span className={`px-3 py-1 rounded-full border text-sm font-bold whitespace-nowrap ${estadoColor[c.status]||"text-gray-300 bg-white/5 border-white/10"}`}>
                                                 {c.status}
                                             </span>
                                         </td>
@@ -592,16 +609,16 @@ export default function CartaPortePage() {
             </div>
 
             {showModal && (
-                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-6">
+                <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-6">
                     <div className="bg-[#020617] border border-cyan-400/20 rounded-3xl w-full max-w-4xl max-h-[92vh] flex flex-col">
-                        <div className="flex justify-between items-center p-8 pb-0 flex-shrink-0">
-                            <h2 className="text-3xl font-black text-cyan-300">
+                        <div className="flex justify-between items-center p-5 sm:p-8 pb-0 flex-shrink-0">
+                            <h2 className="text-xl sm:text-3xl font-black text-cyan-300">
                                 {editando ? "Editar Carta Porte" : "Nueva Carta Porte"}
                             </h2>
                             <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-white text-2xl"><FaTimes /></button>
                         </div>
 
-                        <div className="flex gap-1 px-8 pt-6 pb-1 overflow-x-auto flex-shrink-0">
+                        <div className="flex gap-1 px-5 sm:px-8 pt-6 pb-1 overflow-x-auto flex-shrink-0">
                             {TABS.map(t => (
                                 <button key={t.id} onClick={() => setActiveTab(t.id)}
                                     className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition-all
@@ -611,13 +628,34 @@ export default function CartaPortePage() {
                             ))}
                         </div>
 
-                        <div className="flex-1 overflow-y-auto px-8 py-6">
+                        <div className="flex-1 overflow-y-auto px-5 sm:px-8 py-6">
 
                             {activeTab === "encabezado" && (
-                                <div className="grid grid-cols-2 gap-5">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                     <Field label="Folio" span2>
                                         <input value={form.folio} onChange={set("folio")} className={inputCls} />
                                     </Field>
+
+                                    <div className="col-span-1 sm:col-span-2">
+                                        <label className="text-gray-400 text-sm mb-2 block">Tipo de CFDI con Carta Porte</label>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                            {TIPOS_COMPROBANTE.map(tc => (
+                                                <button key={tc.value} type="button"
+                                                    onClick={() => setForm(f => ({ ...f, tipoComprobante: tc.value }))}
+                                                    className={`text-left p-4 rounded-2xl border transition-all
+                                                        ${form.tipoComprobante === tc.value
+                                                            ? "bg-cyan-500/10 border-cyan-400/40 text-cyan-200"
+                                                            : "bg-white/5 border-cyan-400/10 text-gray-400 hover:border-cyan-400/25"}`}>
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <span className={`w-3 h-3 rounded-full border ${form.tipoComprobante === tc.value ? "bg-cyan-400 border-cyan-300" : "border-gray-500"}`} />
+                                                        <span className="font-bold text-sm">{tc.label}</span>
+                                                    </div>
+                                                    <p className="text-xs opacity-70">{tc.desc}</p>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
                                     <Field label="Tipo de Carta de Porte">
                                         <select value={form.tipoCarta} onChange={set("tipoCarta")} className={selectCls}>
                                             {TIPOS_CARTA.map(t => <option key={t}>{t}</option>)}
@@ -643,11 +681,11 @@ export default function CartaPortePage() {
                             )}
 
                             {activeTab === "remitente" && (
-                                <div className="grid grid-cols-2 gap-5">
-                                    <CatalogPicker label="📦 Seleccionar del catálogo de Remitentes" placeholder="Buscar remitente registrado..."
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                    <CatalogPicker label="📋 Seleccionar del catálogo de Remitentes" placeholder="Buscar remitente registrado..."
                                         items={remitentes.filter(r => r.status === "Activo")} selectedId={form.remitenteId}
                                         onSelect={aplicarRemitente} onClear={() => aplicarRemitente(null)} />
-                                    <div className="col-span-2 border-t border-cyan-400/10 pt-4">
+                                    <div className="col-span-1 sm:col-span-2 border-t border-cyan-400/10 pt-4">
                                         <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-4">Datos del remitente</p>
                                     </div>
                                     <Field label="Nombre / Razón Social">
@@ -678,11 +716,11 @@ export default function CartaPortePage() {
                             )}
 
                             {activeTab === "destinatario" && (
-                                <div className="grid grid-cols-2 gap-5">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                     <CatalogPicker label="📍 Seleccionar del catálogo de Destinatarios" placeholder="Buscar destinatario registrado..."
                                         items={destinatarios.filter(d => d.status === "Activo")} selectedId={form.destinatarioId}
                                         onSelect={aplicarDestinatario} onClear={() => aplicarDestinatario(null)} />
-                                    <div className="col-span-2 border-t border-cyan-400/10 pt-4">
+                                    <div className="col-span-1 sm:col-span-2 border-t border-cyan-400/10 pt-4">
                                         <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-4">Datos del destinatario</p>
                                     </div>
                                     <Field label="Nombre / Razón Social">
@@ -713,14 +751,14 @@ export default function CartaPortePage() {
                             )}
 
                             {activeTab === "transportista" && (
-                                <div className="grid grid-cols-2 gap-5">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                     <Field label="Empresa Transportista" span2>
                                         <input value={form.transportistaNombre} onChange={set("transportistaNombre")} placeholder="Transportes S.A. de C.V." className={inputCls} />
                                     </Field>
 
                                     {/* Selector de vehículo del catálogo */}
-                                    <div className="col-span-2 p-4 rounded-2xl bg-white/5 border border-cyan-400/10">
-                                        <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-3">🚛 Seleccionar vehículo del catálogo</p>
+                                    <div className="col-span-1 sm:col-span-2 p-4 rounded-2xl bg-white/5 border border-cyan-400/10">
+                                        <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-3">🚚 Seleccionar vehículo del catálogo</p>
                                         <select onChange={e => {
                                             const v = vehiculos.find(x => String(x.id) === e.target.value);
                                             aplicarVehiculo(v || null);
@@ -728,7 +766,7 @@ export default function CartaPortePage() {
                                             <option value="">Seleccionar vehículo registrado...</option>
                                             {vehiculos.map(v => (
                                                 <option key={v.id} value={v.id}>
-                                                    {v.plate} -{v.brand} {v.model} {v.year}
+                                                    {v.plate} - {v.brand} {v.model} {v.year}
                                                     {v.configAutotransporte ? ` | Config: ${v.configAutotransporte}` : ""}
                                                 </option>
                                             ))}
@@ -737,7 +775,7 @@ export default function CartaPortePage() {
                                     </div>
 
                                     {/* Selector de operador del catálogo */}
-                                    <div className="col-span-2 p-4 rounded-2xl bg-white/5 border border-cyan-400/10">
+                                    <div className="col-span-1 sm:col-span-2 p-4 rounded-2xl bg-white/5 border border-cyan-400/10">
                                         <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-3">👤 Seleccionar operador del catálogo</p>
                                         <select onChange={e => {
                                             const o = operadores.find(x => String(x.id) === e.target.value);
@@ -746,7 +784,7 @@ export default function CartaPortePage() {
                                             <option value="">Seleccionar operador registrado...</option>
                                             {operadores.map(o => (
                                                 <option key={o.id} value={o.id}>
-                                                    {o.name} {o.apellidos} -Lic: {o.licenseNumber || "-"}
+                                                    {o.name} {o.apellidos} - Lic: {o.licenseNumber || "-"}
                                                     {o.figuraTransporte ? ` | Figura: ${o.figuraTransporte}` : ""}
                                                 </option>
                                             ))}
@@ -754,7 +792,7 @@ export default function CartaPortePage() {
                                         <p className="text-gray-600 text-xs mt-2">Al seleccionar un operador se llenan automáticamente el nombre, licencia y figura transporte SAT.</p>
                                     </div>
 
-                                    <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-1">Claves SAT del transportista</p>
+                                    <p className="col-span-1 sm:col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-1">Claves SAT del transportista</p>
 
                                     <SatPicker label="Configuración Autotransporte (SAT)" tipo="c_ConfigAutotransporte"
                                         value={form.configAutotransporte} valueDesc={form.configAutotransporteDesc}
@@ -769,7 +807,7 @@ export default function CartaPortePage() {
                                         onChange={setSat("figuraTransporte","figuraTransporteDesc")}
                                         placeholder="Ej: 01 Operador..." span2={false} />
 
-                                    <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-3">Datos del conductor y vehículo</p>
+                                    <p className="col-span-1 sm:col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-3">Datos del conductor y vehículo</p>
 
                                     <Field label="Nombre del Conductor">
                                         <input value={form.conductorNombre} onChange={set("conductorNombre")} placeholder="Juan Pérez García" className={inputCls} />
@@ -791,8 +829,8 @@ export default function CartaPortePage() {
 
                             {activeTab === "ruta" && (
                                 <div className="space-y-5">
-                                    <div className="grid grid-cols-2 gap-4 p-5 rounded-2xl border border-cyan-500/20 bg-cyan-500/5">
-                                        <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest">Origen -Punto de Carga</p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-5 rounded-2xl border border-cyan-500/20 bg-cyan-500/5">
+                                        <p className="col-span-1 sm:col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest">Origen - Punto de Carga</p>
                                         <Field label="Lugar de Carga">
                                             <input value={form.lugarCarga} onChange={set("lugarCarga")} placeholder="Ciudad de origen" className={inputCls} />
                                         </Field>
@@ -806,8 +844,8 @@ export default function CartaPortePage() {
                                             <input type="time" value={form.horaCarga} onChange={set("horaCarga")} className={inputCls} />
                                         </Field>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-4 p-5 rounded-2xl border border-green-500/20 bg-green-500/5">
-                                        <p className="col-span-2 text-green-400 text-xs font-bold uppercase tracking-widest">Destino -Punto de Descarga</p>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-5 rounded-2xl border border-green-500/20 bg-green-500/5">
+                                        <p className="col-span-1 sm:col-span-2 text-green-400 text-xs font-bold uppercase tracking-widest">Destino - Punto de Descarga</p>
                                         <Field label="Lugar de Descarga">
                                             <input value={form.lugarDescarga} onChange={set("lugarDescarga")} placeholder="Ciudad de destino" className={inputCls} />
                                         </Field>
@@ -836,16 +874,16 @@ export default function CartaPortePage() {
                                             <div className="flex items-center justify-between">
                                                 <span className="text-cyan-300 font-bold text-sm flex items-center gap-2">
                                                     <span className="w-6 h-6 rounded-full bg-cyan-500/20 border border-cyan-400/30 flex items-center justify-center text-xs">{idx+1}</span>
-                                                    Mercancía #{idx+1}{m.descripcion ? ` -${m.descripcion}` : ""}
+                                                    Mercancía #{idx+1}{m.descripcion ? ` - ${m.descripcion}` : ""}
                                                 </span>
                                                 {mercancias.length > 1 && (
                                                     <button onClick={() => setMercancias(ms => ms.filter((_,i) => i !== idx))}
                                                         className="px-3 py-1 rounded-lg bg-red-500/10 border border-red-400/20 text-red-400 text-xs font-bold hover:bg-red-500/20 transition-all">
-                                                        
+                                                        Quitar
                                                     </button>
                                                 )}
                                             </div>
-                                            <div className="grid grid-cols-2 gap-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
                                                 {/* Clave producto/servicio SAT */}
                                                 <SatPicker
@@ -905,7 +943,7 @@ export default function CartaPortePage() {
                                                     </select>
                                                 </Field>
 
-                                                <div className="col-span-2">
+                                                <div className="col-span-1 sm:col-span-2">
                                                     <label className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl border transition-all
                                                         ${m.esPeligrosa ? "border-yellow-500/40 bg-yellow-500/10" : "border-cyan-400/10 bg-white/5"}`}>
                                                         <input type="checkbox" checked={m.esPeligrosa} onChange={setMerc(idx,"esPeligrosa")} className="w-4 h-4 cursor-pointer" />
@@ -918,7 +956,7 @@ export default function CartaPortePage() {
                                                 {m.esPeligrosa && (
                                                     <Field label="Clase / Número ONU" span2>
                                                         <input value={m.claseONU} onChange={setMerc(idx,"claseONU")}
-                                                            placeholder="Ej: Clase 3 -Líquidos inflamables, UN1203" className={inputCls} />
+                                                            placeholder="Ej: Clase 3 - Líquidos inflamables, UN1203" className={inputCls} />
                                                     </Field>
                                                 )}
                                             </div>
@@ -932,20 +970,29 @@ export default function CartaPortePage() {
                             )}
 
                             {activeTab === "condiciones" && (
-                                <div className="grid grid-cols-2 gap-5">
-                                    <Field label="Precio del Transporte">
-                                        <input type="number" value={form.precioTransporte} onChange={set("precioTransporte")} placeholder="0.00" className={inputCls} />
-                                    </Field>
-                                    <Field label="Moneda">
-                                        <select value={form.moneda} onChange={set("moneda")} className={selectCls}>
-                                            {MONEDAS.map(m => <option key={m}>{m}</option>)}
-                                        </select>
-                                    </Field>
-                                    <Field label="Forma de Pago">
-                                        <select value={form.formaPago} onChange={set("formaPago")} className={selectCls}>
-                                            {FORMAS_PAGO.map(f => <option key={f}>{f}</option>)}
-                                        </select>
-                                    </Field>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                    {form.tipoComprobante === "Traslado" && (
+                                        <div className="col-span-1 sm:col-span-2 p-4 rounded-2xl bg-yellow-500/10 border border-yellow-400/20 text-yellow-300 text-sm">
+                                            Esta Carta Porte es de <strong>Traslado</strong>: no hay cobro por el servicio, así que el precio y la forma de pago no aplican y quedan ocultos.
+                                        </div>
+                                    )}
+                                    {form.tipoComprobante !== "Traslado" && (
+                                        <>
+                                            <Field label="Precio del Transporte">
+                                                <input type="number" value={form.precioTransporte} onChange={set("precioTransporte")} placeholder="0.00" className={inputCls} />
+                                            </Field>
+                                            <Field label="Moneda">
+                                                <select value={form.moneda} onChange={set("moneda")} className={selectCls}>
+                                                    {MONEDAS.map(m => <option key={m}>{m}</option>)}
+                                                </select>
+                                            </Field>
+                                            <Field label="Forma de Pago">
+                                                <select value={form.formaPago} onChange={set("formaPago")} className={selectCls}>
+                                                    {FORMAS_PAGO.map(f => <option key={f}>{f}</option>)}
+                                                </select>
+                                            </Field>
+                                        </>
+                                    )}
                                     <Field label="Plazo de Entrega (días)">
                                         <input type="number" value={form.plazoEntrega} onChange={set("plazoEntrega")} placeholder="1" className={inputCls} />
                                     </Field>
@@ -971,9 +1018,10 @@ export default function CartaPortePage() {
                                     <Field label="Reservas del Transportista">
                                         <textarea value={form.reservas} onChange={set("reservas")} rows={4} className={inputCls + " resize-none"} />
                                     </Field>
-                                    <div className="p-5 rounded-2xl border border-cyan-400/10 bg-white/5 grid grid-cols-3 gap-4">
+                                    <div className="p-5 rounded-2xl border border-cyan-400/10 bg-white/5 grid grid-cols-1 sm:grid-cols-3 gap-4">
                                         {[
                                             { label:"Folio",        value: form.folio||"-" },
+                                            { label:"Tipo CFDI",    value: form.tipoComprobante||"Ingreso" },
                                             { label:"Remitente",    value: form.remitenteNombre||"-" },
                                             { label:"Destinatario", value: form.destinatarioNombre||"-" },
                                             { label:"Origen",       value: form.lugarCarga||"-" },
@@ -990,7 +1038,7 @@ export default function CartaPortePage() {
                             )}
                         </div>
 
-                        <div className="flex gap-4 p-8 pt-4 flex-shrink-0">
+                        <div className="flex gap-4 p-5 sm:p-8 pt-4 flex-shrink-0">
                             <button onClick={() => setShowModal(false)}
                                 className="flex-1 py-4 rounded-2xl border border-white/10 text-gray-400 hover:bg-white/5 transition-all font-bold">
                                 Cancelar
@@ -1007,12 +1055,3 @@ export default function CartaPortePage() {
         </div>
     );
 }
-
-
-
-
-
-
-
-
-
