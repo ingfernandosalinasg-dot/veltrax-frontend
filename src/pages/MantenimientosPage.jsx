@@ -55,11 +55,11 @@ export default function MantenimientosPage() {
     return (
         <div className="flex min-h-screen bg-[#020617] text-white overflow-hidden">
             <Sidebar />
-            <div className="flex-1 p-10 overflow-auto relative">
+            <div className="flex-1 p-5 md:p-10 overflow-auto relative w-full min-w-0">
                 <Topbar />
 
                 <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
-                    <h1 className="text-5xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">MANTENIMIENTOS</h1>
+                    <h1 className="text-2xl md:text-5xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">MANTENIMIENTOS</h1>
                     <p className="text-gray-400 mt-2">Historial y seguimiento completo por unidad</p>
                 </motion.div>
 
@@ -74,14 +74,14 @@ export default function MantenimientosPage() {
 
                 {!vehicleSel && (
                     <div className="rounded-3xl bg-white/5 border border-cyan-400/10 backdrop-blur-xl p-16 text-center text-gray-500">
-                        <FaWrench className="text-5xl mx-auto mb-4 opacity-30" />
+                        <FaWrench className="text-2xl md:text-5xl mx-auto mb-4 opacity-30" />
                         Selecciona una unidad arriba para ver su historial de mantenimiento
                     </div>
                 )}
 
                 {vehicleSel && (
                     <>
-                        <div className="grid grid-cols-4 gap-6 mb-8">
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-8">
                             <div className="rounded-3xl bg-white/5 border border-cyan-400/10 backdrop-blur-xl p-6 flex items-center gap-5">
                                 <FaTruck className="text-4xl text-cyan-400" />
                                 <div><p className="text-gray-400">Unidad</p><h2 className="text-2xl font-black">{vehicleActual?.plate || "-"}</h2></div>

@@ -86,7 +86,7 @@ export default function CatalogoArticulosPage() {
 
                 <div className="mb-10 flex justify-between items-center">
                     <div>
-                        <h1 className="text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">CATALOGO</h1>
+                        <h1 className="text-3xl md:text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">CATALOGO</h1>
                         <p className="text-gray-400 mt-4 text-xl">Articulos para licitaciones y ordenes de compra</p>
                     </div>
                     <button onClick={openNew} className="flex items-center gap-3 px-8 py-4 rounded-2xl bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 font-bold text-lg hover:bg-cyan-500/20 transition-all">
@@ -96,7 +96,7 @@ export default function CatalogoArticulosPage() {
 
                 {msg && <div className={"mb-4 px-5 py-3 rounded-xl text-sm font-bold "+(msg.ok?"bg-green-500/10 border border-green-400/30 text-green-300":"bg-red-500/10 border border-red-400/30 text-red-300")}>{msg.txt}</div>}
 
-                <div className="grid grid-cols-4 gap-4 mb-8">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
                     {CATEGORIAS.slice(0,4).map(cat => (
                         <motion.div key={cat} initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }}
                             className="rounded-2xl bg-white/5 border border-cyan-400/10 p-5 flex items-center gap-4">

@@ -139,7 +139,7 @@ export default function ReportesFallaPage() {
     return (
         <div className="flex min-h-screen bg-[#020617] text-white overflow-hidden">
             <Sidebar />
-            <div className="flex-1 p-10 overflow-auto relative">
+            <div className="flex-1 p-5 md:p-10 overflow-auto relative w-full min-w-0">
                 <Topbar />
 
                 {msg && (
@@ -151,7 +151,7 @@ export default function ReportesFallaPage() {
                 <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
                     className="mb-10 flex justify-between items-center">
                     <div>
-                        <h1 className="text-5xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">REPORTES DE FALLA</h1>
+                        <h1 className="text-2xl md:text-5xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">REPORTES DE FALLA</h1>
                         <p className="text-gray-400 mt-2">Reporta problemas de una unidad y conviértelos en orden de servicio</p>
                     </div>
                     <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={openNew}
@@ -160,7 +160,7 @@ export default function ReportesFallaPage() {
                     </motion.button>
                 </motion.div>
 
-                <div className="grid grid-cols-3 gap-6 mb-10">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
                     {[
                         { label: "Total",       value: reportes.length, icon: <FaClipboardList />,       color: "text-cyan-400" },
                         { label: "Pendientes",  value: pendientes,      icon: <FaExclamationTriangle />, color: "text-yellow-400" },

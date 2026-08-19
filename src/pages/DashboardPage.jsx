@@ -344,7 +344,7 @@ export default function DashboardPage() {
                                 <span className="text-xl">{iconoBitacora(e?.modulo)}</span>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-white text-sm font-bold truncate">{e?.descripcion}</p>
-                                    <p className="text-gray-500 text-xs">{e?.modulo} · {e?.usuario}</p>
+                                    <p className="text-gray-500 text-xs">{e?.modulo} 路 {e?.usuario}</p>
                                 </div>
                                 <p className="text-gray-500 text-xs flex-shrink-0">{e?.fecha} {e?.hora}</p>
                             </motion.div>

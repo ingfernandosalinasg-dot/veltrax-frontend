@@ -85,7 +85,7 @@ export default function UsuariosPage() {
                 <Topbar />
                 <div className="mb-10 flex justify-between items-center">
                     <div>
-                        <h1 className="text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">USUARIOS</h1>
+                        <h1 className="text-3xl md:text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">USUARIOS</h1>
                         <p className="text-gray-400 mt-4 text-xl">Gestion de usuarios y roles del sistema</p>
                     </div>
                     <button onClick={openNew} className="flex items-center gap-3 px-8 py-4 rounded-2xl bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 font-bold text-lg hover:bg-cyan-500/20 transition-all">

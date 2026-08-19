@@ -29,15 +29,15 @@ export default function ServiciosCompletadosPage() {
     return (
         <div className="flex min-h-screen bg-[#020617] text-white overflow-hidden">
             <Sidebar />
-            <div className="flex-1 p-10 overflow-auto relative">
+            <div className="flex-1 p-5 md:p-10 overflow-auto relative w-full min-w-0">
                 <Topbar />
 
                 <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
-                    <h1 className="text-5xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">SERVICIOS COMPLETADOS</h1>
+                    <h1 className="text-2xl md:text-5xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">SERVICIOS COMPLETADOS</h1>
                     <p className="text-gray-400 mt-2">Historial y control de costos de mantenimiento</p>
                 </motion.div>
 
-                <div className="grid grid-cols-3 gap-6 mb-10">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
                     {[
                         { label: "Total Gastado",        value: `$${(resumen?.totalGastado ?? 0).toLocaleString()}`,   icon: <FaMoneyBillWave />, color: "text-green-400" },
                         { label: "Promedio por Servicio", value: `$${(resumen?.promedioOrden ?? 0).toLocaleString(undefined, { maximumFractionDigits: 0 })}`, icon: <FaChartLine />, color: "text-cyan-400" },

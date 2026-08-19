@@ -146,14 +146,14 @@ export default function ClientesPage() {
     return (
         <div className="flex min-h-screen bg-[#020617] text-white overflow-hidden">
             <Sidebar />
-            <div className="flex-1 p-10 overflow-auto relative">
+            <div className="flex-1 p-5 md:p-10 overflow-auto relative w-full min-w-0">
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
                     style={{ backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.1) 1px,transparent 1px)`, backgroundSize: "40px 40px" }} />
                 <Topbar />
 
                 <motion.div initial={{ opacity: 0, y: -30 }} animate={{ opacity: 1, y: 0 }} className="mb-12 flex justify-between items-center">
                     <div>
-                        <h1 className="text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">CLIENTES</h1>
+                        <h1 className="text-3xl md:text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">CLIENTES</h1>
                         <p className="text-gray-400 mt-4 text-xl">Catálogo de clientes y empresas</p>
                     </div>
                     <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={openNew}
@@ -162,7 +162,7 @@ export default function ClientesPage() {
                     </motion.button>
                 </motion.div>
 
-                <div className="grid grid-cols-4 gap-6 mb-10">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-10">
                     {[
                         { label: "Total",    value: clientes.length, color: "text-cyan-400",   border: "border-cyan-500/20",   icon: <FaUserTie /> },
                         { label: "Activos",  value: activos,         color: "text-green-400",  border: "border-green-500/20",  icon: <FaCheck /> },

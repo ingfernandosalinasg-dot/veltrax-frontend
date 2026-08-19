@@ -62,7 +62,7 @@ function CreateTripPage() {
 
                     <h1
                         className="
-                            text-5xl
+                            text-2xl md:text-5xl
                             font-black
                             text-cyan-300
                             title-font

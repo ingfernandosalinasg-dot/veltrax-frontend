@@ -150,14 +150,14 @@ export default function RutasPage() {
     return (
         <div className="flex min-h-screen bg-[#020617] text-white overflow-hidden">
             <Sidebar />
-            <div className="flex-1 p-10 overflow-auto relative">
+            <div className="flex-1 p-5 md:p-10 overflow-auto relative w-full min-w-0">
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
                     style={{ backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.1) 1px,transparent 1px)`, backgroundSize: "40px 40px" }} />
                 <Topbar />
 
                 <motion.div initial={{ opacity: 0, y: -30 }} animate={{ opacity: 1, y: 0 }} className="mb-10 flex justify-between items-center">
                     <div>
-                        <h1 className="text-5xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">RUTAS</h1>
+                        <h1 className="text-2xl md:text-5xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">RUTAS</h1>
                         <p className="text-gray-400 mt-3 text-lg">Rutas de transporte con origen, destino y tarifa</p>
                     </div>
                     <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={openNew}
@@ -167,7 +167,7 @@ export default function RutasPage() {
                 </motion.div>
 
                 {/* Stats */}
-                <div className="grid grid-cols-3 gap-6 mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
                     {[
                         { label: "Total rutas",  value: rutas.length, color: "text-cyan-400",  border: "border-cyan-500/20" },
                         { label: "Activas",      value: activas,      color: "text-green-400", border: "border-green-500/20" },

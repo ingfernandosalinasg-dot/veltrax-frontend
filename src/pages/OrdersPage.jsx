@@ -85,7 +85,7 @@ function OrdersPage() {
         <div className="flex bg-[#020617] min-h-screen text-white overflow-hidden">
             <Sidebar />
 
-            <div className="flex-1 p-10 overflow-auto relative">
+            <div className="flex-1 p-5 md:p-10 overflow-auto relative w-full min-w-0">
                 <div
                     className="absolute inset-0 opacity-[0.03] pointer-events-none"
                     style={{
@@ -100,7 +100,7 @@ function OrdersPage() {
                 <motion.div initial={{ opacity:0, y:-30 }} animate={{ opacity:1, y:0 }}
                     className="mb-12 flex justify-between items-center">
                     <div>
-                        <h1 className="text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">
+                        <h1 className="text-3xl md:text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">
                             ÓRDENES
                         </h1>
                         <p className="text-gray-400 mt-4 text-xl">Gestión avanzada de viajes y entregas</p>
@@ -113,7 +113,7 @@ function OrdersPage() {
                 </motion.div>
 
                 {/* KPIs */}
-                <div className="grid grid-cols-4 gap-6 mb-10">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-10">
                     {[
                         { label:"Total Órdenes", value: orders.length, icon:<FaClipboardList />, border:"border-cyan-500/20",   text:"text-cyan-400" },
                         { label:"Pendientes",    value: pendientes,    icon:<FaClock />,         border:"border-yellow-500/20", text:"text-yellow-400" },
@@ -126,7 +126,7 @@ function OrdersPage() {
                                 <div className={`${kpi.text} text-2xl`}>{kpi.icon}</div>
                                 <h2 className="text-xl font-bold">{kpi.label}</h2>
                             </div>
-                            <p className={`text-5xl font-bold ${kpi.text}`}>{kpi.value}</p>
+                            <p className={`text-2xl md:text-5xl font-bold ${kpi.text}`}>{kpi.value}</p>
                         </motion.div>
                     ))}
                 </div>

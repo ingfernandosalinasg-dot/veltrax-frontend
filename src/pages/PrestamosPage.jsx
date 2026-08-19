@@ -141,7 +141,7 @@ export default function PrestamosPage() {
 
                 <div className="mb-10 flex justify-between items-center">
                     <div>
-                        <h1 className="text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">PRÉSTAMOS</h1>
+                        <h1 className="text-3xl md:text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">PRÉSTAMOS</h1>
                         <p className="text-gray-400 mt-4 text-xl">Anticipos y préstamos a operadores</p>
                     </div>
                     <button onClick={openNew}
@@ -157,7 +157,7 @@ export default function PrestamosPage() {
                 )}
 
                 {/* Stats */}
-                <div className="grid grid-cols-3 gap-6 mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
                     {[
                         { label: 'Total Prestado',    value: fmt(totalPrestado),  color: 'text-cyan-300',   icon: <FaMoneyBillWave /> },
                         { label: 'Saldo Pendiente',   value: fmt(totalPendiente), color: 'text-yellow-300', icon: <FaMoneyBillWave /> },

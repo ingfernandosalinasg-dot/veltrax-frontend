@@ -370,7 +370,7 @@ function TabAdjudicado({ licitacion, licitacionId, onActualizar }) {
             )}
 
             {/* Montos adjudicados */}
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
                 <div className="bg-white/5 border border-cyan-400/10 rounded-2xl p-4">
                     <p className="text-gray-400 text-xs mb-1">Monto Adjudicado</p>
                     <p className="text-2xl font-black text-green-300">
@@ -526,7 +526,7 @@ function TabAdjudicado({ licitacion, licitacionId, onActualizar }) {
                                     <label className="text-gray-400 text-xs mb-1 block">Descripción *</label>
                                     <input value={pForm.descripcion} onChange={e=>setPForm(p=>({...p,descripcion:e.target.value}))} className={inputCls} placeholder="LEVETIRACETAM TABLETA..."/>
                                 </div>
-                                <div className="grid grid-cols-3 gap-3">
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                     <div>
                                         <label className="text-gray-400 text-xs mb-1 block">Unidad</label>
                                         <input value={pForm.unidad} onChange={e=>setPForm(p=>({...p,unidad:e.target.value}))} className={inputCls} placeholder="Pieza"/>
@@ -742,7 +742,7 @@ export default function LicitacionesPage() {
 
                 <motion.div initial={{opacity:0,y:-20}} animate={{opacity:1,y:0}} className="mb-8 flex justify-between items-center">
                     <div>
-                        <h1 className="text-5xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">LICITACIONES</h1>
+                        <h1 className="text-2xl md:text-5xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">LICITACIONES</h1>
                         <p className="text-gray-400 mt-2">Gestión de expedientes para ComprasMX / CompraNet</p>
                     </div>
                     <button onClick={()=>setShowModal(true)} className="flex items-center gap-3 px-8 py-4 rounded-2xl bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 font-bold hover:bg-cyan-500/20 transition-all">
@@ -1017,7 +1017,7 @@ export default function LicitacionesPage() {
                                 </div>
                                 <div className="border-t border-white/5 pt-4">
                                     <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-3">Fechas Clave</p>
-                                    <div className="grid grid-cols-3 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                         {[{label:"Publicación",key:"fechaPublicacion"},{label:"Junta Aclaraciones",key:"fechaJuntaAclaraciones"},{label:"Entrega Propuestas",key:"fechaPresentacionPropuestas"},{label:"Apertura Técnica",key:"fechaAperturaTecnica"},{label:"Apertura Económica",key:"fechaAperturaEconomica"},{label:"Fallo",key:"fechaFallo"},{label:"Firma Contrato",key:"fechaContrato"},{label:"Inicio Servicio",key:"fechaInicioServicio"},{label:"Fin Servicio",key:"fechaFinServicio"}].map(f=>(
                                             <div key={f.key}><label className="text-gray-400 text-xs mb-1 block">{f.label}</label><input type="date" value={form[f.key]} onChange={setF(f.key)} className={inputCls}/></div>
                                         ))}
@@ -1025,7 +1025,7 @@ export default function LicitacionesPage() {
                                 </div>
                                 <div className="border-t border-white/5 pt-4">
                                     <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-3">Contacto en la Dependencia</p>
-                                    <div className="grid grid-cols-3 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                         <div><label className="text-gray-400 text-xs mb-1 block">Nombre</label><input value={form.contactoNombre} onChange={setF("contactoNombre")} className={inputCls} placeholder="Lic. Juan Pérez"/></div>
                                         <div><label className="text-gray-400 text-xs mb-1 block">Teléfono</label><input value={form.contactoTelefono} onChange={setF("contactoTelefono")} className={inputCls} placeholder="81 1234 5678"/></div>
                                         <div><label className="text-gray-400 text-xs mb-1 block">Email</label><input value={form.contactoEmail} onChange={setF("contactoEmail")} className={inputCls} placeholder="jperez@imss.gob.mx"/></div>

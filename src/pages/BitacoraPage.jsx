@@ -82,7 +82,7 @@ export default function BitacoraPage() {
                 {/* Header */}
                 <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
                     className="mb-8">
-                    <h1 className="text-5xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">
+                    <h1 className="text-2xl md:text-5xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">
                         BITÁCORA
                     </h1>
                     <p className="text-gray-400 mt-2">Historial completo de eventos -quién hizo qué y cuándo</p>

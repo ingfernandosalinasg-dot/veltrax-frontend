@@ -153,7 +153,7 @@ export default function CajasPage() {
                 <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }}
                     className="mb-8 flex justify-between items-center">
                     <div>
-                        <h1 className="text-5xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">CAJAS</h1>
+                        <h1 className="text-2xl md:text-5xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">CAJAS</h1>
                         <p className="text-gray-400 mt-2">Control de cajas retornables</p>
                     </div>
                     <div className="flex gap-3">
@@ -171,7 +171,7 @@ export default function CajasPage() {
                 </motion.div>
 
                 {/* Stats */}
-                <div className="grid grid-cols-4 gap-5 mb-8">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-5 mb-8">
                     {[
                         { label: "En Clientes",    value: totalEnClientes, color: "text-cyan-400",   border: "border-cyan-500/20" },
                         { label: "Valor Retenido", value: `$${valorRetenido.toLocaleString("es-MX", { minimumFractionDigits: 0 })}`, color: "text-yellow-400", border: "border-yellow-500/20" },

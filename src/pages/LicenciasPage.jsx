@@ -180,7 +180,7 @@ export default function LicenciasPage() {
                 {msg && <div className={"mb-4 px-5 py-3 rounded-xl text-sm font-bold "+(msg.ok ? "bg-green-500/10 border border-green-400/30 text-green-300" : "bg-red-500/10 border border-red-400/30 text-red-300")}>{msg.txt}</div>}
                 <div className="mb-10 flex justify-between items-center">
                     <div>
-                        <h1 className="text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">LICENCIAS</h1>
+                        <h1 className="text-3xl md:text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">LICENCIAS</h1>
                         <p className="text-gray-400 mt-4 text-xl">Clientes, suscripciones y usuarios</p>
                     </div>
                     <div className="flex gap-3">

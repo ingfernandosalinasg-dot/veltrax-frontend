@@ -180,7 +180,7 @@ export default function OrdenesCompraPage() {
                 {/* Header */}
                 <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="mb-8 flex justify-between items-center">
                     <div>
-                        <h1 className="text-5xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">ÓRDENES DE COMPRA</h1>
+                        <h1 className="text-2xl md:text-5xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">ÓRDENES DE COMPRA</h1>
                         <p className="text-gray-400 mt-2">Todas las OC ligadas a fallos de licitaciones ganadas</p>
                     </div>
                     <button onClick={() => { setShowModal(true); setErrForm(null); }}

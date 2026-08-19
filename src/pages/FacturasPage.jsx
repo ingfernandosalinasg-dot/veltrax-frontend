@@ -208,7 +208,7 @@ export default function FacturasPage() {
 
                 <motion.div initial={{ opacity:0, y:-20 }} animate={{ opacity:1, y:0 }} className="mb-10 flex justify-between items-center">
                     <div>
-                        <h1 className="text-5xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">FACTURAS</h1>
+                        <h1 className="text-2xl md:text-5xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">FACTURAS</h1>
                         <p className="text-gray-400 mt-2">CFDI 4.0 con timbrado PAC integrado</p>
                     </div>
                     <motion.button whileHover={{ scale:1.05 }} whileTap={{ scale:0.95 }} onClick={abrirNueva}
@@ -364,7 +364,7 @@ export default function FacturasPage() {
                                         )}
                                         <div>
                                             <h3 className="text-cyan-400 font-bold mb-3 text-sm uppercase tracking-widest">Datos Generales</h3>
-                                            <div className="grid grid-cols-3 gap-4">
+                                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                                 <div><label className="text-gray-400 text-xs mb-1 block">Serie</label><input value={form.serie} onChange={setF("serie")} className={inputCls} /></div>
                                                 <div><label className="text-gray-400 text-xs mb-1 block">Folio</label><input value={form.folio} onChange={setF("folio")} className={inputCls} placeholder="Auto" /></div>
                                                 <div><label className="text-gray-400 text-xs mb-1 block">Fecha</label><input type="date" value={form.fecha} onChange={setF("fecha")} className={inputCls} /></div>
@@ -418,7 +418,7 @@ export default function FacturasPage() {
                                             </div>
                                             {conceptos.map((c,i) => (
                                                 <div key={i} className="bg-white/5 border border-cyan-400/10 rounded-2xl p-4 mb-3">
-                                                    <div className="grid grid-cols-3 gap-3 mb-3">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-3">
                                                         <div className="col-span-2"><label className="text-gray-400 text-xs mb-1 block">Descripcion</label><input value={c.descripcion} onChange={e=>setConcepto(i,"descripcion",e.target.value)} className={inputCls} /></div>
                                                         <div><label className="text-gray-400 text-xs mb-1 block">Tipo</label>
                                                             <select value={c.tipoConcepto} onChange={e=>setConcepto(i,"tipoConcepto",e.target.value)} className={selectCls}>

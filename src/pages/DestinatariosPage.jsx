@@ -130,14 +130,14 @@ export default function DestinatariosPage() {
     return (
         <div className="flex min-h-screen bg-[#020617] text-white overflow-hidden">
             <Sidebar />
-            <div className="flex-1 p-10 overflow-auto relative">
+            <div className="flex-1 p-5 md:p-10 overflow-auto relative w-full min-w-0">
                 <div className="absolute inset-0 opacity-[0.03] pointer-events-none"
                     style={{ backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.1) 1px,transparent 1px)`, backgroundSize: "40px 40px" }} />
                 <Topbar />
 
                 <motion.div initial={{ opacity: 0, y: -30 }} animate={{ opacity: 1, y: 0 }} className="mb-12 flex justify-between items-center">
                     <div>
-                        <h1 className="text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">DESTINATARIOS</h1>
+                        <h1 className="text-3xl md:text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">DESTINATARIOS</h1>
                         <p className="text-gray-400 mt-4 text-xl">Catálogo de empresas y personas que reciben mercancía</p>
                     </div>
                     <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={openNew}
@@ -146,7 +146,7 @@ export default function DestinatariosPage() {
                     </motion.button>
                 </motion.div>
 
-                <div className="grid grid-cols-3 gap-6 mb-10">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-10">
                     {[
                         { label: "Total",     value: items.length,                                    color: "text-cyan-400",  border: "border-cyan-500/20" },
                         { label: "Activos",   value: items.filter(i => i.status === "Activo").length,  color: "text-green-400", border: "border-green-500/20" },

@@ -119,7 +119,7 @@ export default function PermisosPage() {
                 <Topbar />
                 <div className="mb-10 flex justify-between items-center">
                     <div>
-                        <h1 className="text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">PERMISOS</h1>
+                        <h1 className="text-3xl md:text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">PERMISOS</h1>
                         <p className="text-gray-400 mt-4 text-xl">Control de acceso por rol y modulo</p>
                     </div>
                     <div className="flex gap-3">

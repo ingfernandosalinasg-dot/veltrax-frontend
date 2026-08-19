@@ -161,7 +161,7 @@ export default function EmpresaPage() {
                 <Topbar />
                 <div className="mb-10 flex justify-between items-center">
                     <div>
-                        <h1 className="text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">EMPRESA</h1>
+                        <h1 className="text-3xl md:text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">EMPRESA</h1>
                         <p className="text-gray-400 mt-4 text-xl">Configuración fiscal y credenciales de PAC para el timbrado de CFDI</p>
                     </div>
                     {empresa.logoUrl && (
@@ -311,7 +311,7 @@ export default function EmpresaPage() {
                         <div className="space-y-6">
                             <div>
                                 <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-4">Proveedor Autorizado Activo</p>
-                                <div className="grid grid-cols-4 gap-3 mb-6">
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
                                     {PACS.map(p => (
                                         <button key={p.id} type="button" onClick={() => setEmpresa(e => ({ ...e, pacActivo: p.id }))}
                                             className={"p-4 rounded-2xl border font-bold text-sm transition-all " + (empresa.pacActivo === p.id ? "bg-cyan-500/20 border-cyan-400/40 text-cyan-300" : "bg-white/5 border-white/10 text-gray-400 hover:bg-white/10")}>
