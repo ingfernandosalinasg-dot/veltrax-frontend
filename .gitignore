@@ -22,3 +22,5 @@ Thumbs.db
 # Logs
 *.log
 npm-debug.log*
+
+src/pages/_backup_mobile/
