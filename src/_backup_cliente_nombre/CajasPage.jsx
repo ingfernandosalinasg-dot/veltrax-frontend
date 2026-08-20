@@ -117,7 +117,7 @@ export default function CajasPage() {
     const pendientesPorCliente = movimientos
         .filter(m => m.tipoMovimiento === "SALIDA" && m.status === "PENDIENTE")
         .reduce((acc, m) => {
-            const key = m.cliente?.nombre || m.cliente?.name || "Sin cliente";
+            const key = m.cliente?.name || "Sin cliente";
             if (!acc[key]) acc[key] = { movimientos: [], total: 0, fechaMasAntigua: m.fecha };
             acc[key].movimientos.push(m);
             acc[key].total += m.cantidad || 0;
@@ -126,7 +126,7 @@ export default function CajasPage() {
         }, {});
 
     const filtrados = movimientos.filter(m =>
-        (m.cliente?.nombre || m.cliente?.name || "").toLowerCase().includes(busqueda.toLowerCase()) ||
+        m.cliente?.name?.toLowerCase().includes(busqueda.toLowerCase()) ||
         m.tipoCaja?.nombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
         m.tipoMovimiento?.toLowerCase().includes(busqueda.toLowerCase())
     );
@@ -307,7 +307,7 @@ export default function CajasPage() {
                                                 </span>
                                             </td>
                                             <td className="py-3 pr-4 text-white">{m.tipoCaja?.nombre || "-"}</td>
-                                            <td className="py-3 pr-4 text-gray-300">{m.cliente?.nombre || m.cliente?.name || "-"}</td>
+                                            <td className="py-3 pr-4 text-gray-300">{m.cliente?.name || "-"}</td>
                                             <td className="py-3 pr-4 font-bold text-cyan-300">{m.cantidad}</td>
                                             <td className="py-3 pr-4 text-gray-400">{m.fecha}</td>
                                             <td className="py-3 pr-4 text-gray-400">{m.fechaCompromisoDevolucion || "-"}</td>
@@ -377,7 +377,7 @@ export default function CajasPage() {
                                         <label className="text-gray-400 text-xs mb-1 block">Cliente</label>
                                         <select value={form.clienteId} onChange={setF("clienteId")} className={selectCls}>
                                             <option value="">Seleccionar...</option>
-                                            {clientes.map(c => <option key={c.id} value={c.id}>{c.nombre || c.name}</option>)}
+                                            {clientes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                         </select>
                                     </div>
                                     <div>
@@ -396,7 +396,7 @@ export default function CajasPage() {
                                         <label className="text-gray-400 text-xs mb-1 block">Viaje (Order) -Opcional</label>
                                         <select value={form.orderId} onChange={setF("orderId")} className={selectCls}>
                                             <option value="">Sin viaje</option>
-                                            {orders.map(o => <option key={o.id} value={o.id}>#{o.id} -{o.cliente?.nombre || o.cliente?.name || ""}</option>)}
+                                            {orders.map(o => <option key={o.id} value={o.id}>#{o.id} -{o.cliente?.name || ""}</option>)}
                                         </select>
                                     </div>
                                     <div>

@@ -270,7 +270,7 @@ export default function ReportesPage() {
                                             onChange={e => setFiltros(f => ({ ...f, clienteId: e.target.value }))}
                                             className={selectCls}>
                                             <option value="">Todos</option>
-                                            {clientes.map(c => <option key={c.id} value={c.id}>{c.nombre || c.name}</option>)}
+                                            {clientes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                         </select>
                                     </div>
                                 )}

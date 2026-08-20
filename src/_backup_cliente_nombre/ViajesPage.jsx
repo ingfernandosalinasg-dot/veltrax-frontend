@@ -493,7 +493,7 @@ export default function ViajesPage() {
                                             transition={{ delay: i * 0.05 }}
                                             className="border-b border-cyan-400/5 hover:bg-cyan-500/5 transition-all">
                                             <td className="py-4 pr-4 font-black text-cyan-300 text-sm">{v.folio || `#${v.id}`}</td>
-                                            <td className="py-4 pr-4">{v.cliente?.nombre || v.cliente?.name || v.clienteNombre || "-"}</td>
+                                            <td className="py-4 pr-4">{v.cliente?.name || v.clienteNombre || "-"}</td>
                                             <td className="py-4 pr-4 text-gray-300 text-sm">{v.origen || v.ruta?.remitente?.ciudad || "-"}</td>
                                             <td className="py-4 pr-4 text-gray-300 text-sm">{v.destino || v.ruta?.destinatario?.ciudad || "-"}</td>
                                             <td className="py-4 pr-4 text-gray-400 text-sm">
@@ -567,7 +567,7 @@ export default function ViajesPage() {
                         <div className="p-6 border-b border-cyan-400/10 flex justify-between items-start flex-shrink-0">
                             <div>
                                 <h2 className="text-2xl font-black text-cyan-300">{viajeSeleccionado.folio || `#${viajeSeleccionado.id}`}</h2>
-                                <p className="text-gray-400 text-sm mt-1">{viajeSeleccionado.cliente?.nombre || viajeSeleccionado.cliente?.name || viajeSeleccionado.clienteNombre || "Sin cliente"}</p>
+                                <p className="text-gray-400 text-sm mt-1">{viajeSeleccionado.cliente?.name || viajeSeleccionado.clienteNombre || "Sin cliente"}</p>
                             </div>
                             <button onClick={() => setShowPanelGastos(false)} className="text-gray-400 hover:text-white text-xl"><FaTimes /></button>
                         </div>
@@ -835,7 +835,7 @@ export default function ViajesPage() {
                                     <Field label="Cliente" span2>
                                         <select value={form.clienteId} onChange={set("clienteId")} className={selectCls}>
                                             <option value="">Seleccionar cliente...</option>
-                                            {clientes.map(c => <option key={c.id} value={c.id}>{c.nombre || c.name} -{c.company}</option>)}
+                                            {clientes.map(c => <option key={c.id} value={c.id}>{c.name} -{c.company}</option>)}
                                         </select>
                                     </Field>
                                     <Field label="Ruta" span2>

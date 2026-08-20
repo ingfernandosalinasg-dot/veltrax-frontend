@@ -94,7 +94,7 @@ export default function FacturasPage() {
     const onClienteChange = (e) => {
         const id = e.target.value;
         const c  = clientes.find(c => String(c.id) === String(id));
-        setForm(p => ({ ...p, clienteId: id, receptorRazonSocial: c ? (c.nombre || c.name) : "" }));
+        setForm(p => ({ ...p, clienteId: id, receptorRazonSocial: c ? c.name : "" }));
     };
 
     const onOrderChange = async (e) => {
@@ -266,7 +266,7 @@ export default function FacturasPage() {
                                             {TIPOS_FACTURA.find(t => t.id===f.tipoFactura)?.label || f.tipoFactura || "Concepto"}
                                         </span>
                                     </td>
-                                    <td className="py-4 pr-4 text-white text-sm">{f.cliente?.nombre || f.cliente?.name || f.receptorRazonSocial || "-"}</td>
+                                    <td className="py-4 pr-4 text-white text-sm">{f.cliente?.name || f.receptorRazonSocial || "-"}</td>
                                     <td className="py-4 pr-4 text-gray-400 text-sm">{f.fecha}</td>
                                     <td className="py-4 pr-4 text-gray-300 text-sm">${f.subtotal?.toLocaleString("es-MX",{minimumFractionDigits:2})}</td>
                                     <td className="py-4 pr-4 text-gray-300 text-sm">${f.iva?.toLocaleString("es-MX",{minimumFractionDigits:2})}</td>
@@ -347,7 +347,7 @@ export default function FacturasPage() {
                                                 <h3 className="text-cyan-400 font-bold mb-3 text-sm uppercase tracking-widest">Viaje a Facturar</h3>
                                                 <select value={form.orderId} onChange={onOrderChange} className={selectCls}>
                                                     <option value="">Seleccionar viaje...</option>
-                                                    {orders.map(o => <option key={o.id} value={o.id}>{o.folio||"#"+o.id} -{o.cliente?.nombre||o.cliente?.name||""} {o.cost?"($"+o.cost.toLocaleString()+")":""}</option>)}
+                                                    {orders.map(o => <option key={o.id} value={o.id}>{o.folio||"#"+o.id} -{o.cliente?.name||""} {o.cost?"($"+o.cost.toLocaleString()+")":""}</option>)}
                                                 </select>
                                             </div>
                                         )}
@@ -357,7 +357,7 @@ export default function FacturasPage() {
                                                 <select value={form.facturaRelacionadaId} onChange={setF("facturaRelacionadaId")} className={selectCls}>
                                                     <option value="">Seleccionar factura...</option>
                                                     {facturas.filter(f=>f.tipoFactura!=="NOTA_CARGO"&&f.tipoFactura!=="NOTA_CREDITO").map(f => (
-                                                        <option key={f.id} value={f.id}>{f.serie}{f.folio} -{f.cliente?.nombre||f.cliente?.name||f.receptorRazonSocial} -${f.total?.toLocaleString()}</option>
+                                                        <option key={f.id} value={f.id}>{f.serie}{f.folio} -{f.cliente?.name||f.receptorRazonSocial} -${f.total?.toLocaleString()}</option>
                                                     ))}
                                                 </select>
                                             </div>
@@ -394,7 +394,7 @@ export default function FacturasPage() {
                                                     <div className="col-span-2"><label className="text-gray-400 text-xs mb-1 block">Cliente</label>
                                                         <select value={form.clienteId} onChange={onClienteChange} className={selectCls}>
                                                             <option value="">Seleccionar cliente...</option>
-                                                            {clientes.map(c => <option key={c.id} value={c.id}>{c.nombre || c.name}</option>)}
+                                                            {clientes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                                                         </select>
                                                     </div>
                                                     <div><label className="text-gray-400 text-xs mb-1 block">RFC</label><input value={form.receptorRfc} onChange={setF("receptorRfc")} className={inputCls} /></div>

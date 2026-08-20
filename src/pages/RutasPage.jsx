@@ -127,7 +127,7 @@ export default function RutasPage() {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm("¿Eliminar esta ruta?")) return;
+        if (!confirm("驴Eliminar esta ruta?")) return;
         try { await fetch(`${API}/rutas/${id}`, { method: "DELETE", headers }); fetchAll(); }
         catch (e) { console.error(e); }
     };
@@ -140,7 +140,7 @@ export default function RutasPage() {
         if (!busqueda) return true;
         const origen  = r.remitente?.ciudad  || r.remitente?.nombre  || "";
         const destino = r.destinatario?.ciudad || r.destinatario?.nombre || "";
-        const cliente = r.cliente?.name || "";
+        const cliente = r.cliente?.nombre || r.cliente?.name || "";
         const q = busqueda.toLowerCase();
         return origen.toLowerCase().includes(q) || destino.toLowerCase().includes(q) || cliente.toLowerCase().includes(q);
     });
@@ -197,7 +197,7 @@ export default function RutasPage() {
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="text-gray-400 border-b border-cyan-400/10 text-sm">
-                                    {["#", "Ruta (Origen →Destino)", "Cliente", "Distancia", "Tiempo", "Tarifa", "Status", "Acciones"]
+                                    {["#", "Ruta (Origen 鈫扗estino)", "Cliente", "Distancia", "Tiempo", "Tarifa", "Status", "Acciones"]
                                         .map(h => <th key={h} className="pb-4 pr-4">{h}</th>)}
                                 </tr>
                             </thead>
@@ -210,7 +210,7 @@ export default function RutasPage() {
                                         className="border-b border-cyan-400/5 hover:bg-cyan-500/5 transition-all">
                                         <td className="py-4 pr-4 font-bold text-cyan-300">#{r.id}</td>
                                         <td className="py-4 pr-4"><RutaTag ruta={r} /></td>
-                                        <td className="py-4 pr-4 text-gray-300 text-sm">{r.cliente?.name || "-"}</td>
+                                        <td className="py-4 pr-4 text-gray-300 text-sm">{r.cliente?.nombre || r.cliente?.name || "-"}</td>
                                         <td className="py-4 pr-4 text-gray-300 text-sm">{r.distanciaKm ? `${r.distanciaKm} km` : "-"}</td>
                                         <td className="py-4 pr-4 text-gray-300 text-sm">{r.tiempoEstimado || "-"}</td>
                                         <td className="py-4 pr-4 text-green-300 font-bold">{r.tarifa ? `$${r.tarifa.toLocaleString()}` : "-"}</td>
@@ -296,8 +296,8 @@ export default function RutasPage() {
 
                                     <Field label="Cliente (opcional)" span2>
                                         <select value={form.clienteId} onChange={set("clienteId")} className={selectCls}>
-                                            <option value="">Sin cliente específico</option>
-                                            {clientes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+                                            <option value="">Sin cliente espec铆fico</option>
+                                            {clientes.map(c => <option key={c.id} value={c.id}>{c.nombre || c.name}</option>)}
                                         </select>
                                     </Field>
 
@@ -307,7 +307,7 @@ export default function RutasPage() {
                                         <input type="number" value={form.distanciaKm} onChange={set("distanciaKm")} placeholder="850" className={inputCls} />
                                     </Field>
                                     <Field label="Tiempo estimado">
-                                        <input type="text" value={form.tiempoEstimado} onChange={set("tiempoEstimado")} placeholder="8 horas / 2 días" className={inputCls} />
+                                        <input type="text" value={form.tiempoEstimado} onChange={set("tiempoEstimado")} placeholder="8 horas / 2 d铆as" className={inputCls} />
                                     </Field>
                                     <Field label="Tarifa ($)">
                                         <input type="number" value={form.tarifa} onChange={set("tarifa")} placeholder="0.00" className={inputCls} />
