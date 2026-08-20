@@ -16,7 +16,7 @@ const tipoColor = {
 const emptyForm = {
     nombre: "", razonSocial: "", rfc: "", tipo: "Empresa",
     telefono: "", email: "", direccion: "", ciudad: "",
-    estado: "", pais: "México", codigoPostal: "",
+    estado: "", pais: "M茅xico", codigoPostal: "",
     municipio: "", localidad: "", colonia: "",
     creditoDias: "0", limiteCredito: "",
     contactoPrincipal: "", contactoTelefono: "",
@@ -35,18 +35,18 @@ const REGIMENES = [
     { clave: "603", desc: "Personas Morales con Fines no Lucrativos" },
     { clave: "605", desc: "Sueldos y Salarios e Ingresos Asimilados" },
     { clave: "606", desc: "Arrendamiento" },
-    { clave: "608", desc: "Demás Ingresos" },
+    { clave: "608", desc: "Dem谩s Ingresos" },
     { clave: "610", desc: "Residentes en el Extranjero" },
-    { clave: "612", desc: "Personas Físicas con Actividades Empresariales" },
+    { clave: "612", desc: "Personas F铆sicas con Actividades Empresariales" },
     { clave: "616", desc: "Sin obligaciones fiscales" },
-    { clave: "620", desc: "Sociedades Cooperativas de Producción" },
-    { clave: "621", desc: "Incorporación Fiscal" },
-    { clave: "622", desc: "Actividades Agrícolas, Ganaderas, Silvícolas y Pesqueras" },
-    { clave: "626", desc: "Régimen Simplificado de Confianza (RESICO)" },
+    { clave: "620", desc: "Sociedades Cooperativas de Producci贸n" },
+    { clave: "621", desc: "Incorporaci贸n Fiscal" },
+    { clave: "622", desc: "Actividades Agr铆colas, Ganaderas, Silv铆colas y Pesqueras" },
+    { clave: "626", desc: "R茅gimen Simplificado de Confianza (RESICO)" },
 ];
 
 const USOS_CFDI = [
-    { clave: "G01", desc: "Adquisición de mercancias" },
+    { clave: "G01", desc: "Adquisici贸n de mercancias" },
     { clave: "G02", desc: "Devoluciones, descuentos o bonificaciones" },
     { clave: "G03", desc: "Gastos en general" },
     { clave: "I01", desc: "Construcciones" },
@@ -54,7 +54,7 @@ const USOS_CFDI = [
     { clave: "I04", desc: "Equipo de computo y accesorios" },
     { clave: "S01", desc: "Sin efectos fiscales" },
     { clave: "CP01", desc: "Pagos" },
-    { clave: "CN01", desc: "Nómina" },
+    { clave: "CN01", desc: "N贸mina" },
 ];
 
 function Field({ label, children, span2 = false }) {
@@ -79,7 +79,7 @@ export default function ClientesPage() {
 
     const fetchClientes = async () => {
         try {
-            const res  = await fetch(`${API}/clientes`, { headers });
+            const res  = await fetch(`${API}/clients`, { headers });
             const data = await res.json();
             setClientes(Array.isArray(data) ? data : []);
         } catch (e) { console.error(e); }
@@ -95,7 +95,7 @@ export default function ClientesPage() {
     const handleSubmit = async () => {
         setLoading(true);
         try {
-            const url    = editando ? `${API}/clientes/${editando}` : `${API}/clientes`;
+            const url    = editando ? `${API}/clients/${editando}` : `${API}/clients`;
             const method = editando ? "PUT" : "POST";
             await fetch(url, { method, headers, body: JSON.stringify(form) });
             setShowModal(false);
@@ -105,8 +105,8 @@ export default function ClientesPage() {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm("¿Eliminar este cliente?")) return;
-        try { await fetch(`${API}/clientes/${id}`, { method: "DELETE", headers }); fetchClientes(); }
+        if (!confirm("驴Eliminar este cliente?")) return;
+        try { await fetch(`${API}/clients/${id}`, { method: "DELETE", headers }); fetchClientes(); }
         catch (e) { console.error(e); }
     };
 
@@ -154,7 +154,7 @@ export default function ClientesPage() {
                 <motion.div initial={{ opacity: 0, y: -30 }} animate={{ opacity: 1, y: 0 }} className="mb-12 flex justify-between items-center">
                     <div>
                         <h1 className="text-3xl md:text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">CLIENTES</h1>
-                        <p className="text-gray-400 mt-4 text-xl">Catálogo de clientes y empresas</p>
+                        <p className="text-gray-400 mt-4 text-xl">Cat谩logo de clientes y empresas</p>
                     </div>
                     <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={openNew}
                         className="flex items-center gap-3 px-8 py-4 rounded-2xl bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 font-bold text-lg hover:bg-cyan-500/20 transition-all">
@@ -190,7 +190,7 @@ export default function ClientesPage() {
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="text-gray-400 border-b border-cyan-400/10 text-sm">
-                                    {["Nombre / Razón Social","RFC","Régimen Fiscal","Tipo","Ciudad","Teléfono","Crédito","Status","Acciones"]
+                                    {["Nombre / Raz贸n Social","RFC","R茅gimen Fiscal","Tipo","Ciudad","Tel茅fono","Cr茅dito","Status","Acciones"]
                                         .map(h => <th key={h} className="pb-4 pr-5">{h}</th>)}
                                 </tr>
                             </thead>
@@ -218,7 +218,7 @@ export default function ClientesPage() {
                                         </td>
                                         <td className="py-4 pr-5 text-gray-400">{c.ciudad || "-"}</td>
                                         <td className="py-4 pr-5 text-gray-400">{c.telefono || "-"}</td>
-                                        <td className="py-4 pr-5 text-gray-400">{c.creditoDias && c.creditoDias !== "0" ? `${c.creditoDias} días` : "Contado"}</td>
+                                        <td className="py-4 pr-5 text-gray-400">{c.creditoDias && c.creditoDias !== "0" ? `${c.creditoDias} d铆as` : "Contado"}</td>
                                         <td className="py-4 pr-5">
                                             <span className={`px-3 py-1 rounded-full border text-xs font-bold ${c.status === "Activo" ? "text-green-300 bg-green-500/10 border-green-400/30" : "text-red-300 bg-red-500/10 border-red-400/30"}`}>
                                                 {c.status}
@@ -251,8 +251,8 @@ export default function ClientesPage() {
                             <div className="flex-1 overflow-y-auto px-8 py-6">
                                 <div className="grid grid-cols-2 gap-5">
 
-                                    <Field label="Nombre / Razón Social" span2>
-                                        <input value={form.nombre} onChange={set("nombre")} placeholder="Nombre completo o razón social" className={inputCls} />
+                                    <Field label="Nombre / Raz贸n Social" span2>
+                                        <input value={form.nombre} onChange={set("nombre")} placeholder="Nombre completo o raz贸n social" className={inputCls} />
                                     </Field>
                                     <Field label="Nombre comercial">
                                         <input value={form.razonSocial} onChange={set("razonSocial")} placeholder="Nombre comercial (opcional)" className={inputCls} />
@@ -271,16 +271,16 @@ export default function ClientesPage() {
                                         </select>
                                     </Field>
 
-                                    {/* SECCIÓN SAT */}
+                                    {/* SECCI脫N SAT */}
                                     <div className="col-span-2 p-4 rounded-2xl bg-purple-500/5 border border-purple-400/20">
                                         <p className="text-purple-400 text-xs font-bold uppercase tracking-widest mb-4">Datos fiscales SAT (para timbrado CFDI)</p>
                                         <div className="grid grid-cols-2 gap-4">
-                                            <Field label="Régimen Fiscal (SAT)" span2>
+                                            <Field label="R茅gimen Fiscal (SAT)" span2>
                                                 <select value={form.regimenFiscal} onChange={e => {
                                                     const reg = REGIMENES.find(r => r.clave === e.target.value);
                                                     setForm(prev => ({ ...prev, regimenFiscal: e.target.value, regimenFiscalDesc: reg?.desc || "" }));
                                                 }} className={selectCls}>
-                                                    <option value="">Seleccionar régimen fiscal...</option>
+                                                    <option value="">Seleccionar r茅gimen fiscal...</option>
                                                     {REGIMENES.map(r => <option key={r.clave} value={r.clave}>{r.clave} -{r.desc}</option>)}
                                                 </select>
                                             </Field>
@@ -299,12 +299,12 @@ export default function ClientesPage() {
                                             <ValidacionRegimenUso regimen={form.regimenFiscal} uso={form.usoCfdi} />
                                         </div>
                                         <p className="text-purple-300/60 text-xs mt-3">
-                                            El código postal fiscal se captura abajo, en la sección de Dirección -se usa el mismo dato para timbrado y domicilio.
+                                            El c贸digo postal fiscal se captura abajo, en la secci贸n de Direcci贸n -se usa el mismo dato para timbrado y domicilio.
                                         </p>
                                     </div>
 
                                     <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-2">Contacto</p>
-                                    <Field label="Teléfono">
+                                    <Field label="Tel茅fono">
                                         <input value={form.telefono} onChange={set("telefono")} className={inputCls} />
                                     </Field>
                                     <Field label="Email">
@@ -317,30 +317,30 @@ export default function ClientesPage() {
                                         <input value={form.contactoTelefono} onChange={set("contactoTelefono")} className={inputCls} />
                                     </Field>
 
-                                    <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-2">Dirección</p>
-                                    <Field label="Calle y Número" span2>
-                                        <input value={form.direccion} onChange={set("direccion")} placeholder="Calle, Número exterior/interior" className={inputCls} />
+                                    <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-2">Direcci贸n</p>
+                                    <Field label="Calle y N煤mero" span2>
+                                        <input value={form.direccion} onChange={set("direccion")} placeholder="Calle, N煤mero exterior/interior" className={inputCls} />
                                     </Field>
 
                                     <div className="col-span-2">
                                         <CodigoPostalInput value={direccionCp} onChange={handleDireccionChange} />
                                     </div>
 
-                                    <Field label="País">
+                                    <Field label="Pa铆s">
                                         <input value={form.pais} onChange={set("pais")} className={inputCls} />
                                     </Field>
 
-                                    <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-2">Crédito</p>
-                                    <Field label="Días de crédito">
+                                    <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-2">Cr茅dito</p>
+                                    <Field label="D铆as de cr茅dito">
                                         <select value={form.creditoDias} onChange={set("creditoDias")} className={selectCls}>
                                             <option value="0">Contado</option>
-                                            <option value="15">15 días</option>
-                                            <option value="30">30 días</option>
-                                            <option value="60">60 días</option>
-                                            <option value="90">90 días</option>
+                                            <option value="15">15 d铆as</option>
+                                            <option value="30">30 d铆as</option>
+                                            <option value="60">60 d铆as</option>
+                                            <option value="90">90 d铆as</option>
                                         </select>
                                     </Field>
-                                    <Field label="Límite de crédito (MXN)">
+                                    <Field label="L铆mite de cr茅dito (MXN)">
                                         <input type="number" value={form.limiteCredito} onChange={set("limiteCredito")} placeholder="0.00" className={inputCls} />
                                     </Field>
                                     <Field label="Notas" span2>
