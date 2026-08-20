@@ -127,7 +127,7 @@ export default function RutasPage() {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm("¿Eliminar esta ruta?")) return;
+        if (!confirm("驴Eliminar esta ruta?")) return;
         try { await fetch(`${API}/rutas/${id}`, { method: "DELETE", headers }); fetchAll(); }
         catch (e) { console.error(e); }
     };
@@ -197,7 +197,7 @@ export default function RutasPage() {
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="text-gray-400 border-b border-cyan-400/10 text-sm">
-                                    {["#", "Ruta (Origen →Destino)", "Cliente", "Distancia", "Tiempo", "Tarifa", "Status", "Acciones"]
+                                    {["#", "Ruta (Origen 鈫扗estino)", "Cliente", "Distancia", "Tiempo", "Tarifa", "Status", "Acciones"]
                                         .map(h => <th key={h} className="pb-4 pr-4">{h}</th>)}
                                 </tr>
                             </thead>
@@ -296,7 +296,7 @@ export default function RutasPage() {
 
                                     <Field label="Cliente (opcional)" span2>
                                         <select value={form.clienteId} onChange={set("clienteId")} className={selectCls}>
-                                            <option value="">Sin cliente específico</option>
+                                            <option value="">Sin cliente espec铆fico</option>
                                             {clientes.map(c => <option key={c.id} value={c.id}>{c.nombre || c.name}</option>)}
                                         </select>
                                     </Field>
@@ -307,7 +307,7 @@ export default function RutasPage() {
                                         <input type="number" value={form.distanciaKm} onChange={set("distanciaKm")} placeholder="850" className={inputCls} />
                                     </Field>
                                     <Field label="Tiempo estimado">
-                                        <input type="text" value={form.tiempoEstimado} onChange={set("tiempoEstimado")} placeholder="8 horas / 2 días" className={inputCls} />
+                                        <input type="text" value={form.tiempoEstimado} onChange={set("tiempoEstimado")} placeholder="8 horas / 2 d铆as" className={inputCls} />
                                     </Field>
                                     <Field label="Tarifa ($)">
                                         <input type="number" value={form.tarifa} onChange={set("tarifa")} placeholder="0.00" className={inputCls} />
