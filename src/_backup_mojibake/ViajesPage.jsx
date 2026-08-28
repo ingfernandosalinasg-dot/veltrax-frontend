@@ -41,7 +41,7 @@ const emptyGasto = {
     descripcion: "", monto: "", fecha: "", status: "Pendiente", notas: ""
 };
 
-const TIPOS = ["Anticipo operador", "Casetas", "Gasolina", "Comida", "Mecánico", "Hospedaje", "Otro"];
+const TIPOS = ["Anticipo operador", "Casetas", "Gasolina", "Comida", "Mec谩nico", "Hospedaje", "Otro"];
 
 const selectCls = "w-full bg-[#020617] border border-cyan-400/10 rounded-xl px-5 py-3 text-white outline-none focus:border-cyan-400/40 transition-all";
 const inputCls  = "w-full bg-white/5 border border-cyan-400/10 rounded-xl px-5 py-3 text-white outline-none focus:border-cyan-400/40 transition-all";
@@ -76,7 +76,7 @@ export default function ViajesPage() {
     const [gastoForm,         setGastoForm]          = useState(emptyGasto);
     const [loadingGasto,      setLoadingGasto]       = useState(false);
     const [ticketFile,        setTicketFile]         = useState(null);
-    const [gastoActivo,       setGastoActivo]        = useState(null); // gasto completo que se está editando (para saber si ya tiene ticket)
+    const [gastoActivo,       setGastoActivo]        = useState(null); // gasto completo que se est谩 editando (para saber si ya tiene ticket)
 
     const [timelineEventos,   setTimelineEventos]   = useState([]);
     const [loadingTimeline,   setLoadingTimeline]   = useState(false);
@@ -186,7 +186,7 @@ export default function ViajesPage() {
                 const txt = await res.text();
                 showMsgFn(false, txt);
             }
-        } catch (e) { showMsgFn(false, "Error de conexión"); }
+        } catch (e) { showMsgFn(false, "Error de conexi贸n"); }
     };
 
     const iniciarCanvas = () => {
@@ -287,7 +287,7 @@ export default function ViajesPage() {
                 });
                 showMsgFn(true, "Viaje marcado como ENTREGADO");setShowEvidencia(false);
                 fetchAll();
-            } catch { showMsgFn(false, "Error de conexión"); }
+            } catch { showMsgFn(false, "Error de conexi贸n"); }
         }
         setLoadingEv(false);
     };
@@ -319,7 +319,7 @@ export default function ViajesPage() {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm("¿Eliminar este viaje?")) return;
+        if (!confirm("驴Eliminar este viaje?")) return;
         await fetch(`${API}/orders/${id}`, {
             method: "DELETE", headers: { ...headers, "X-Usuario": usuario }
         });
@@ -348,7 +348,7 @@ export default function ViajesPage() {
 
     // Manda a Liquidaciones con el viaje y el operador YA preseleccionados,
     // para que los anticipos/gastos de este viaje se desglosen solos en la
-    // vista previa de la liquidación (ver LiquidacionesPage →fetchGastos).
+    // vista previa de la liquidaci贸n (ver LiquidacionesPage 鈫抐etchGastos).
     const irALiquidacion = () => {
         if (!viajeSeleccionado) return;
         const driverId = viajeSeleccionado.driver?.id || "";
@@ -385,9 +385,9 @@ export default function ViajesPage() {
             const res    = await fetch(url, { method, headers, body: JSON.stringify(body) });
             const saved  = await res.json();
 
-            // Si se eligió una foto de ticket, la subimos aparte (multipart).
+            // Si se eligi贸 una foto de ticket, la subimos aparte (multipart).
             // Esto marca el gasto como "comprobado" en el backend, lo que hace
-            // que NO se le cobre al operador en su liquidación.
+            // que NO se le cobre al operador en su liquidaci贸n.
             if (ticketFile && saved?.id) {
                 const fd = new FormData();
                 fd.append("ticket", ticketFile);
@@ -407,7 +407,7 @@ export default function ViajesPage() {
 
     const handleQuitarTicket = async () => {
         if (!gastoActivo?.id) return;
-        if (!confirm("¿Quitar el ticket de este gasto? Volverá a descontarse del operador.")) return;
+        if (!confirm("驴Quitar el ticket de este gasto? Volver谩 a descontarse del operador.")) return;
         try {
             await fetch(`${API}/gastos-viaje/${gastoActivo.id}/ticket`, { method: "DELETE", headers });
             setGastoActivo(prev => prev ? { ...prev, comprobado: false, ticketPath: null } : prev);
@@ -416,7 +416,7 @@ export default function ViajesPage() {
     };
 
     const handleEliminarGasto = async (id) => {
-        if (!confirm("¿Eliminar este registro?")) return;
+        if (!confirm("驴Eliminar este registro?")) return;
         await fetch(`${API}/gastos-viaje/${id}`, { method: "DELETE", headers });
         fetchGastos(viajeSeleccionado.id);
     };
@@ -447,7 +447,7 @@ export default function ViajesPage() {
                 <motion.div initial={{ opacity: 0, y: -30 }} animate={{ opacity: 1, y: 0 }}
                     className="mb-12 flex justify-between items-center">
                     <div>
-                        <h1 className="text-3xl md:text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">GESTIÓN DE VIAJES</h1>
+                        <h1 className="text-3xl md:text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">GESTI脫N DE VIAJES</h1>
                         <p className="text-gray-400 mt-4 text-xl">Control de rutas y operadores</p>
                     </div>
                     <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={openNew}
@@ -623,7 +623,7 @@ export default function ViajesPage() {
                                                         <span className="text-white font-bold text-sm">{g.tipo}</span>
                                                         {g.categoria !== "Anticipo" && (
                                                             g.comprobado ? (
-                                                                <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-green-500/20 text-green-300">🧾 Comprobado</span>
+                                                                <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-green-500/20 text-green-300">馃Ь Comprobado</span>
                                                             ) : (
                                                                 <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-red-500/20 text-red-300">Sin comprobar</span>
                                                             )
@@ -719,7 +719,7 @@ export default function ViajesPage() {
 
                                         {rentabilidad.porCategoria && Object.keys(rentabilidad.porCategoria).length > 0 && (
                                             <div>
-                                                <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-3">Desglose por Categoría</p>
+                                                <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-3">Desglose por Categor铆a</p>
                                                 <div className="space-y-2">
                                                     {Object.entries(rentabilidad.porCategoria).map(([cat, monto]) => (
                                                         <div key={cat} className="flex justify-between items-center p-3 rounded-xl bg-white/5 border border-white/10">
@@ -738,7 +738,7 @@ export default function ViajesPage() {
 
                                         <button onClick={irALiquidacion}
                                             className="w-full py-3 rounded-2xl bg-yellow-500/10 border border-yellow-400/30 text-yellow-300 font-bold hover:bg-yellow-500/20 transition-all flex items-center justify-center gap-2">
-                                            <FaHandHoldingUsd /> Generar Liquidación del Operador
+                                            <FaHandHoldingUsd /> Generar Liquidaci贸n del Operador
                                         </button>
                                     </div>
                                 )}
@@ -766,7 +766,7 @@ export default function ViajesPage() {
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div>
                                         <label className="text-gray-400 text-xs mb-1 block">Nombre de quien recibe</label>
-                                        <input value={receptorNombre} onChange={e => setReceptorNombre(e.target.value)} className={inputCls} placeholder="Juan Pérez" />
+                                        <input value={receptorNombre} onChange={e => setReceptorNombre(e.target.value)} className={inputCls} placeholder="Juan P茅rez" />
                                     </div>
                                     <div>
                                         <label className="text-gray-400 text-xs mb-1 block">Puesto</label>
@@ -774,7 +774,7 @@ export default function ViajesPage() {
                                     </div>
                                     <div className="col-span-2">
                                         <label className="text-gray-400 text-xs mb-1 block">Comentarios</label>
-                                        <input value={comentarioEv} onChange={e => setComentarioEv(e.target.value)} className={inputCls} placeholder="Mercancía entregada en buen estado..." />
+                                        <input value={comentarioEv} onChange={e => setComentarioEv(e.target.value)} className={inputCls} placeholder="Mercanc铆a entregada en buen estado..." />
                                     </div>
                                 </div>
                                 <div>
@@ -792,14 +792,14 @@ export default function ViajesPage() {
                                 <div>
                                     <div className="flex justify-between items-center mb-2">
                                         <label className="text-gray-400 text-xs flex items-center gap-2"><FaSignature /> Firma digital</label>
-                                        <button onClick={limpiarFirma} className="text-xs text-gray-500 hover:text-white">→Limpiar</button>
+                                        <button onClick={limpiarFirma} className="text-xs text-gray-500 hover:text-white">鈫扡impiar</button>
                                     </div>
                                     <div className="relative w-full h-36 bg-white/5 border border-cyan-400/20 rounded-xl overflow-hidden touch-none">
                                         <canvas ref={canvasRef} className="w-full h-full cursor-crosshair"
                                             onMouseDown={startDraw} onMouseMove={draw} onMouseUp={stopDraw} onMouseLeave={stopDraw}
                                             onTouchStart={startDraw} onTouchMove={draw} onTouchEnd={stopDraw} />
                                         {!firmaDataUrl && (
-                                            <p className="absolute inset-0 flex items-center justify-center text-gray-600 text-sm pointer-events-none">Firma aquí</p>
+                                            <p className="absolute inset-0 flex items-center justify-center text-gray-600 text-sm pointer-events-none">Firma aqu铆</p>
                                         )}
                                     </div>
                                 </div>
@@ -831,7 +831,7 @@ export default function ViajesPage() {
                             </div>
                             <div className="flex-1 overflow-y-auto px-8 py-6">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                                    <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest">Asignación</p>
+                                    <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest">Asignaci贸n</p>
                                     <Field label="Cliente" span2>
                                         <select value={form.clienteId} onChange={set("clienteId")} className={selectCls}>
                                             <option value="">Seleccionar cliente...</option>
@@ -843,7 +843,7 @@ export default function ViajesPage() {
                                             <option value="">{form.clienteId ? "Seleccionar ruta..." : "Primero selecciona un cliente"}</option>
                                             {rutasFiltradas.map(r => (
                                                 <option key={r.id} value={r.id}>
-                                                    {r.remitente?.ciudad || "?"} →{r.destinatario?.ciudad || "?"} {r.distanciaKm ? `(${r.distanciaKm} km)` : ""}
+                                                    {r.remitente?.ciudad || "?"} 鈫抺r.destinatario?.ciudad || "?"} {r.distanciaKm ? `(${r.distanciaKm} km)` : ""}
                                                 </option>
                                             ))}
                                         </select>
@@ -857,9 +857,9 @@ export default function ViajesPage() {
                                             {drivers.map(d => <option key={d.id} value={d.id}>{d.name} {d.apellidos || ""}</option>)}
                                         </select>
                                     </Field>
-                                    <Field label="Vehículo">
+                                    <Field label="Veh铆culo">
                                         <select value={form.vehicleId} onChange={set("vehicleId")} className={selectCls}>
-                                            <option value="">Seleccionar vehículo...</option>
+                                            <option value="">Seleccionar veh铆culo...</option>
                                             {vehicles.map(v => <option key={v.id} value={v.id}>{v.codigo ? `[${v.codigo}] ` : ""}{v.plate} -{v.brand} {v.model}</option>)}
                                         </select>
                                     </Field>
@@ -908,14 +908,14 @@ export default function ViajesPage() {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="text-gray-400 text-sm mb-2 block">Categoría</label>
+                                    <label className="text-gray-400 text-sm mb-2 block">Categor铆a</label>
                                     <select value={gastoForm.categoria} onChange={setG("categoria")} className={selectCls}>
                                         <option>Anticipo</option>
                                         <option>Gasto</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="text-gray-400 text-sm mb-2 block">Descripción</label>
+                                    <label className="text-gray-400 text-sm mb-2 block">Descripci贸n</label>
                                     <input value={gastoForm.descripcion} onChange={setG("descripcion")} placeholder="Detalle..." className={inputCls} />
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -943,7 +943,7 @@ export default function ViajesPage() {
                                 {/* Ticket comprobatorio: con foto, la empresa absorbe el gasto y no se le cobra al operador */}
                                 <div className="rounded-2xl border border-cyan-400/10 bg-white/5 p-4">
                                     <label className="text-gray-400 text-sm mb-2 block flex items-center gap-2">
-                                        🧾 Ticket / comprobante
+                                        馃Ь Ticket / comprobante
                                     </label>
                                     {gastoActivo?.comprobado ? (
                                         <div className="flex items-center justify-between">

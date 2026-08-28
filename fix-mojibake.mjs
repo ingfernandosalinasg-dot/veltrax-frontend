@@ -26,14 +26,21 @@ const SKIP_FILES = new Set(["Sidebar.jsx"]); // aqui no habia corrupcion real, y
 const TARGETS = [
   path.join(process.cwd(), "src", "pages", "RutasPage.jsx"),
   path.join(process.cwd(), "src", "pages", "LiquidacionesPage.jsx"),
+  path.join(process.cwd(), "src", "pages", "ViajesPage.jsx"),
 ].filter(p => !SKIP_FILES.has(path.basename(p)));
 
 const BACKUP_DIR = path.join(process.cwd(), "src", "_backup_mojibake");
 if (APPLY && !fs.existsSync(BACKUP_DIR)) fs.mkdirSync(BACKUP_DIR, { recursive: true });
 
+// Detecta si la linea REALMENTE tiene corrupcion (caracteres chinos/CJK, que nunca
+// deberian aparecer en texto en español). Los acentos normales (á, é, ¿, ñ, etc.)
+// viven en un rango Unicode totalmente distinto y jamas se tocan.
+function tieneCorrupcionReal(line) {
+  return /[\u2E80-\u9FFF\uFF00-\uFFEF]/.test(line);
+}
+
 function repairLine(line, times = 1) {
-  // Solo intenta reparar si la linea tiene caracteres fuera de ASCII normal
-  if (!/[^\x00-\x7F]/.test(line)) return { changed: false, line };
+  if (!tieneCorrupcionReal(line)) return { changed: false, line }; // no toca lineas ya limpias
 
   let current = line;
   let anyChange = false;
@@ -50,6 +57,8 @@ function repairLine(line, times = 1) {
   } catch (e) {
     // si falla la conversion, dejamos la linea intacta
   }
+  // Verificacion final: si el resultado TODAVIA tiene corrupcion CJK, algo salio mal -- no aplicar
+  if (anyChange && tieneCorrupcionReal(current)) return { changed: false, line };
   return { changed: anyChange, line: current };
 }
 

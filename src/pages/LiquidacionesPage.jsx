@@ -31,20 +31,20 @@ function Field({ label, children, span2 = false }) {
     );
 }
 
-// 鈹€鈹€ Datos de la secci贸n "showcase" del m贸dulo 鈹€鈹€
+// ── Datos de la sección "showcase" del módulo ──
 const featuresModulo = [
-    "C谩lculo autom谩tico",
+    "Cálculo automático",
     "Percepciones y deducciones configurables",
-    "Descuento de pr茅stamos",
-    "Liquidaci贸n por per铆odo",
-    "Exportaci贸n a PDF y Excel",
+    "Descuento de préstamos",
+    "Liquidación por período",
+    "Exportación a PDF y Excel",
     "Umbrales de rendimiento",
 ];
 
 const pantallasModulo = [
     "Generador de liquidaciones",
     "Detalle con desglose completo",
-    "Exportaci贸n y vista de impresi贸n",
+    "Exportación y vista de impresión",
 ];
 
 function ModuloShowcase() {
@@ -62,7 +62,7 @@ function ModuloShowcase() {
                 <h2 className="text-2xl font-black text-cyan-300">Liquidaciones</h2>
             </div>
             <p className="text-gray-400 max-w-2xl mb-8">
-                Calcula percepciones, deducciones, anticipos y pr茅stamos al cierre de cada per铆odo autom谩ticamente.
+                Calcula percepciones, deducciones, anticipos y préstamos al cierre de cada período automáticamente.
             </p>
 
             <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-4">Qu閼?puedes hacer</p>
@@ -75,7 +75,7 @@ function ModuloShowcase() {
                 ))}
             </div>
 
-            <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">Pantallas del m贸dulo</p>
+            <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">Pantallas del módulo</p>
             <div className="space-y-3">
                 {pantallasModulo.map((p) => (
                     <div
@@ -90,7 +90,7 @@ function ModuloShowcase() {
         </motion.div>
     );
 }
-// 鈹€鈹€ Fin secci贸n showcase 鈹€鈹€
+// ── Fin sección showcase ──
 
 function generarPDFLiquidacion(liq, gastos) {
     const seDeduceGasto = (g) => g.categoria === "Anticipo" || !g.comprobado;
@@ -127,7 +127,7 @@ function generarPDFLiquidacion(liq, gastos) {
     const esPeriodo = liq.modo === "PERIODO";
 
     const html = `<html><head><meta charset="UTF-8"/>
-    <title>Liquidaci贸n #${liq.id}</title>
+    <title>Liquidación #${liq.id}</title>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body { font-family:Arial,sans-serif; padding:32px; color:#111; font-size:13px; }
@@ -155,18 +155,18 @@ function generarPDFLiquidacion(liq, gastos) {
     <div class="header">
         <div class="logo">VELTRAX</div>
         <div>
-            <div style="font-size:16px;font-weight:bold">Liquidaci贸n #${liq.id}</div>
+            <div style="font-size:16px;font-weight:bold">Liquidación #${liq.id}</div>
             <div style="color:#888">Fecha: ${liq.fechaLiquidacion || "-"}</div>
             <div style="margin-top:6px"><span class="badge">${liq.status}</span></div>
         </div>
     </div>
-    <div class="titulo">Liquidaci贸n de Operador${esPeriodo ? " -Por Per铆odo" : ""}</div>
+    <div class="titulo">Liquidación de Operador${esPeriodo ? " -Por Período" : ""}</div>
     <div class="grid2">
         <div class="sec"><h3>Operador</h3>
             <div class="campo"><label>Nombre</label><span>${liq.driverNombre || "-"}</span></div>
         </div>
         ${esPeriodo ? `
-        <div class="sec"><h3>Per铆odo</h3>
+        <div class="sec"><h3>Período</h3>
             <div class="campo"><label>Del</label><span>${liq.periodoInicio || "-"}</span></div>
             <div class="campo"><label>Al</label><span>${liq.periodoFin || "-"}</span></div>
         </div>` : `
@@ -184,22 +184,22 @@ function generarPDFLiquidacion(liq, gastos) {
     </div>
     ${gastosCobrados.length > 0 ? `
     <div class="sec" style="margin-bottom:18px"><h3>Deducciones (Anticipos y Gastos SIN Comprobar)</h3>
-        <table><thead><tr><th>#</th><th>Categor铆a</th><th>Tipo</th><th>Descripci贸n</th><th>Fecha</th><th>Monto</th><th>Status</th></tr></thead>
+        <table><thead><tr><th>#</th><th>Categoría</th><th>Tipo</th><th>Descripción</th><th>Fecha</th><th>Monto</th><th>Status</th></tr></thead>
         <tbody>${filaGastos}</tbody></table>
     </div>` : ""}
     ${gastosAbsorbidos.length > 0 ? `
     <div class="sec" style="margin-bottom:18px; border-color:#16a34a"><h3 style="color:#16a34a">棣冃?Gastos Comprobados (Absorbidos por la Empresa -NO se descuentan)</h3>
-        <table><thead><tr><th>#</th><th>Tipo</th><th>Descripci贸n</th><th>Fecha</th><th>Monto</th></tr></thead>
+        <table><thead><tr><th>#</th><th>Tipo</th><th>Descripción</th><th>Fecha</th><th>Monto</th></tr></thead>
         <tbody>${filaAbsorbidos}</tbody></table>
     </div>` : ""}
     ${liq.montoDescuentoPrestamo ? `
-    <div class="sec" style="margin-bottom:18px"><h3>Descuento de Pr茅stamo</h3>
-        <div class="campo"><label>Folio pr茅stamo</label><span>${liq.prestamoFolio || "-"}</span></div>
+    <div class="sec" style="margin-bottom:18px"><h3>Descuento de Préstamo</h3>
+        <div class="campo"><label>Folio préstamo</label><span>${liq.prestamoFolio || "-"}</span></div>
         <div class="campo"><label>Monto descontado</label><span style="color:red">-$${liq.montoDescuentoPrestamo.toLocaleString()}</span></div>
     </div>` : ""}
     ${(liq.bonoCarga || liq.bonoDescarga || liq.bonoManiobras || liq.bonoProductividad || liq.bonoUmbrales) ? `
     <div class="sec" style="margin-bottom:18px"><h3>Bonos y Extras</h3>
-        ${liq.bonoCarga        ? `<div class="campo"><label>Bono cami贸n cargado</label><span style="color:green">+$${liq.bonoCarga.toLocaleString()}</span></div>` : ""}
+        ${liq.bonoCarga        ? `<div class="campo"><label>Bono camión cargado</label><span style="color:green">+$${liq.bonoCarga.toLocaleString()}</span></div>` : ""}
         ${liq.bonoDescarga     ? `<div class="campo"><label>Bono por descarga</label><span style="color:green">+$${liq.bonoDescarga.toLocaleString()}</span></div>` : ""}
         ${liq.bonoManiobras    ? `<div class="campo"><label>Bono maniobras</label><span style="color:green">+$${liq.bonoManiobras.toLocaleString()}</span></div>` : ""}
         ${liq.bonoProductividad? `<div class="campo"><label>Bono productividad</label><span style="color:green">+$${liq.bonoProductividad.toLocaleString()}</span></div>` : ""}
@@ -208,7 +208,7 @@ function generarPDFLiquidacion(liq, gastos) {
     <div class="total-box">
         <div class="total-row"><span>Ingreso base (${liq.esquemaPago})</span><span>$${(liq.totalIngreso || 0).toLocaleString()}</span></div>
         <div class="total-row"><span>Bonos y extras</span><span style="color:green">+$${(liq.totalExtras || 0).toLocaleString()}</span></div>
-        <div class="total-row"><span>Deducciones (anticipos + gastos + pr茅stamo)</span><span style="color:red">-$${(liq.totalDeducciones || 0).toLocaleString()}</span></div>
+        <div class="total-row"><span>Deducciones (anticipos + gastos + préstamo)</span><span style="color:red">-$${(liq.totalDeducciones || 0).toLocaleString()}</span></div>
         <div class="total-final"><span>NETO A PAGAR AL OPERADOR</span><span>$${(liq.netoAPagar || 0).toLocaleString()}</span></div>
     </div>
     ${liq.notas ? `<div class="sec" style="margin-top:18px"><h3>Notas</h3><p>${liq.notas}</p></div>` : ""}
@@ -220,7 +220,7 @@ function generarPDFLiquidacion(liq, gastos) {
     </div>` : ""}
     <div class="footer">
         <div class="firma"><div class="linea"></div><p>Firma Operador</p><p style="font-weight:bold">${liq.driverNombre || ""}</p></div>
-        <div class="firma"><div class="linea"></div><p>Firma Administraci贸n</p><p style="font-weight:bold">Veltrax Logistics</p></div>
+        <div class="firma"><div class="linea"></div><p>Firma Administración</p><p style="font-weight:bold">Veltrax Logistics</p></div>
     </div>
     </body></html>`;
 
@@ -236,16 +236,16 @@ export default function LiquidacionesPage() {
     const [liquidaciones, setLiquidaciones] = useState([]);
     const [viajes,        setViajes]        = useState([]);
     const [drivers,       setDrivers]       = useState([]);
-    const [prestamos,     setPrestamos]     = useState([]); // pr茅stamos activos del driver seleccionado
+    const [prestamos,     setPrestamos]     = useState([]); // préstamos activos del driver seleccionado
     const [showModal,     setShowModal]     = useState(false);
     const [editando,      setEditando]      = useState(null);
     const [form,          setForm]          = useState(emptyForm);
     const [loading,       setLoading]       = useState(false);
     const [gastosPorViaje, setGastosPorViaje] = useState([]);
-    const [periodoPreview, setPeriodoPreview] = useState(null); // m茅tricas + bonos de umbral para modo per铆odo
+    const [periodoPreview, setPeriodoPreview] = useState(null); // métricas + bonos de umbral para modo período
     const [formError,     setFormError]      = useState("");
 
-    // 鈹€鈹€ Pago al operador 鈹€鈹€
+    // ── Pago al operador ──
     const [showPagoModal,     setShowPagoModal]     = useState(false);
     const [liquidacionActiva, setLiquidacionActiva] = useState(null);
     const [formPago,          setFormPago]          = useState({ fechaPago: "", formaPago: "Transferencia", referenciaPago: "" });
@@ -294,8 +294,8 @@ export default function LiquidacionesPage() {
 
     useEffect(() => { fetchAll(); }, []);
 
-    // 鈹€鈹€ Llegada autom谩tica desde el panel de Viajes (?orderId=&driverId=) 鈹€鈹€
-    // Cuando el usuario da clic en "Generar Liquidaci贸n" dentro del detalle de
+    // ── Llegada automática desde el panel de Viajes (?orderId=&driverId=) ──
+    // Cuando el usuario da clic en "Generar Liquidación" dentro del detalle de
     // un viaje, aterriza aqu闁?con el viaje y el operador ya preseleccionados.
     // Esto dispara fetchGastos autom鐠嬶箹icamente v闁惧摳 el useEffect de abajo, as闁?    // que los anticipos/gastos del viaje se desglosan solos en la vista previa.
     useEffect(() => {
@@ -358,14 +358,14 @@ export default function LiquidacionesPage() {
         if (form.modo === "VIAJE") {
             if (!form.orderId) return "Selecciona un viaje.";
         } else {
-            if (!form.periodoInicio || !form.periodoFin) return "Selecciona la fecha de inicio y fin del per铆odo.";
+            if (!form.periodoInicio || !form.periodoFin) return "Selecciona la fecha de inicio y fin del período.";
             if (form.periodoInicio > form.periodoFin) return "La fecha de inicio no puede ser posterior a la fecha de fin.";
         }
 
         switch (form.esquemaPago) {
             case "POR_KM":
-                if (!form.kmRecorridos || Number(form.kmRecorridos) <= 0) return "Ingresa los kil贸metros recorridos (mayor a 0).";
-                if (!form.tarifaKm || Number(form.tarifaKm) <= 0) return "Ingresa la tarifa por kil贸metro (mayor a 0).";
+                if (!form.kmRecorridos || Number(form.kmRecorridos) <= 0) return "Ingresa los kilómetros recorridos (mayor a 0).";
+                if (!form.tarifaKm || Number(form.tarifaKm) <= 0) return "Ingresa la tarifa por kilómetro (mayor a 0).";
                 break;
             case "POR_MILLA":
                 if (!form.millasRecorridas || Number(form.millasRecorridas) <= 0) return "Ingresa las millas recorridas (mayor a 0).";
@@ -383,7 +383,7 @@ export default function LiquidacionesPage() {
         }
 
         if (form.prestamoId && (!form.montoDescuentoPrestamo || Number(form.montoDescuentoPrestamo) <= 0)) {
-            return "Seleccionaste un pr茅stamo: ingresa el monto a descontar (mayor a 0).";
+            return "Seleccionaste un préstamo: ingresa el monto a descontar (mayor a 0).";
         }
 
         return null; // sin errores
@@ -426,7 +426,7 @@ export default function LiquidacionesPage() {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm("驴Eliminar esta liquidaci贸n?")) return;
+        if (!confirm("¿Eliminar esta liquidación?")) return;
         try { await fetch(`${API}/liquidaciones/${id}`, { method: "DELETE", headers }); fetchAll(); }
         catch (e) { console.error(e); }
     };
@@ -528,7 +528,7 @@ export default function LiquidacionesPage() {
                     </div>
                     <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={openNew}
                         className="flex items-center gap-3 px-8 py-4 rounded-2xl bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 font-bold text-lg hover:bg-cyan-500/20 transition-all">
-                        <FaPlus /> Nueva Liquidaci贸n
+                        <FaPlus /> Nueva Liquidación
                     </motion.button>
                 </motion.div>
 
@@ -557,7 +557,7 @@ export default function LiquidacionesPage() {
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="text-gray-400 border-b border-cyan-400/10 text-sm">
-                                    {["#", "Operador", "Modo", "Viaje/Per铆odo", "Cliente", "Esquema", "Ingreso", "Deducciones", "Neto a Pagar", "Status", "Acciones"]
+                                    {["#", "Operador", "Modo", "Viaje/Período", "Cliente", "Esquema", "Ingreso", "Deducciones", "Neto a Pagar", "Status", "Acciones"]
                                         .map(h => <th key={h} className="pb-4 pr-4">{h}</th>)}
                                 </tr>
                             </thead>
@@ -572,7 +572,7 @@ export default function LiquidacionesPage() {
                                         <td className="py-4 pr-4 font-bold">{l.driverNombre || "-"}</td>
                                         <td className="py-4 pr-4">
                                             <span className={`px-2 py-1 rounded-lg text-xs font-bold ${l.modo === "PERIODO" ? "bg-purple-500/10 text-purple-300" : "bg-cyan-500/10 text-cyan-300"}`}>
-                                                {l.modo === "PERIODO" ? "Per铆odo" : "Viaje"}
+                                                {l.modo === "PERIODO" ? "Período" : "Viaje"}
                                             </span>
                                         </td>
                                         <td className="py-4 pr-4 text-gray-400 text-sm">
@@ -620,7 +620,7 @@ export default function LiquidacionesPage() {
                         <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
                             className="bg-[#020617] border border-cyan-400/20 rounded-3xl w-full max-w-3xl max-h-[92vh] flex flex-col">
                             <div className="flex justify-between items-center p-8 pb-0 flex-shrink-0">
-                                <h2 className="text-3xl font-black text-cyan-300">{editando ? "Editar Liquidaci贸n" : "Nueva Liquidaci贸n"}</h2>
+                                <h2 className="text-3xl font-black text-cyan-300">{editando ? "Editar Liquidación" : "Nueva Liquidación"}</h2>
                                 <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-white text-2xl"><FaTimes /></button>
                             </div>
 
@@ -643,12 +643,12 @@ export default function LiquidacionesPage() {
                                                 form.modo === "PERIODO"
                                                     ? "bg-purple-500/20 border-purple-400/40 text-purple-300"
                                                     : "bg-white/5 border-cyan-400/10 text-gray-400 hover:bg-white/10"}`}>
-                                            <FaCalendarAlt /> Por Per铆odo
+                                            <FaCalendarAlt /> Por Período
                                         </button>
                                     </div>
 
                                     <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest">
-                                        {form.modo === "PERIODO" ? "Datos del per铆odo" : "Datos del viaje"}
+                                        {form.modo === "PERIODO" ? "Datos del período" : "Datos del viaje"}
                                     </p>
 
                                     {form.modo === "VIAJE" ? (
@@ -683,7 +683,7 @@ export default function LiquidacionesPage() {
                                     {form.modo === "PERIODO" && periodoPreview && (
                                         <div className="col-span-1 sm:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-xl bg-purple-500/5 border border-purple-400/20">
                                             <div className="text-center">
-                                                <p className="text-gray-400 text-xs">Viajes en per铆odo</p>
+                                                <p className="text-gray-400 text-xs">Viajes en período</p>
                                                 <p className="text-purple-300 font-black text-xl">{periodoPreview.numViajes}</p>
                                             </div>
                                             <div className="text-center">
@@ -711,10 +711,10 @@ export default function LiquidacionesPage() {
                                     <Field label="Tipo de esquema" span2>
                                         <select value={form.esquemaPago} onChange={set("esquemaPago")} className={selectCls}>
                                             {form.modo === "VIAJE" && <option value="VIAJE_FIJO">Viaje fijo (precio acordado)</option>}
-                                            <option value="POR_KM">Por kil贸metro recorrido</option>
+                                            <option value="POR_KM">Por kilómetro recorrido</option>
                                             <option value="POR_MILLA">Por milla recorrida</option>
                                             <option value="PORCENTAJE">Porcentaje del flete</option>
-                                            {form.modo === "PERIODO" && <option value="SUMA_VIAJES">Suma de fletes del per铆odo</option>}
+                                            {form.modo === "PERIODO" && <option value="SUMA_VIAJES">Suma de fletes del período</option>}
                                         </select>
                                     </Field>
 
@@ -724,7 +724,7 @@ export default function LiquidacionesPage() {
                                         </Field>
                                     )}
                                     {form.esquemaPago === "POR_KM" && (<>
-                                        <Field label="Kil贸metros recorridos">
+                                        <Field label="Kilómetros recorridos">
                                             <input type="number" value={form.kmRecorridos} onChange={set("kmRecorridos")} placeholder="850" className={inputCls} />
                                         </Field>
                                         <Field label="Tarifa por km ($)">
@@ -743,12 +743,12 @@ export default function LiquidacionesPage() {
                                         <Field label="Porcentaje del flete (%)" span2>
                                             <input type="number" value={form.porcentajeFlete} onChange={set("porcentajeFlete")} placeholder="12" className={inputCls} />
                                             {form.modo === "VIAJE" && viajeSeleccionado?.cost && <p className="text-gray-500 text-xs mt-1">Flete: ${viajeSeleccionado.cost.toLocaleString()}</p>}
-                                            {form.modo === "PERIODO" && periodoPreview && <p className="text-gray-500 text-xs mt-1">Flete total del per铆odo: ${(periodoPreview.ingresoTotal || 0).toLocaleString()}</p>}
+                                            {form.modo === "PERIODO" && periodoPreview && <p className="text-gray-500 text-xs mt-1">Flete total del período: ${(periodoPreview.ingresoTotal || 0).toLocaleString()}</p>}
                                         </Field>
                                     )}
 
                                     <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-2">Bonos y extras manuales</p>
-                                    <Field label="Bono cami贸n cargado ($)">
+                                    <Field label="Bono camión cargado ($)">
                                         <input type="number" value={form.bonoCarga} onChange={set("bonoCarga")} placeholder="0.00" className={inputCls} />
                                     </Field>
                                     <Field label="Bono por descarga ($)">
@@ -762,11 +762,11 @@ export default function LiquidacionesPage() {
                                     </Field>
 
                                     <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-2 flex items-center gap-2">
-                                        <FaHandHoldingUsd /> Descuento de pr茅stamo
+                                        <FaHandHoldingUsd /> Descuento de préstamo
                                     </p>
-                                    <Field label="Pr茅stamo activo del operador" span2>
+                                    <Field label="Préstamo activo del operador" span2>
                                         <select value={form.prestamoId} onChange={set("prestamoId")} className={selectCls} disabled={!form.driverId}>
-                                            <option value="">Sin pr茅stamo / no aplicar</option>
+                                            <option value="">Sin préstamo / no aplicar</option>
                                             {prestamos.map(p => (
                                                 <option key={p.id} value={p.id}>
                                                     {p.folio} -Saldo: ${(p.saldoPendiente || 0).toLocaleString()} ({p.motivo || "sin motivo"})
@@ -774,19 +774,19 @@ export default function LiquidacionesPage() {
                                             ))}
                                         </select>
                                         {form.driverId && prestamos.length === 0 && (
-                                            <p className="text-gray-500 text-xs mt-1">Este operador no tiene pr茅stamos activos.</p>
+                                            <p className="text-gray-500 text-xs mt-1">Este operador no tiene préstamos activos.</p>
                                         )}
                                     </Field>
                                     {form.prestamoId && (
-                                        <Field label="Monto a descontar en esta liquidaci贸n ($)" span2>
+                                        <Field label="Monto a descontar en esta liquidación ($)" span2>
                                             <input type="number" value={form.montoDescuentoPrestamo} onChange={set("montoDescuentoPrestamo")} placeholder="0.00" className={inputCls} />
                                             {prestamoSeleccionado && (
-                                                <p className="text-gray-500 text-xs mt-1">Saldo pendiente del pr茅stamo: ${(prestamoSeleccionado.saldoPendiente || 0).toLocaleString()}</p>
+                                                <p className="text-gray-500 text-xs mt-1">Saldo pendiente del préstamo: ${(prestamoSeleccionado.saldoPendiente || 0).toLocaleString()}</p>
                                             )}
                                         </Field>
                                     )}
 
-                                    <Field label="Fecha de liquidaci贸n">
+                                    <Field label="Fecha de liquidación">
                                         <input type="date" value={form.fechaLiquidacion} onChange={set("fechaLiquidacion")} className={inputCls} />
                                     </Field>
                                     <Field label="Status">
@@ -801,9 +801,9 @@ export default function LiquidacionesPage() {
                                     </Field>
                                 </div>
 
-                                {/* Preview de c谩lculo */}
+                                {/* Preview de cálculo */}
                                 <div className="mt-6 p-5 rounded-2xl bg-cyan-500/5 border border-cyan-400/20">
-                                    <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-4">Vista previa de liquidaci贸n</p>
+                                    <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-4">Vista previa de liquidación</p>
                                     <div className="space-y-2">
                                         <div className="flex justify-between text-sm">
                                             <span className="text-gray-400">Ingreso base ({form.esquemaPago})</span>
@@ -816,7 +816,7 @@ export default function LiquidacionesPage() {
                                         <div className="flex justify-between text-sm">
                                             <span className="text-gray-400">
                                                 Deducciones {form.modo === "VIAJE" ? `(${gastosPorViaje.length} gastos` : "(gastos"}
-                                                {previewDescuentoPrestamo > 0 ? " + pr茅stamo)" : ")"}
+                                                {previewDescuentoPrestamo > 0 ? " + préstamo)" : ")"}
                                             </span>
                                             <span className="text-red-300">-${previewDeducciones.toLocaleString()}</span>
                                         </div>
@@ -868,7 +868,7 @@ export default function LiquidacionesPage() {
                                 <button onClick={() => setShowModal(false)} className="flex-1 py-4 rounded-2xl border border-white/10 text-gray-400 hover:bg-white/5 transition-all font-bold">Cancelar</button>
                                 <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleSubmit} disabled={loading}
                                     className="flex-1 py-4 rounded-2xl bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 font-bold hover:bg-cyan-500/30 transition-all flex items-center justify-center gap-3">
-                                    <FaCheck /> {loading ? "Guardando..." : editando ? "Actualizar" : "Guardar Liquidaci贸n"}
+                                    <FaCheck /> {loading ? "Guardando..." : editando ? "Actualizar" : "Guardar Liquidación"}
                                 </motion.button>
                             </div>
                         </motion.div>
@@ -905,7 +905,7 @@ export default function LiquidacionesPage() {
                                         <option>Transferencia</option>
                                         <option>Efectivo</option>
                                         <option>Cheque</option>
-                                        <option>Dep贸sito</option>
+                                        <option>Depósito</option>
                                     </select>
                                 </Field>
                                 <Field label="Referencia / No. de transferencia">
