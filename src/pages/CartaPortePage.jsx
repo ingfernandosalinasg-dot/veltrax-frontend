@@ -5,21 +5,17 @@ import {
     FaFileAlt, FaPlus, FaTrash, FaEdit, FaFilePdf, FaTimes, FaCheck,
     FaExclamationTriangle, FaTruck, FaMapMarkerAlt, FaUser, FaBox, FaSearch
 } from "react-icons/fa";
-
 const API = import.meta.env.VITE_API_URL || "https://veltrax-api-production.up.railway.app";
-
 const estadoColor = {
     "Activa":      "text-cyan-300 bg-cyan-500/10 border-cyan-400/30",
     "En Tránsito": "text-blue-300 bg-blue-500/10 border-blue-400/30",
     "Entregada":   "text-green-300 bg-green-500/10 border-green-400/30",
     "Cancelada":   "text-red-300 bg-red-500/10 border-red-400/30",
 };
-
 const TIPOS_CARTA  = ["CMR - Carretera Internacional","CIM - Ferroviario","AWB - Aéreo","Bill of Lading - Marítimo","Nacional"];
 const FORMAS_PAGO  = ["Contado","Crédito 30 días","Crédito 60 días","Contra entrega"];
 const MONEDAS      = ["MXN","USD","EUR"];
 const ESTADOS_MERC = ["Bueno","Regular","Con daños visibles"];
-
 const TABS = [
     { id:"encabezado",    label:"Encabezado",    icon:<FaFileAlt /> },
     { id:"remitente",     label:"Remitente",     icon:<FaUser /> },
@@ -30,19 +26,16 @@ const TABS = [
     { id:"condiciones",   label:"Condiciones",   icon:<FaFileAlt /> },
     { id:"obs",           label:"Observaciones", icon:<FaFileAlt /> },
 ];
-
 const emptyMerc = {
     descripcion:"", claveProdServ:"", claveProdServDesc:"",
     cantidad:"", claveUnidad:"", claveUnidadDesc:"", peso:"", volumen:"",
     valor:"", marcas:"", claveEmbalaje:"", claveEmbalajeDesc:"",
     estadoMercancia:"Bueno", esPeligrosa:false, claseONU:"",
 };
-
 const TIPOS_COMPROBANTE = [
     { value: "Ingreso",  label: "CFDI de Ingreso con Carta Porte",  desc: "Cobras por el servicio de transporte a un cliente (autotransporte de carga)." },
     { value: "Traslado", label: "CFDI de Traslado con Carta Porte", desc: "Mueves mercancía propia con recursos internos, sin cobrar servicio de transporte." },
 ];
-
 const emptyForm = {
     folio:"", tipoCarta:"CMR - Carretera Internacional", tipoComprobante:"Ingreso", fechaEmision:"", lugarEmision:"", moneda:"MXN",
     remitenteId:"",
@@ -56,6 +49,9 @@ const emptyForm = {
     tipoPermiso:"", tipoPermisoDesc:"",
     figuraTransporte:"", figuraTransporteDesc:"",
     vehiculoTipo:"", vehiculoPlacas:"", conductorNombre:"", conductorLicencia:"",
+    // Nuevo: datos jalados de las pestañas ampliadas de Vehículos y Operadores
+    remolquePlaca1:"", remolquePlaca2:"", pesoTaraTon:"", numeroEjes:"",
+    conductorRFC:"", conductorLicenciaFederal:"", conductorDomicilio:"",
     lugarCarga:"", direccionCarga:"", fechaCarga:"", horaCarga:"",
     lugarDescarga:"", direccionDescarga:"", fechaDescarga:"", horaDescarga:"",
     rutaDescripcion:"",
@@ -64,10 +60,8 @@ const emptyForm = {
     observaciones:"", reservas:"",
     status:"Activa",
 };
-
 const inputCls  = "w-full bg-white/5 border border-cyan-400/10 rounded-xl px-5 py-3 text-white outline-none focus:border-cyan-400/40 transition-all";
 const selectCls = "w-full bg-[#020617] border border-cyan-400/10 rounded-xl px-5 py-3 text-white outline-none focus:border-cyan-400/40 transition-all";
-
 function Field({ label, children, span2 = false }) {
     return (
         <div className={span2 ? "col-span-2" : ""}>
@@ -76,7 +70,6 @@ function Field({ label, children, span2 = false }) {
         </div>
     );
 }
-
 // Buscador de catálogos SAT en tiempo real
 function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2 = false }) {
     const [query,     setQuery]     = useState(value ? `${value} - ${valueDesc || ""}` : "");
@@ -86,7 +79,6 @@ function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2
     const debounceRef = useRef(null);
     const token = localStorage.getItem("token");
     const headers = { Authorization: `Bearer ${token}` };
-
     const buscar = useCallback(async (q) => {
         if (!q || q.length < 2) { setResults([]); return; }
         setLoading(true);
@@ -97,7 +89,6 @@ function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2
         } catch (e) { setResults([]); }
         setLoading(false);
     }, [tipo]);
-
     const handleInput = (e) => {
         const q = e.target.value;
         setQuery(q);
@@ -105,21 +96,18 @@ function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2
         clearTimeout(debounceRef.current);
         debounceRef.current = setTimeout(() => buscar(q), 300);
     };
-
     const seleccionar = (item) => {
         setQuery(`${item.clave} - ${item.descripcion}`);
         setOpen(false);
         setResults([]);
         onChange(item.clave, item.descripcion);
     };
-
     const limpiar = () => {
         setQuery("");
         setResults([]);
         setOpen(false);
         onChange("", "");
     };
-
     return (
         <div className={span2 ? "col-span-2" : ""}>
             <label className="text-gray-400 text-sm mb-2 block">{label}</label>
@@ -139,7 +127,6 @@ function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2
                         </button>
                     )}
                 </div>
-
                 {value && (
                     <div className="mt-1 px-3 py-1 rounded-lg bg-cyan-500/10 border border-cyan-400/20 text-xs text-cyan-300 flex items-center gap-2">
                         <span className="font-mono font-bold">{value}</span>
@@ -147,7 +134,6 @@ function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2
                         <span className="truncate">{valueDesc}</span>
                     </div>
                 )}
-
                 {open && (query.length >= 2) && (
                     <div className="absolute z-50 w-full mt-1 bg-[#080d1a] border border-cyan-400/20 rounded-2xl overflow-hidden shadow-2xl max-h-56 overflow-y-auto">
                         {loading && <p className="text-gray-500 text-sm text-center py-4">Buscando...</p>}
@@ -167,7 +153,6 @@ function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2
         </div>
     );
 }
-
 // Selector de catálogo de remitentes/destinatarios (sin cambios)
 function CatalogPicker({ label, placeholder, items, selectedId, onSelect, onClear }) {
     const [open,  setOpen]  = useState(false);
@@ -179,7 +164,6 @@ function CatalogPicker({ label, placeholder, items, selectedId, onSelect, onClea
         i.rfc?.toLowerCase().includes(query.toLowerCase()) ||
         i.ciudad?.toLowerCase().includes(query.toLowerCase())
     );
-
     return (
         <div className="col-span-2 relative">
             <label className="text-gray-400 text-sm mb-2 block">{label}</label>
@@ -228,7 +212,6 @@ function CatalogPicker({ label, placeholder, items, selectedId, onSelect, onClea
         </div>
     );
 }
-
 function generarPDF(carta, mercancias = []) {
     const filas = mercancias.map((m, i) => `
         <tr>
@@ -241,7 +224,6 @@ function generarPDF(carta, mercancias = []) {
             <td>${m.marcas||"-"}</td><td>${m.estadoMercancia}</td>
             <td>${m.esPeligrosa ? "⚠️ "+m.claseONU : "No"}</td>
         </tr>`).join("");
-
     const html = `<html><head><meta charset="UTF-8"/><title>Carta Porte ${carta.folio}</title>
     <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;padding:32px;color:#111;font-size:13px}
     .header{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #0891b2;padding-bottom:18px;margin-bottom:24px}
@@ -281,8 +263,13 @@ function generarPDF(carta, mercancias = []) {
         <div class="sec"><h3>Transportista / Conductor</h3>
             <div class="campo"><label>Empresa</label><span>${carta.transportistaNombre||"-"}</span></div>
             <div class="campo"><label>Conductor</label><span>${carta.conductorNombre||"-"}</span></div>
+            <div class="campo"><label>RFC Conductor</label><span>${carta.conductorRFC||"-"}</span></div>
             <div class="campo"><label>Licencia</label><span>${carta.conductorLicencia||"-"}</span></div>
+            ${carta.conductorLicenciaFederal ? `<div class="campo"><label>Licencia Federal SCT</label><span>${carta.conductorLicenciaFederal}</span></div>` : ""}
             <div class="campo"><label>Vehículo / Placas</label><span>${[carta.vehiculoTipo,carta.vehiculoPlacas].filter(Boolean).join(" - ")}</span></div>
+            ${(carta.remolquePlaca1 || carta.remolquePlaca2) ? `<div class="campo"><label>Placas Remolque</label><span>${[carta.remolquePlaca1,carta.remolquePlaca2].filter(Boolean).join(" / ")}</span></div>` : ""}
+            ${carta.pesoTaraTon ? `<div class="campo"><label>Peso Tara</label><span>${carta.pesoTaraTon} Ton</span></div>` : ""}
+            ${carta.numeroEjes ? `<div class="campo"><label>Número de Ejes</label><span>${carta.numeroEjes}</span></div>` : ""}
             ${carta.configAutotransporte ? `<div class="campo"><label>Config. Autotransporte (SAT)</label><span style="font-family:monospace;color:#0891b2">${carta.configAutotransporte}</span> ${carta.configAutotransporteDesc||""}</div>` : ""}
             ${carta.tipoPermiso ? `<div class="campo"><label>Tipo Permiso SCT (SAT)</label><span style="font-family:monospace;color:#0891b2">${carta.tipoPermiso}</span> ${carta.tipoPermisoDesc||""}</div>` : ""}
             ${carta.figuraTransporte ? `<div class="campo"><label>Figura Transporte (SAT)</label><span style="font-family:monospace;color:#0891b2">${carta.figuraTransporte}</span> ${carta.figuraTransporteDesc||""}</div>` : ""}
@@ -312,14 +299,12 @@ function generarPDF(carta, mercancias = []) {
         <div class="firma"><div class="linea"></div><p>Firma Conductor</p><p style="font-weight:bold">${carta.conductorNombre||""}</p></div>
         <div class="firma"><div class="linea"></div><p>Firma Destinatario</p><p style="font-weight:bold">${carta.destinatarioNombre||""}</p></div>
     </div></body></html>`;
-
     const w = window.open("","_blank");
     w.document.write(html);
     w.document.close();
     w.focus();
     setTimeout(() => w.print(), 500);
 }
-
 export default function CartaPortePage() {
     const [cartas,        setCartas]        = useState([]);
     const [remitentes,    setRemitentes]    = useState([]);
@@ -335,10 +320,8 @@ export default function CartaPortePage() {
     const [filtroStatus,  setFiltroStatus]  = useState("");
     const [filtroBusq,    setFiltroBusq]    = useState("");
     const [filtroFecha,   setFiltroFecha]   = useState("");
-
     const token = localStorage.getItem("token");
     const headers = { "Content-Type":"application/json", ...(token && { Authorization:`Bearer ${token}` }) };
-
     const fetchAll = async () => {
         try {
             const [rRes, dRes, cpRes, vRes, oRes] = await Promise.all([
@@ -356,9 +339,7 @@ export default function CartaPortePage() {
             setOperadores(Array.isArray(o) ? o : []);
         } catch(e) { console.error(e); }
     };
-
     useEffect(() => { fetchAll(); }, []);
-
     const cartasFiltradas = cartas.filter(c => {
         const matchStatus = !filtroStatus || c.status === filtroStatus;
         const matchFecha  = !filtroFecha  || c.fechaEmision?.startsWith(filtroFecha);
@@ -369,12 +350,10 @@ export default function CartaPortePage() {
             c.conductorNombre?.toLowerCase().includes(filtroBusq.toLowerCase());
         return matchStatus && matchFecha && matchBusq;
     });
-
     const set = (field) => (e) => setForm(f => ({ ...f, [field]: e.target.value }));
     const setSat = (claveField, descField) => (clave, desc) =>
         setForm(f => ({ ...f, [claveField]: clave, [descField]: desc }));
-
-    // Auto-llena las claves SAT del vehículo seleccionado
+    // Auto-llena las claves SAT del vehículo seleccionado, incluyendo remolques, peso y ejes
     const aplicarVehiculo = (v) => {
         if (!v) {
             setForm(f => ({ ...f,
@@ -382,6 +361,8 @@ export default function CartaPortePage() {
                 configAutotransporte: "", configAutotransporteDesc: "",
                 tipoPermiso: "", tipoPermisoDesc: "",
                 transportistaLicencia: "",
+                remolquePlaca1: "", remolquePlaca2: "",
+                pesoTaraTon: "", numeroEjes: "",
             }));
             return;
         }
@@ -393,26 +374,41 @@ export default function CartaPortePage() {
             tipoPermiso:               v.tipoPermiso || f.tipoPermiso,
             tipoPermisoDesc:           v.tipoPermisoDesc || f.tipoPermisoDesc,
             transportistaLicencia:     v.numPermisoSct || f.transportistaLicencia,
+            remolquePlaca1:            v.numPlacasRemolque1 || "",
+            remolquePlaca2:            v.numPlacasRemolque2 || "",
+            pesoTaraTon:               v.pesoTaraTon ?? "",
+            numeroEjes:                v.numeroEjes ?? "",
         }));
     };
-
-    // Auto-llena los datos del operador seleccionado
+    // Auto-llena los datos del operador seleccionado, incluyendo RFC, licencia federal y domicilio
     const aplicarOperador = (o) => {
         if (!o) {
             setForm(f => ({ ...f,
                 conductorNombre: "", conductorLicencia: "",
                 figuraTransporte: "", figuraTransporteDesc: "",
+                conductorRFC: "", conductorLicenciaFederal: "", conductorDomicilio: "",
             }));
             return;
         }
+        const domicilioPartes = [
+            o.domicilioCalle,
+            [o.domicilioNumExt, o.domicilioNumInt].filter(Boolean).join(" Int. "),
+            o.domicilioColonia,
+            o.domicilioMunicipio,
+            o.domicilioEstado,
+            o.domicilioCp ? `CP ${o.domicilioCp}` : "",
+            o.domicilioPais,
+        ].filter(Boolean);
         setForm(f => ({ ...f,
-            conductorNombre:       `${o.name || ""} ${o.apellidos || ""}`.trim(),
-            conductorLicencia:     o.licenseNumber || "",
-            figuraTransporte:      o.figuraTransporte || f.figuraTransporte,
-            figuraTransporteDesc:  o.figuraTransporteDesc || f.figuraTransporteDesc,
+            conductorNombre:          `${o.name || ""} ${o.apellidos || ""}`.trim(),
+            conductorLicencia:        o.licenseNumber || "",
+            figuraTransporte:         o.figuraTransporte || f.figuraTransporte,
+            figuraTransporteDesc:     o.figuraTransporteDesc || f.figuraTransporteDesc,
+            conductorRFC:             o.rfcOperador || "",
+            conductorLicenciaFederal: o.numLicenciaFederal || "",
+            conductorDomicilio:       domicilioPartes.join(", "),
         }));
     };
-
     const aplicarRemitente = (rem) => {
         if (!rem) {
             setForm(f => ({ ...f, remitenteId:"", remitenteNombre:"", remitenteRFC:"",
@@ -429,7 +425,6 @@ export default function CartaPortePage() {
             direccionCarga: rem.direccion || f.direccionCarga,
         }));
     };
-
     const aplicarDestinatario = (dest) => {
         if (!dest) {
             setForm(f => ({ ...f, destinatarioId:"", destinatarioNombre:"", destinatarioRFC:"",
@@ -446,16 +441,13 @@ export default function CartaPortePage() {
             direccionDescarga: dest.direccion || f.direccionDescarga,
         }));
     };
-
     const setMerc = (idx, field) => (e) => {
         const val = e.target.type === "checkbox" ? e.target.checked : e.target.value;
         setMercancias(ms => ms.map((m, i) => i === idx ? { ...m, [field]: val } : m));
     };
-
     const setMercSat = (idx, claveField, descField) => (clave, desc) => {
         setMercancias(ms => ms.map((m, i) => i === idx ? { ...m, [claveField]: clave, [descField]: desc } : m));
     };
-
     const openNew = () => {
         setEditando(null);
         setForm({ ...emptyForm, folio:`CP-${Date.now().toString().slice(-6)}`, fechaEmision: new Date().toISOString().split("T")[0] });
@@ -463,7 +455,6 @@ export default function CartaPortePage() {
         setActiveTab("encabezado");
         setShowModal(true);
     };
-
     const openEdit = (carta) => {
         setEditando(carta.id);
         setForm({ ...emptyForm, ...carta });
@@ -471,7 +462,6 @@ export default function CartaPortePage() {
         setActiveTab("encabezado");
         setShowModal(true);
     };
-
     const handleSubmit = async () => {
         setLoading(true);
         try {
@@ -491,23 +481,19 @@ export default function CartaPortePage() {
         } catch(e) { console.error(e); }
         setLoading(false);
     };
-
     const handleDelete = async (id) => {
         if (!confirm("¿Eliminar esta Carta Porte?")) return;
         try { await fetch(`${API}/cartas-porte/${id}`, { method:"DELETE", headers }); fetchAll(); }
         catch(e) { console.error(e); }
     };
-
     const activas    = cartas.filter(c => c.status === "Activa").length;
     const enTransito = cartas.filter(c => c.status === "En Tránsito").length;
     const entregadas = cartas.filter(c => c.status === "Entregada").length;
-
     return (
         <div className="flex min-h-screen bg-[#020617] text-white overflow-hidden">
             <Sidebar />
             <div className="flex-1 p-5 md:p-10 overflow-auto relative w-full min-w-0">
                 <Topbar />
-
                 <div className="mb-12 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
                     <div>
                         <h1 className="text-3xl md:text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">CARTAS PORTE</h1>
@@ -518,7 +504,6 @@ export default function CartaPortePage() {
                         <FaPlus /> Nueva Carta Porte
                     </button>
                 </div>
-
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 md:gap-6 mb-10">
                     {[
                         { label:"Total",       value:cartas.length, color:"text-cyan-400",  border:"border-cyan-500/20" },
@@ -532,7 +517,6 @@ export default function CartaPortePage() {
                         </div>
                     ))}
                 </div>
-
                 <div className="mb-6 flex flex-col sm:flex-row flex-wrap gap-4">
                     <input value={filtroBusq} onChange={e => setFiltroBusq(e.target.value)}
                         placeholder="Buscar por folio, remitente, destinatario..."
@@ -551,7 +535,6 @@ export default function CartaPortePage() {
                         </button>
                     )}
                 </div>
-
                 <div className="rounded-3xl bg-white/5 border border-cyan-400/10 p-4 md:p-8">
                     <h2 className="text-2xl md:text-3xl font-black text-cyan-300 mb-2 flex items-center gap-3"><FaFileAlt /> Cartas Porte Registradas</h2>
                     <p className="text-gray-500 text-sm mb-8">Mostrando {cartasFiltradas.length} de {cartas.length}</p>
@@ -607,7 +590,6 @@ export default function CartaPortePage() {
                     </div>
                 </div>
             </div>
-
             {showModal && (
                 <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-3 sm:p-6">
                     <div className="bg-[#020617] border border-cyan-400/20 rounded-3xl w-full max-w-4xl max-h-[92vh] flex flex-col">
@@ -617,7 +599,6 @@ export default function CartaPortePage() {
                             </h2>
                             <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-white text-2xl"><FaTimes /></button>
                         </div>
-
                         <div className="flex gap-1 px-5 sm:px-8 pt-6 pb-1 overflow-x-auto flex-shrink-0">
                             {TABS.map(t => (
                                 <button key={t.id} onClick={() => setActiveTab(t.id)}
@@ -627,15 +608,12 @@ export default function CartaPortePage() {
                                 </button>
                             ))}
                         </div>
-
                         <div className="flex-1 overflow-y-auto px-5 sm:px-8 py-6">
-
                             {activeTab === "encabezado" && (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                     <Field label="Folio" span2>
                                         <input value={form.folio} onChange={set("folio")} className={inputCls} />
                                     </Field>
-
                                     <div className="col-span-1 sm:col-span-2">
                                         <label className="text-gray-400 text-sm mb-2 block">Tipo de CFDI con Carta Porte</label>
                                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -655,7 +633,6 @@ export default function CartaPortePage() {
                                             ))}
                                         </div>
                                     </div>
-
                                     <Field label="Tipo de Carta de Porte">
                                         <select value={form.tipoCarta} onChange={set("tipoCarta")} className={selectCls}>
                                             {TIPOS_CARTA.map(t => <option key={t}>{t}</option>)}
@@ -679,7 +656,6 @@ export default function CartaPortePage() {
                                     </Field>
                                 </div>
                             )}
-
                             {activeTab === "remitente" && (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                     <CatalogPicker label="📋 Seleccionar del catálogo de Remitentes" placeholder="Buscar remitente registrado..."
@@ -714,7 +690,6 @@ export default function CartaPortePage() {
                                     </Field>
                                 </div>
                             )}
-
                             {activeTab === "destinatario" && (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                     <CatalogPicker label="📍 Seleccionar del catálogo de Destinatarios" placeholder="Buscar destinatario registrado..."
@@ -749,13 +724,11 @@ export default function CartaPortePage() {
                                     </Field>
                                 </div>
                             )}
-
                             {activeTab === "transportista" && (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                     <Field label="Empresa Transportista" span2>
                                         <input value={form.transportistaNombre} onChange={set("transportistaNombre")} placeholder="Transportes S.A. de C.V." className={inputCls} />
                                     </Field>
-
                                     {/* Selector de vehículo del catálogo */}
                                     <div className="col-span-1 sm:col-span-2 p-4 rounded-2xl bg-white/5 border border-cyan-400/10">
                                         <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-3">🚚 Seleccionar vehículo del catálogo</p>
@@ -766,14 +739,13 @@ export default function CartaPortePage() {
                                             <option value="">Seleccionar vehículo registrado...</option>
                                             {vehiculos.map(v => (
                                                 <option key={v.id} value={v.id}>
-                                                    {v.plate} - {v.brand} {v.model} {v.year}
+                                                    {v.codigo ? `[${v.codigo}] ` : ""}{v.plate} - {v.brand} {v.model} {v.year}
                                                     {v.configAutotransporte ? ` | Config: ${v.configAutotransporte}` : ""}
                                                 </option>
                                             ))}
                                         </select>
-                                        <p className="text-gray-600 text-xs mt-2">Al seleccionar un vehículo se llenan automáticamente las placas y claves SAT registradas.</p>
+                                        <p className="text-gray-600 text-xs mt-2">Al seleccionar un vehículo se llenan automáticamente placas, claves SAT, remolques, peso tara y número de ejes.</p>
                                     </div>
-
                                     {/* Selector de operador del catálogo */}
                                     <div className="col-span-1 sm:col-span-2 p-4 rounded-2xl bg-white/5 border border-cyan-400/10">
                                         <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-3">👤 Seleccionar operador del catálogo</p>
@@ -789,11 +761,9 @@ export default function CartaPortePage() {
                                                 </option>
                                             ))}
                                         </select>
-                                        <p className="text-gray-600 text-xs mt-2">Al seleccionar un operador se llenan automáticamente el nombre, licencia y figura transporte SAT.</p>
+                                        <p className="text-gray-600 text-xs mt-2">Al seleccionar un operador se llenan automáticamente nombre, RFC, licencia (estatal y federal), figura transporte SAT y domicilio.</p>
                                     </div>
-
                                     <p className="col-span-1 sm:col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-1">Claves SAT del transportista</p>
-
                                     <SatPicker label="Configuración Autotransporte (SAT)" tipo="c_ConfigAutotransporte"
                                         value={form.configAutotransporte} valueDesc={form.configAutotransporteDesc}
                                         onChange={setSat("configAutotransporte","configAutotransporteDesc")}
@@ -806,14 +776,21 @@ export default function CartaPortePage() {
                                         value={form.figuraTransporte} valueDesc={form.figuraTransporteDesc}
                                         onChange={setSat("figuraTransporte","figuraTransporteDesc")}
                                         placeholder="Ej: 01 Operador..." span2={false} />
-
                                     <p className="col-span-1 sm:col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-3">Datos del conductor y vehículo</p>
-
                                     <Field label="Nombre del Conductor">
                                         <input value={form.conductorNombre} onChange={set("conductorNombre")} placeholder="Juan Pérez García" className={inputCls} />
                                     </Field>
+                                    <Field label="RFC del Conductor">
+                                        <input value={form.conductorRFC} onChange={set("conductorRFC")} placeholder="RFC del operador" className={inputCls} />
+                                    </Field>
                                     <Field label="Licencia de Conducir">
                                         <input value={form.conductorLicencia} onChange={set("conductorLicencia")} placeholder="D00001234" className={inputCls} />
+                                    </Field>
+                                    <Field label="Licencia Federal SCT">
+                                        <input value={form.conductorLicenciaFederal} onChange={set("conductorLicenciaFederal")} placeholder="Número de licencia federal" className={inputCls} />
+                                    </Field>
+                                    <Field label="Domicilio del Conductor" span2>
+                                        <input value={form.conductorDomicilio} onChange={set("conductorDomicilio")} placeholder="Se llena automáticamente al elegir el operador" className={inputCls} />
                                     </Field>
                                     <Field label="Tipo / Modelo de Vehículo">
                                         <input value={form.vehiculoTipo} onChange={set("vehiculoTipo")} placeholder="Torton 3 ejes, Trailer..." className={inputCls} />
@@ -821,12 +798,23 @@ export default function CartaPortePage() {
                                     <Field label="Placas del Vehículo">
                                         <input value={form.vehiculoPlacas} onChange={set("vehiculoPlacas")} placeholder="ABC-1234" className={inputCls} />
                                     </Field>
+                                    <Field label="Placas Remolque 1">
+                                        <input value={form.remolquePlaca1} onChange={set("remolquePlaca1")} placeholder="Si aplica" className={inputCls} />
+                                    </Field>
+                                    <Field label="Placas Remolque 2">
+                                        <input value={form.remolquePlaca2} onChange={set("remolquePlaca2")} placeholder="Si aplica (doble remolque)" className={inputCls} />
+                                    </Field>
+                                    <Field label="Peso Tara (Ton)">
+                                        <input type="number" value={form.pesoTaraTon} onChange={set("pesoTaraTon")} className={inputCls} />
+                                    </Field>
+                                    <Field label="Número de Ejes">
+                                        <input type="number" value={form.numeroEjes} onChange={set("numeroEjes")} className={inputCls} />
+                                    </Field>
                                     <Field label="Licencia / Permiso SCT (texto libre)">
                                         <input value={form.transportistaLicencia} onChange={set("transportistaLicencia")} placeholder="TFDP-0000" className={inputCls} />
                                     </Field>
                                 </div>
                             )}
-
                             {activeTab === "ruta" && (
                                 <div className="space-y-5">
                                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-5 rounded-2xl border border-cyan-500/20 bg-cyan-500/5">
@@ -866,7 +854,6 @@ export default function CartaPortePage() {
                                     </Field>
                                 </div>
                             )}
-
                             {activeTab === "mercancias" && (
                                 <div className="space-y-5">
                                     {mercancias.map((m, idx) => (
@@ -884,7 +871,6 @@ export default function CartaPortePage() {
                                                 )}
                                             </div>
                                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-
                                                 {/* Clave producto/servicio SAT */}
                                                 <SatPicker
                                                     label="Clave Producto/Servicio (SAT) *"
@@ -895,15 +881,12 @@ export default function CartaPortePage() {
                                                     placeholder="Buscar clave SAT... ej: transporte"
                                                     span2={true}
                                                 />
-
                                                 <Field label="Descripción adicional" span2>
                                                     <input value={m.descripcion} onChange={setMerc(idx,"descripcion")} placeholder="Descripción complementaria" className={inputCls} />
                                                 </Field>
-
                                                 <Field label="Cantidad">
                                                     <input type="number" value={m.cantidad} onChange={setMerc(idx,"cantidad")} placeholder="0" className={inputCls} />
                                                 </Field>
-
                                                 {/* Clave unidad de peso SAT */}
                                                 <SatPicker
                                                     label="Unidad de Medida (SAT)"
@@ -913,7 +896,6 @@ export default function CartaPortePage() {
                                                     onChange={setMercSat(idx, "claveUnidad", "claveUnidadDesc")}
                                                     placeholder="Buscar unidad... ej: kilogramo"
                                                 />
-
                                                 <Field label="Peso (kg)">
                                                     <input type="number" value={m.peso} onChange={setMerc(idx,"peso")} placeholder="0.00" className={inputCls} />
                                                 </Field>
@@ -923,7 +905,6 @@ export default function CartaPortePage() {
                                                 <Field label="Valor Declarado ($)">
                                                     <input type="number" value={m.valor} onChange={setMerc(idx,"valor")} placeholder="0.00" className={inputCls} />
                                                 </Field>
-
                                                 {/* Tipo embalaje SAT */}
                                                 <SatPicker
                                                     label="Tipo de Embalaje (SAT)"
@@ -933,7 +914,6 @@ export default function CartaPortePage() {
                                                     onChange={setMercSat(idx, "claveEmbalaje", "claveEmbalajeDesc")}
                                                     placeholder="Buscar embalaje..."
                                                 />
-
                                                 <Field label="Marcas Identificativas">
                                                     <input value={m.marcas} onChange={setMerc(idx,"marcas")} placeholder="Ref., lote, código..." className={inputCls} />
                                                 </Field>
@@ -942,7 +922,6 @@ export default function CartaPortePage() {
                                                         {ESTADOS_MERC.map(e => <option key={e}>{e}</option>)}
                                                     </select>
                                                 </Field>
-
                                                 <div className="col-span-1 sm:col-span-2">
                                                     <label className={`flex items-center gap-3 cursor-pointer p-3 rounded-xl border transition-all
                                                         ${m.esPeligrosa ? "border-yellow-500/40 bg-yellow-500/10" : "border-cyan-400/10 bg-white/5"}`}>
@@ -968,7 +947,6 @@ export default function CartaPortePage() {
                                     </button>
                                 </div>
                             )}
-
                             {activeTab === "condiciones" && (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                     {form.tipoComprobante === "Traslado" && (
@@ -1009,7 +987,6 @@ export default function CartaPortePage() {
                                     </Field>
                                 </div>
                             )}
-
                             {activeTab === "obs" && (
                                 <div className="space-y-5">
                                     <Field label="Observaciones Generales">
@@ -1037,7 +1014,6 @@ export default function CartaPortePage() {
                                 </div>
                             )}
                         </div>
-
                         <div className="flex gap-4 p-5 sm:p-8 pt-4 flex-shrink-0">
                             <button onClick={() => setShowModal(false)}
                                 className="flex-1 py-4 rounded-2xl border border-white/10 text-gray-400 hover:bg-white/5 transition-all font-bold">
