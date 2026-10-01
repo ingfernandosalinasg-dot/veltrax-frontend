@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { FaExclamationTriangle, FaCheckCircle } from "react-icons/fa";
 
-const API = import.meta.env.VITE_API_URL || "https://veltrax-api-production.up.railway.app";
+import { API_URL } from "../config/api";
+const API = API_URL;
 
 /**
  * ValidacionRegimenUso

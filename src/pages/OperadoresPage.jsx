@@ -4,7 +4,8 @@ import Topbar from "../components/Topbar";
 import { FaIdCard, FaPlus, FaTrash, FaEdit, FaTimes, FaCheck, FaSearch } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = import.meta.env.VITE_API_URL || "https://veltrax-api-production.up.railway.app";
+import { API_URL } from "../config/api";
+const API = API_URL;
 
 const TABS = [
     { id: "general",      label: "Información General" },

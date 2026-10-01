@@ -7,7 +7,8 @@ import {
 } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = import.meta.env.VITE_API_URL || "https://veltrax-api-production.up.railway.app";
+import { API_URL } from "../config/api";
+const API = API_URL;
 
 const estadoColor = {
     "Pendiente":   "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",

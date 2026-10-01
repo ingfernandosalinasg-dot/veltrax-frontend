@@ -6,7 +6,8 @@ import ValidacionRegimenUso from "../components/ValidacionRegimenUso";
 import { FaUserTie, FaPlus, FaTrash, FaEdit, FaTimes, FaCheck, FaBuilding, FaUser } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = import.meta.env.VITE_API_URL || "https://veltrax-api-production.up.railway.app";
+import { API_URL } from "../config/api";
+const API = API_URL;
 
 const tipoColor = {
     "Empresa": "text-cyan-300 bg-cyan-500/10 border-cyan-400/30",

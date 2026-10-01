@@ -5,7 +5,8 @@ import {
     FaFileAlt, FaPlus, FaTrash, FaEdit, FaFilePdf, FaTimes, FaCheck,
     FaExclamationTriangle, FaTruck, FaMapMarkerAlt, FaUser, FaBox, FaSearch
 } from "react-icons/fa";
-const API = import.meta.env.VITE_API_URL || "https://veltrax-api-production.up.railway.app";
+import { API_URL } from "../config/api";
+const API = API_URL;
 const estadoColor = {
     "Activa":      "text-cyan-300 bg-cyan-500/10 border-cyan-400/30",
     "En Tránsito": "text-blue-300 bg-blue-500/10 border-blue-400/30",

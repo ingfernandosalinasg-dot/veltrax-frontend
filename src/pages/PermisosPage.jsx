@@ -3,7 +3,8 @@ import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import { FaShieldAlt, FaCheck, FaSave, FaSync } from "react-icons/fa";
 
-const API = import.meta.env.VITE_API_URL || "https://veltrax-api-production.up.railway.app";
+import { API_URL } from "../config/api";
+const API = API_URL;
 
 const MODULO_LABELS = {
     VIAJES: "Viajes", CARTAS_PORTE: "Cartas Porte", FACTURAS: "Facturas",

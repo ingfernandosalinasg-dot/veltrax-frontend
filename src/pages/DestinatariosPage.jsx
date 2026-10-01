@@ -6,7 +6,8 @@ import ValidacionRegimenUso from "../components/ValidacionRegimenUso";
 import { FaPlus, FaTrash, FaEdit, FaTimes, FaCheck, FaMapMarkerAlt } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 
-const API = import.meta.env.VITE_API_URL || "https://veltrax-api-production.up.railway.app";
+import { API_URL } from "../config/api";
+const API = API_URL;
 
 const emptyForm = {
     nombre: "", razonSocial: "", rfc: "",

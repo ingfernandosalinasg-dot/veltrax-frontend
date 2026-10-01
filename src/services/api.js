@@ -1,7 +1,8 @@
 import axios from "axios";
+import { API_URL } from "../config/api";
 
 const API = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || "https://veltrax-api-production.up.railway.app"
+    baseURL: API_URL
 });
 
 API.interceptors.request.use((config) => {

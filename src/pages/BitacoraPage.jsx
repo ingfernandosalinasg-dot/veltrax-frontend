@@ -4,7 +4,8 @@ import Topbar from "../components/Topbar";
 import { FaHistory, FaSearch, FaFilter } from "react-icons/fa";
 import { motion } from "framer-motion";
 
-const API = import.meta.env.VITE_API_URL || "https://veltrax-api-production.up.railway.app";
+import { API_URL } from "../config/api";
+const API = API_URL;
 
 const MODULOS = ["TODOS", "VIAJE", "CARTA_PORTE", "LIQUIDACION", "FACTURA", "CAJA"];
 
