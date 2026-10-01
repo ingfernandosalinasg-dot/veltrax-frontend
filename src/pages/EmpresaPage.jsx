@@ -14,29 +14,48 @@ const PACS = [
     { id: "FINKOK",    label: "Finkok",     color: "text-yellow-300" },
 ];
 
+// SEC-01: el backend nunca devuelve secretos. Solo copiamos al estado los campos
+// permitidos y los indicadores; las credenciales viven en un estado aparte que
+// únicamente contiene lo que el ADMIN escribe en esta sesión.
+const DATOS_KEYS = ["razonSocial", "rfc", "regimenFiscal", "codigoPostal", "direccion", "ciudad", "estado", "pais", "telefono", "email", "sitioWeb"];
+const PAC_CONFIG_KEYS = ["pacActivo", "facturamaAmbiente", "swSapienUrl", "swSapienAmbiente", "finokAmbiente", "detecnoUrl", "detecnoAmbiente"];
+const INDICADORES_KEYS = ["csdCargado", "csdPasswordConfigurada", "logoCargado", "facturamaConfigurado", "swSapienConfigurado", "finkokConfigurado", "detecnoConfigurado", "detecnoServicioConfigurado"];
+const PAC_SECRETOS_KEYS = ["facturamaUsuario", "facturamaPassword", "swSapienToken", "finokUsuario", "finokPassword", "detecnoToken"];
+const SECRETOS_VACIOS = { csdPassword: "", facturamaUsuario: "", facturamaPassword: "", swSapienToken: "", finokUsuario: "", finokPassword: "", detecnoToken: "" };
+const TEXTO_CONFIGURADO = "Configurado — déjalo vacío para no cambiarlo";
+
+const soloClaves = (obj, keys) => keys.reduce((acc, k) => {
+    if (obj && obj[k] !== undefined && obj[k] !== null) acc[k] = obj[k];
+    return acc;
+}, {});
+
 export default function EmpresaPage() {
     const [empresa, setEmpresa] = useState({
         razonSocial: "", rfc: "", regimenFiscal: "", codigoPostal: "",
         direccion: "", ciudad: "", estado: "", pais: "Mexico",
         telefono: "", email: "", sitioWeb: "",
-        cerPath: "", keyPath: "", csdPassword: "",
         cerFileName: "", keyFileName: "",
         cerRawFile: null, keyRawFile: null,
         pacActivo: "",
-        facturamaUsuario: "", facturamaPassword: "", facturamaAmbiente: "sandbox",
-        swSapienToken: "", swSapienUrl: "", swSapienAmbiente: "demo",
-        finokUsuario: "", finokPassword: "", finokAmbiente: "demo",
-        detecnoToken: "", detecnoUrl: "", detecnoAmbiente: "pruebas",
+        facturamaAmbiente: "sandbox",
+        swSapienUrl: "", swSapienAmbiente: "demo",
+        finokAmbiente: "demo",
+        detecnoUrl: "", detecnoAmbiente: "pruebas",
         logoUrl: "",
     });
+    // Credenciales escritas por el ADMIN en esta sesión (nunca vienen del backend)
+    const [secretos, setSecretos] = useState(SECRETOS_VACIOS);
+    // Indicadores "configurado"/"cargado" que devuelve el backend
+    const [indicadores, setIndicadores] = useState({});
     const [loading, setLoading] = useState(false);
     const [msg, setMsg] = useState(null);
     const [tab, setTab] = useState("datos");
 
     const token = localStorage.getItem("token");
+    const isAdmin = localStorage.getItem("role") === "ADMIN";
     const headers = { "Content-Type": "application/json", ...(token && { Authorization: "Bearer " + token }) };
 
-    useEffect(() => {
+    const cargar = () =>
         fetch(API + "/api/empresa", { headers })
             .then(r => {
                 if (!r.ok) throw new Error();
@@ -44,13 +63,19 @@ export default function EmpresaPage() {
             })
             .then(data => {
                 if (data) {
-                    setEmpresa(e => ({ ...e, ...data }));
+                    // Solo campos permitidos: nunca copiar secretos al estado
+                    setEmpresa(e => ({ ...e, ...soloClaves(data, [...DATOS_KEYS, ...PAC_CONFIG_KEYS]) }));
+                    setIndicadores(soloClaves(data, INDICADORES_KEYS));
                 }
             })
             .catch(() => {});
+
+    useEffect(() => {
+        cargar();
     }, []);
 
     const setF = k => e => setEmpresa(p => ({ ...p, [k]: e.target.value }));
+    const setS = k => e => setSecretos(p => ({ ...p, [k]: e.target.value }));
     const showMsg = (ok, txt) => { setMsg({ ok, txt }); setTimeout(() => setMsg(null), 5000); };
 
     // Manejar la selección de archivos locales (.cer y .key)
@@ -79,8 +104,7 @@ export default function EmpresaPage() {
         setEmpresa(prev => ({
             ...prev,
             [`${tipo}RawFile`]: null,
-            [`${tipo}FileName`]: "",
-            [`${tipo}Path`]: ""
+            [`${tipo}FileName`]: ""
         }));
     };
 
@@ -103,56 +127,91 @@ export default function EmpresaPage() {
         setEmpresa(prev => ({ ...prev, logoUrl: "" }));
     };
 
-    // Lógica para enviar datos generales y archivos CSD binarios al Servidor
+    const mensajeError = async (res, base) => {
+        try {
+            const d = await res.json();
+            return d && d.error ? `${base} ${d.error}` : base;
+        } catch {
+            return base;
+        }
+    };
+
+    // Guarda en 3 pasos: datos generales, configuración PAC y (si se eligieron
+    // archivos) el CSD. Las credenciales solo se envían si el ADMIN escribió un
+    // valor nuevo; si se dejan vacías, el backend conserva las existentes.
     const guardar = async () => {
+        if (!isAdmin) return;
+
+        const subirCsd = Boolean(empresa.cerRawFile || empresa.keyRawFile);
+        if (subirCsd && !(empresa.cerRawFile && empresa.keyRawFile)) {
+            showMsg(false, "Para actualizar el CSD selecciona ambos archivos: .cer y .key");
+            return;
+        }
+        if (subirCsd && !secretos.csdPassword.trim()) {
+            showMsg(false, "La contraseña del CSD es obligatoria al subir los archivos .cer y .key");
+            return;
+        }
+
         setLoading(true);
         try {
-            // PARTE 1: Guardar los datos del formulario de la empresa
-            const urlEmpresa = API + "/api/empresa";
-            const resEmpresa = await fetch(urlEmpresa, {
+            // PARTE 1: Datos generales (solo los campos permitidos)
+            const resDatos = await fetch(API + "/api/empresa", {
                 method: "POST",
                 headers: headers,
-                body: JSON.stringify(empresa)
+                body: JSON.stringify(soloClaves(empresa, DATOS_KEYS))
             });
-
-            if (!resEmpresa.ok) {
-                throw new Error("Error al guardar las configuraciones fiscales.");
+            if (!resDatos.ok) {
+                throw new Error(await mensajeError(resDatos, "Error al guardar los datos fiscales."));
             }
 
-            const dataEmpresa = await resEmpresa.json();
-            setEmpresa(e => ({ ...e, ...dataEmpresa }));
+            // PARTE 2: Configuración PAC; credenciales solo si se escribió un valor nuevo
+            const pac = soloClaves(empresa, PAC_CONFIG_KEYS);
+            PAC_SECRETOS_KEYS.forEach(k => {
+                if (secretos[k] && secretos[k].trim()) pac[k] = secretos[k];
+            });
+            const resPac = await fetch(API + "/api/empresa/pac", {
+                method: "PUT",
+                headers: headers,
+                body: JSON.stringify(pac)
+            });
+            if (!resPac.ok) {
+                throw new Error(await mensajeError(resPac, "Los datos fiscales se guardaron, pero falló la configuración del PAC."));
+            }
 
-            // PARTE 2: Si el usuario cargó archivos CSD reales desde sus documentos, los enviamos mediante Multipart
-            if (empresa.cerRawFile && empresa.keyRawFile) {
+            // PARTE 3: CSD solo si se eligieron archivos; la contraseña es la que escribió el usuario
+            if (subirCsd) {
                 const formData = new FormData();
                 formData.append("cer", empresa.cerRawFile);
                 formData.append("key", empresa.keyRawFile);
-                formData.append("password", empresa.csdPassword || "");
+                formData.append("password", secretos.csdPassword);
 
                 const resCsd = await fetch(API + "/api/empresa/csd", {
                     method: "POST",
                     headers: { ...(token && { Authorization: "Bearer " + token }) }, // No incluir Content-Type aquí
                     body: formData
                 });
-
                 if (!resCsd.ok) {
-                    const errorTxt = await resCsd.text();
-                    throw new Error("Los datos fiscales se guardaron, pero ocurrió un problema con los archivos CSD: " + errorTxt);
+                    throw new Error(await mensajeError(resCsd, "Los datos se guardaron, pero ocurrió un problema con los archivos CSD:"));
                 }
+                setEmpresa(prev => ({ ...prev, cerRawFile: null, keyRawFile: null, cerFileName: "", keyFileName: "" }));
             }
 
-            showMsg(true, "Configuración y llaves CSD guardadas de manera exitosa en el servidor");
+            setSecretos(SECRETOS_VACIOS);
+            await cargar();
+            showMsg(true, "Configuración guardada correctamente");
         } catch (err) {
             showMsg(false, err.message || "Error de red: No se pudo establecer conexión con el backend");
         }
         setLoading(false);
     };
 
+    // Usuarios que no son ADMIN solo ven los datos generales (en solo lectura).
+    // El backend sigue siendo la barrera principal.
     const TABS = [
         { id: "datos", label: "Datos Fiscales", icon: <FaBuilding /> },
         { id: "csd",   label: "CSD / Sello",    icon: <FaKey /> },
         { id: "pac",   label: "Configuración PAC", icon: <FaPlug /> },
-    ];
+    ].filter(t => isAdmin || t.id === "datos");
 
     return (
         <div className="flex min-h-screen bg-[#020617] text-white overflow-hidden">
@@ -189,6 +248,11 @@ export default function EmpresaPage() {
                     {/* DATOS FISCALES */}
                     {tab === "datos" && (
                         <div className="grid grid-cols-2 gap-6">
+                            {!isAdmin && (
+                                <div className="col-span-2 p-4 rounded-2xl bg-cyan-500/5 border border-cyan-400/20 text-cyan-200 text-sm">
+                                    Solo un administrador puede modificar los datos de la empresa.
+                                </div>
+                            )}
                             <div className="col-span-2">
                                 <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-4">Logo Corporativo</p>
                                 <div className="flex items-center gap-6 p-4 rounded-2xl bg-white/5 border border-cyan-500/10">
@@ -200,6 +264,7 @@ export default function EmpresaPage() {
                                         )}
                                     </div>
                                     <div className="space-y-2">
+                                        {isAdmin && (
                                         <div className="flex gap-2">
                                             <label className="cursor-pointer flex items-center gap-2 px-4 py-2 rounded-xl bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 hover:bg-cyan-500/30 transition-all text-xs font-bold">
                                                 <FaUpload /> Subir Logo
@@ -211,33 +276,34 @@ export default function EmpresaPage() {
                                                 </button>
                                             )}
                                         </div>
+                                        )}
                                         <p className="text-gray-500 text-xs">Soporta formatos JPG, PNG. Tamaño máximo recomendado: 2MB.</p>
                                     </div>
                                 </div>
                             </div>
 
                             <div className="col-span-2"><p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-4 mt-4">Identificación Fiscal</p></div>
-                            <div className="col-span-2"><label className="text-gray-400 text-sm mb-2 block">Razon Social (Sin régimen societario para CFDI 4.0)</label><input value={empresa.razonSocial || ""} onChange={setF("razonSocial")} className={inputCls} placeholder="MI EMPRESA" /></div>
-                            <div><label className="text-gray-400 text-sm mb-2 block">RFC</label><input value={empresa.rfc || ""} onChange={setF("rfc")} className={inputCls} placeholder="MEM010101ABC" /></div>
+                            <div className="col-span-2"><label className="text-gray-400 text-sm mb-2 block">Razon Social (Sin régimen societario para CFDI 4.0)</label><input value={empresa.razonSocial || ""} disabled={!isAdmin} onChange={setF("razonSocial")} className={inputCls} placeholder="MI EMPRESA" /></div>
+                            <div><label className="text-gray-400 text-sm mb-2 block">RFC</label><input value={empresa.rfc || ""} disabled={!isAdmin} onChange={setF("rfc")} className={inputCls} placeholder="MEM010101ABC" /></div>
                             <div>
                                 <label className="text-gray-400 text-sm mb-2 block">Régimen Fiscal (Clave SAT)</label>
-                                <select value={empresa.regimenFiscal || ""} onChange={setF("regimenFiscal")} className={selectCls}>
+                                <select value={empresa.regimenFiscal || ""} disabled={!isAdmin} onChange={setF("regimenFiscal")} className={selectCls}>
                                     <option value="">Selecciona una opción...</option>
                                     <option value="601">601 - General de Ley Personas Morales</option>
                                     <option value="603">603 - Personas Morales con Fines no Lucrativos</option>
                                     <option value="626">626 - Régimen Simplificado de Confianza (RESICO)</option>
                                 </select>
                             </div>
-                            <div><label className="text-gray-400 text-sm mb-2 block">Código Postal Fiscal</label><input value={empresa.codigoPostal || ""} onChange={setF("codigoPostal")} className={inputCls} placeholder="64000" /></div>
-                            <div><label className="text-gray-400 text-sm mb-2 block">Ciudad</label><input value={empresa.ciudad || ""} onChange={setF("ciudad")} className={inputCls} /></div>
-                            <div><label className="text-gray-400 text-sm mb-2 block">Estado</label><input value={empresa.estado || ""} onChange={setF("estado")} className={inputCls} /></div>
-                            <div><label className="text-gray-400 text-sm mb-2 block">País</label><input value={empresa.pais || ""} onChange={setF("pais")} className={inputCls} /></div>
-                            <div className="col-span-2"><label className="text-gray-400 text-sm mb-2 block">Dirección Completa</label><input value={empresa.direccion || ""} onChange={setF("direccion")} className={inputCls} /></div>
+                            <div><label className="text-gray-400 text-sm mb-2 block">Código Postal Fiscal</label><input value={empresa.codigoPostal || ""} disabled={!isAdmin} onChange={setF("codigoPostal")} className={inputCls} placeholder="64000" /></div>
+                            <div><label className="text-gray-400 text-sm mb-2 block">Ciudad</label><input value={empresa.ciudad || ""} disabled={!isAdmin} onChange={setF("ciudad")} className={inputCls} /></div>
+                            <div><label className="text-gray-400 text-sm mb-2 block">Estado</label><input value={empresa.estado || ""} disabled={!isAdmin} onChange={setF("estado")} className={inputCls} /></div>
+                            <div><label className="text-gray-400 text-sm mb-2 block">País</label><input value={empresa.pais || ""} disabled={!isAdmin} onChange={setF("pais")} className={inputCls} /></div>
+                            <div className="col-span-2"><label className="text-gray-400 text-sm mb-2 block">Dirección Completa</label><input value={empresa.direccion || ""} disabled={!isAdmin} onChange={setF("direccion")} className={inputCls} /></div>
                             
                             <div className="col-span-2"><p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-4 mt-4">Contacto Administrativo</p></div>
-                            <div><label className="text-gray-400 text-sm mb-2 block">Teléfono</label><input value={empresa.telefono || ""} onChange={setF("telefono")} className={inputCls} /></div>
-                            <div><label className="text-gray-400 text-sm mb-2 block">Email de Notificaciones</label><input value={empresa.email || ""} onChange={setF("email")} className={inputCls} /></div>
-                            <div className="col-span-2"><label className="text-gray-400 text-sm mb-2 block">Sitio Web</label><input value={empresa.sitioWeb || ""} onChange={setF("sitioWeb")} className={inputCls} /></div>
+                            <div><label className="text-gray-400 text-sm mb-2 block">Teléfono</label><input value={empresa.telefono || ""} disabled={!isAdmin} onChange={setF("telefono")} className={inputCls} /></div>
+                            <div><label className="text-gray-400 text-sm mb-2 block">Email de Notificaciones</label><input value={empresa.email || ""} disabled={!isAdmin} onChange={setF("email")} className={inputCls} /></div>
+                            <div className="col-span-2"><label className="text-gray-400 text-sm mb-2 block">Sitio Web</label><input value={empresa.sitioWeb || ""} disabled={!isAdmin} onChange={setF("sitioWeb")} className={inputCls} /></div>
                         </div>
                     )}
 
@@ -246,6 +312,10 @@ export default function EmpresaPage() {
                         <div className="space-y-6">
                             <div className="p-4 rounded-2xl bg-yellow-500/5 border border-yellow-400/20 text-yellow-300 text-sm">
                                 El Certificado de Sello Digital (CSD) es único y obligatorio para el timbrado. Selecciona los archivos correspondientes cargados directamente desde tus documentos.
+                            </div>
+
+                            <div className="text-sm text-gray-300">
+                                Estado en el servidor: CSD {indicadores.csdCargado ? "cargado" : "no cargado"} · Contraseña {indicadores.csdPasswordConfigurada ? "configurada" : "no configurada"}
                             </div>
 
                             <div className="grid grid-cols-2 gap-6">
@@ -296,12 +366,13 @@ export default function EmpresaPage() {
                                 <label className="text-gray-400 text-sm mb-2 block font-semibold">Contraseña de la Clave Privada (CSD)</label>
                                 <input 
                                     type="password" 
-                                    value={empresa.csdPassword || ""} 
-                                    onChange={setF("csdPassword")} 
+                                    value={secretos.csdPassword} 
+                                    onChange={setS("csdPassword")} 
                                     className={inputCls} 
-                                    placeholder="••••••••"
+                                    placeholder={indicadores.csdPasswordConfigurada ? TEXTO_CONFIGURADO : "••••••••"}
                                     autoComplete="new-password"
                                 />
+                                <p className="text-gray-500 text-xs mt-2">Obligatoria solo si subes nuevos archivos .cer y .key.</p>
                             </div>
                         </div>
                     )}
@@ -324,11 +395,11 @@ export default function EmpresaPage() {
                             
                             {empresa.pacActivo === "DETECNO" && (
                                 <div className="p-6 rounded-2xl bg-blue-500/5 border border-blue-400/20 space-y-4">
-                                    <p className="text-blue-300 font-bold">Configuración Detecno</p>
-                                    <div><label className="text-gray-400 text-sm mb-2 block">Token API</label><input type="password" value={empresa.detecnoToken || ""} onChange={setF("detecnoToken")} className={inputCls} /></div>
-                                    <div><label className="text-gray-400 text-sm mb-2 block">URL Base</label><input value={empresa.detecnoUrl || ""} onChange={setF("detecnoUrl")} className={inputCls} /></div>
+                                    <p className="text-blue-300 font-bold">Configuración Detecno <span className="text-xs text-gray-400 font-normal">· Token {indicadores.detecnoConfigurado ? "configurado" : "no configurado"}</span></p>
+                                    <div><label className="text-gray-400 text-sm mb-2 block">Token API</label><input type="password" value={secretos.detecnoToken} onChange={setS("detecnoToken")} className={inputCls} placeholder={indicadores.detecnoConfigurado ? TEXTO_CONFIGURADO : ""} autoComplete="new-password" /></div>
+                                    <div><label className="text-gray-400 text-sm mb-2 block">URL Base</label><input value={empresa.detecnoUrl || ""} disabled={!isAdmin} onChange={setF("detecnoUrl")} className={inputCls} /></div>
                                     <div><label className="text-gray-400 text-sm mb-2 block">Ambiente</label>
-                                        <select value={empresa.detecnoAmbiente || "pruebas"} onChange={setF("detecnoAmbiente")} className={selectCls}>
+                                        <select value={empresa.detecnoAmbiente || "pruebas"} disabled={!isAdmin} onChange={setF("detecnoAmbiente")} className={selectCls}>
                                             <option value="pruebas">Pruebas</option>
                                             <option value="produccion">Producción</option>
                                         </select>
@@ -338,11 +409,11 @@ export default function EmpresaPage() {
 
                             {empresa.pacActivo === "FACTURAMA" && (
                                 <div className="p-6 rounded-2xl bg-green-500/5 border border-green-400/20 space-y-4">
-                                    <p className="text-green-300 font-bold">Configuración Facturama</p>
-                                    <div><label className="text-gray-400 text-sm mb-2 block">Usuario</label><input value={empresa.facturamaUsuario || ""} onChange={setF("facturamaUsuario")} className={inputCls} /></div>
-                                    <div><label className="text-gray-400 text-sm mb-2 block">Password</label><input type="password" value={empresa.facturamaPassword || ""} onChange={setF("facturamaPassword")} className={inputCls} /></div>
+                                    <p className="text-green-300 font-bold">Configuración Facturama <span className="text-xs text-gray-400 font-normal">· Credenciales {indicadores.facturamaConfigurado ? "configuradas" : "no configuradas"}</span></p>
+                                    <div><label className="text-gray-400 text-sm mb-2 block">Usuario</label><input value={secretos.facturamaUsuario} onChange={setS("facturamaUsuario")} className={inputCls} placeholder={indicadores.facturamaConfigurado ? TEXTO_CONFIGURADO : ""} autoComplete="off" /></div>
+                                    <div><label className="text-gray-400 text-sm mb-2 block">Password</label><input type="password" value={secretos.facturamaPassword} onChange={setS("facturamaPassword")} className={inputCls} placeholder={indicadores.facturamaConfigurado ? TEXTO_CONFIGURADO : ""} autoComplete="new-password" /></div>
                                     <div><label className="text-gray-400 text-sm mb-2 block">Ambiente</label>
-                                        <select value={empresa.facturamaAmbiente || "sandbox"} onChange={setF("facturamaAmbiente")} className={selectCls}>
+                                        <select value={empresa.facturamaAmbiente || "sandbox"} disabled={!isAdmin} onChange={setF("facturamaAmbiente")} className={selectCls}>
                                             <option value="sandbox">Sandbox (Pruebas)</option>
                                             <option value="production">Producción</option>
                                         </select>
@@ -352,11 +423,11 @@ export default function EmpresaPage() {
 
                             {empresa.pacActivo === "SW_SAPIEN" && (
                                 <div className="p-6 rounded-2xl bg-purple-500/5 border border-purple-400/20 space-y-4">
-                                    <p className="text-purple-300 font-bold">Configuración SW Sapien</p>
-                                    <div><label className="text-gray-400 text-sm mb-2 block">Token</label><input type="password" value={empresa.swSapienToken || ""} onChange={setF("swSapienToken")} className={inputCls} /></div>
-                                    <div><label className="text-gray-400 text-sm mb-2 block">URL</label><input value={empresa.swSapienUrl || ""} onChange={setF("swSapienUrl")} className={inputCls} /></div>
+                                    <p className="text-purple-300 font-bold">Configuración SW Sapien <span className="text-xs text-gray-400 font-normal">· Token {indicadores.swSapienConfigurado ? "configurado" : "no configurado"}</span></p>
+                                    <div><label className="text-gray-400 text-sm mb-2 block">Token</label><input type="password" value={secretos.swSapienToken} onChange={setS("swSapienToken")} className={inputCls} placeholder={indicadores.swSapienConfigurado ? TEXTO_CONFIGURADO : ""} autoComplete="new-password" /></div>
+                                    <div><label className="text-gray-400 text-sm mb-2 block">URL</label><input value={empresa.swSapienUrl || ""} disabled={!isAdmin} onChange={setF("swSapienUrl")} className={inputCls} /></div>
                                     <div><label className="text-gray-400 text-sm mb-2 block">Ambiente</label>
-                                        <select value={empresa.swSapienAmbiente || "demo"} onChange={setF("swSapienAmbiente")} className={selectCls}>
+                                        <select value={empresa.swSapienAmbiente || "demo"} disabled={!isAdmin} onChange={setF("swSapienAmbiente")} className={selectCls}>
                                             <option value="demo">Demo (Pruebas)</option>
                                             <option value="production">Producción</option>
                                         </select>
@@ -366,11 +437,11 @@ export default function EmpresaPage() {
 
                             {empresa.pacActivo === "FINKOK" && (
                                 <div className="p-6 rounded-2xl bg-yellow-500/5 border border-yellow-400/20 space-y-4">
-                                    <p className="text-yellow-300 font-bold">Configuración Finkok</p>
-                                    <div><label className="text-gray-400 text-sm mb-2 block">Usuario</label><input value={empresa.finokUsuario || ""} onChange={setF("finokUsuario")} className={inputCls} /></div>
-                                    <div><label className="text-gray-400 text-sm mb-2 block">Password</label><input type="password" value={empresa.finokPassword || ""} onChange={setF("finokPassword")} className={inputCls} /></div>
+                                    <p className="text-yellow-300 font-bold">Configuración Finkok <span className="text-xs text-gray-400 font-normal">· Credenciales {indicadores.finkokConfigurado ? "configuradas" : "no configuradas"}</span></p>
+                                    <div><label className="text-gray-400 text-sm mb-2 block">Usuario</label><input value={secretos.finokUsuario} onChange={setS("finokUsuario")} className={inputCls} placeholder={indicadores.finkokConfigurado ? TEXTO_CONFIGURADO : ""} autoComplete="off" /></div>
+                                    <div><label className="text-gray-400 text-sm mb-2 block">Password</label><input type="password" value={secretos.finokPassword} onChange={setS("finokPassword")} className={inputCls} placeholder={indicadores.finkokConfigurado ? TEXTO_CONFIGURADO : ""} autoComplete="new-password" /></div>
                                     <div><label className="text-gray-400 text-sm mb-2 block">Ambiente</label>
-                                        <select value={empresa.finokAmbiente || "demo"} onChange={setF("finokAmbiente")} className={selectCls}>
+                                        <select value={empresa.finokAmbiente || "demo"} disabled={!isAdmin} onChange={setF("finokAmbiente")} className={selectCls}>
                                             <option value="demo">Demo (Pruebas)</option>
                                             <option value="production">Producción</option>
                                         </select>
@@ -387,10 +458,14 @@ export default function EmpresaPage() {
                     )}
                 </div>
 
-                <button onClick={guardar} disabled={loading}
-                    className="mt-6 flex items-center gap-3 px-8 py-4 rounded-2xl bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 font-bold hover:bg-cyan-500/30 transition-all disabled:opacity-50">
-                    <FaSave /> {loading ? "Guardando..." : "Guardar Cambios"}
-                </button>
+                {isAdmin ? (
+                    <button onClick={guardar} disabled={loading}
+                        className="mt-6 flex items-center gap-3 px-8 py-4 rounded-2xl bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 font-bold hover:bg-cyan-500/30 transition-all disabled:opacity-50">
+                        <FaSave /> {loading ? "Guardando..." : "Guardar Cambios"}
+                    </button>
+                ) : (
+                    <p className="mt-6 text-gray-500 text-sm">Vista de solo lectura.</p>
+                )}
             </div>
         </div>
     );
