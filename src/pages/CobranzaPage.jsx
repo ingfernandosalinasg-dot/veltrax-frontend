@@ -166,7 +166,8 @@ export default function CobranzaPage() {
             f.folio?.toLowerCase().includes(busqueda.toLowerCase()) ||
             f.clienteNombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
             f.rfc?.toLowerCase().includes(busqueda.toLowerCase());
-        const matchStatus = !filtroStatus || f.status === filtroStatus;
+        // F4-P §5: el filtro es de cobranza (status es el estado fiscal).
+        const matchStatus = !filtroStatus || f.estadoCobranza === filtroStatus;
         return matchBusq && matchStatus;
     });
 
@@ -259,8 +260,8 @@ export default function CobranzaPage() {
                                                 {dias === null ? "-" : dias < 0 ? `${Math.abs(dias)}d vencida` : `${dias}d`}
                                             </td>
                                             <td className="py-4 pr-4">
-                                                <span className={`px-3 py-1 rounded-full border text-xs font-bold ${statusColor(f.status)}`}>
-                                                    {f.status}
+                                                <span className={`px-3 py-1 rounded-full border text-xs font-bold ${statusColor(f.estadoCobranza)}`}>
+                                                    {f.estadoCobranza}
                                                 </span>
                                             </td>
                                             <td className="py-4">
