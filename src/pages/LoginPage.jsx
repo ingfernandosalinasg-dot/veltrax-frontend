@@ -13,15 +13,11 @@ function LoginPage() {
 
         try {
 
-            console.log("Intentando login...");
-
             const response = await API.post("/auth/login", {
                 email,
                 password,
                 rfcEmpresa
             });
-
-            console.log(response.data);
 
             if (response.data.error) {
                 alert(response.data.error);
@@ -37,8 +33,6 @@ function LoginPage() {
             window.location.href = "/dashboard";
 
         } catch (error) {
-
-            console.log(error);
 
             alert(error?.response?.data?.error || "Correo, contraseña o RFC de empresa incorrectos");
         }
