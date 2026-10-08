@@ -29,7 +29,7 @@ export default function CatalogoArticulosPage() {
 
     const fetchAll = async () => {
         try {
-            const data = await fetch(API+"/api/articulos", { headers }).then(r => r.json());
+            const data = await fetch(API+"/articulos", { headers }).then(r => r.json());
             setArticulos(Array.isArray(data) ? data : []);
         } catch(e) { console.error(e); }
     };
@@ -51,7 +51,7 @@ export default function CatalogoArticulosPage() {
         if (!form.descripcion) { showMsg(false, "La descripcion es requerida"); return; }
         setLoading(true);
         try {
-            const url    = editando ? API+"/api/articulos/"+editando : API+"/api/articulos";
+            const url    = editando ? API+"/articulos/"+editando : API+"/articulos";
             const method = editando ? "PUT" : "POST";
             const res = await fetch(url, { method, headers, body: JSON.stringify({ ...form, precioReferencia: form.precioReferencia ? Number(form.precioReferencia) : null }) });
             if (res.ok) {
@@ -65,7 +65,7 @@ export default function CatalogoArticulosPage() {
 
     const handleDelete = async (id) => {
         if (!confirm("Eliminar este articulo?")) return;
-        await fetch(API+"/api/articulos/"+id, { method:"DELETE", headers });
+        await fetch(API+"/articulos/"+id, { method:"DELETE", headers });
         fetchAll();
     };
 

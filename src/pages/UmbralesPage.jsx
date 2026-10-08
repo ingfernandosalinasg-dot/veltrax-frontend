@@ -37,7 +37,7 @@ export default function UmbralesPage() {
 
     const fetchAll = async () => {
         try {
-            const res = await fetch(`${API}/umbrales`, { headers });
+            const res = await fetch(`${API}/api/umbrales`, { headers });
             const data = await res.json();
             setUmbrales(Array.isArray(data) ? data : []);
         } catch (e) { console.error(e); }
@@ -67,7 +67,7 @@ export default function UmbralesPage() {
                 valorMinimo: form.valorMinimo ? Number(form.valorMinimo) : null,
                 valorBono: form.valorBono ? Number(form.valorBono) : null,
             };
-            const url    = editando ? `${API}/umbrales/${editando}` : `${API}/umbrales`;
+            const url    = editando ? `${API}/api/umbrales/${editando}` : `${API}/api/umbrales`;
             const method = editando ? "PUT" : "POST";
             await fetch(url, { method, headers, body: JSON.stringify(body) });
             setShowModal(false);
@@ -78,13 +78,13 @@ export default function UmbralesPage() {
 
     const handleDelete = async (id) => {
         if (!confirm("¿Eliminar esta regla de umbral?")) return;
-        try { await fetch(`${API}/umbrales/${id}`, { method: "DELETE", headers }); fetchAll(); }
+        try { await fetch(`${API}/api/umbrales/${id}`, { method: "DELETE", headers }); fetchAll(); }
         catch (e) { console.error(e); }
     };
 
     const toggleActivo = async (u) => {
         try {
-            await fetch(`${API}/umbrales/${u.id}`, { method: "PUT", headers, body: JSON.stringify({ activo: !u.activo }) });
+            await fetch(`${API}/api/umbrales/${u.id}`, { method: "PUT", headers, body: JSON.stringify({ activo: !u.activo }) });
             fetchAll();
         } catch (e) { console.error(e); }
     };

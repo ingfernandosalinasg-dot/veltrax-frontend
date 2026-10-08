@@ -53,14 +53,14 @@ function Sidebar() {
     const mantenimiento = [
         { name: "Reportes de Falla",      path: "/reportes-falla",         icon: <FaExclamationTriangle /> },
         { name: "Mantenimientos",         path: "/mantenimientos",         icon: <FaWrench /> },
-        { name: "?rdenes de Servicio",    path: "/ordenes-servicio",       icon: <FaTools /> },
+        { name: "Órdenes de Servicio",    path: "/ordenes-servicio",       icon: <FaTools /> },
         { name: "Servicios Completados",  path: "/servicios-completados",  icon: <FaClipboardCheck /> },
     ];
 
     // ── GIRO BIENES Y SERVICIOS ──────────────────────────────
     const bienesServicios = [
         { name: "Licitaciones",   path: "/licitaciones",        icon: <FaGavel /> },
-        { name: "?rdenes Compra", path: "/ordenes-compra",      icon: <FaShoppingCart /> },
+        { name: "Órdenes Compra", path: "/ordenes-compra",      icon: <FaShoppingCart /> },
         { name: "Catálogo",       path: "/catalogo-articulos",  icon: <FaPills /> },
     ];
 
@@ -70,7 +70,9 @@ function Sidebar() {
         { name: "Catálogos SAT",   path: "/catalogos-sat",   icon: <FaTags /> },
         { name: "Empresa",         path: "/empresa",         icon: <FaBuilding /> },
         { name: "Bitácora",        path: "/bitacora",        icon: <FaHistory /> },
-        { name: "?rdenes",         path: "/orders",          icon: <FaClipboardList /> },
+        // Oculto en el menú (Fase 0, D4): OrdersPage llama a /pedidos, que no
+        // existe en el backend. La página y su ruta /orders siguen en App.jsx.
+        { name: "Órdenes",         path: "/orders",          icon: <FaClipboardList />, oculto: true },
     ];
 
     const logout = () => {
@@ -205,7 +207,7 @@ function Sidebar() {
                 <div className="mb-1">
                     <SectionTitle label="General" />
                     <div className="space-y-1">
-                        {compartido.map((item, i) => <NavItem key={item.path} item={item} index={i} />)}
+                        {compartido.filter(item => !item.oculto).map((item, i) => <NavItem key={item.path} item={item} index={i} />)}
                     </div>
                 </div>
 

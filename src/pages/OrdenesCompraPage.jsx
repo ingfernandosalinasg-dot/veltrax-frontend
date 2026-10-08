@@ -60,8 +60,8 @@ export default function OrdenesCompraPage() {
             fetch(`${API}/api/ordenes-compra`, { headers }).then(r => r.ok ? r.json() : []).catch(() => []),
             fetch(`${API}/api/ordenes-compra/resumen`, { headers }).then(r => r.ok ? r.json() : {}).catch(() => ({})),
             fetch(`${API}/api/licitaciones`, { headers }).then(r => r.ok ? r.json() : []).catch(() => []),
-            fetch(`${API}/api/proveedores`, { headers }).then(r => r.ok ? r.json() : []).catch(() => []),
-            fetch(`${API}/api/articulos`, { headers }).then(r => r.ok ? r.json() : []).catch(() => []),
+            fetch(`${API}/proveedores`, { headers }).then(r => r.ok ? r.json() : []).catch(() => []),
+            fetch(`${API}/articulos`, { headers }).then(r => r.ok ? r.json() : []).catch(() => []),
         ]);
         setOrdenes(Array.isArray(o) ? o : []);
         setResumen(r || {});

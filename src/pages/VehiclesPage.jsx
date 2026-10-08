@@ -14,7 +14,7 @@ const TABS = [
     { id: "documentos", label: "Documentos" },
     { id: "otros",      label: "Otros datos" },
     { id: "seguros",    label: "Seguros" },
-    { id: "proyecciones", label: "Proyeccciones" },
+    { id: "proyecciones", label: "Proyecciones" },
 ];
 
 const emptyDocumento = { numeroDocumento: "", documento: "", fechaVencimiento: "" };

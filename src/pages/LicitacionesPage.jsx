@@ -268,7 +268,7 @@ function TabAdjudicado({ licitacion, licitacionId, onActualizar }) {
     };
 
     const fetchProveedores = async () => {
-        const r = await fetch(`${API}/api/proveedores`, {headers}).catch(()=>null);
+        const r = await fetch(`${API}/proveedores`, {headers}).catch(()=>null);
         if(r?.ok) setProveedores(await r.json());
     };
 
