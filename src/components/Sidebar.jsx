@@ -47,6 +47,7 @@ function Sidebar() {
         { name: "Rutas",          path: "/rutas",          icon: <FaRoute /> },
         { name: "Remitentes",     path: "/remitentes",     icon: <FaAddressBook /> },
         { name: "Destinatarios",  path: "/destinatarios",  icon: <FaMapMarkerAlt /> },
+        { name: "Catálogos de tráfico", path: "/catalogos-trafico", icon: <FaTags /> },
     ];
 
     // ── MANTENIMIENTO ─────────────────────────────────────────

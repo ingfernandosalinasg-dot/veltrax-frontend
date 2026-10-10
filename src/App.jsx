@@ -26,6 +26,7 @@ import UmbralesPage from "./pages/UmbralesPage";
 import CatalogoArticulosPage from "./pages/CatalogoArticulosPage";
 import OrdenesCompraPage from "./pages/OrdenesCompraPage";
 import CatalogosSatPage from "./pages/CatalogosSatPage";
+import CatalogosTraficoPage from "./pages/CatalogosTraficoPage";
 import LicenciasPage from "./pages/LicenciasPage";
 import UsuariosPage from "./pages/UsuariosPage";
 import PermisosPage from "./pages/PermisosPage";
@@ -64,6 +65,7 @@ export default function App() {
         <Route path="/catalogo-articulos" element={<ProtectedRoute><CatalogoArticulosPage /></ProtectedRoute>} />
         <Route path="/ordenes-compra"     element={<ProtectedRoute><OrdenesCompraPage /></ProtectedRoute>} />
         <Route path="/catalogos-sat"      element={<ProtectedRoute><CatalogosSatPage /></ProtectedRoute>} />
+        <Route path="/catalogos-trafico"  element={<ProtectedRoute><CatalogosTraficoPage /></ProtectedRoute>} />
         <Route path="/licencias"          element={<ProtectedRoute><LicenciasPage /></ProtectedRoute>} />
         <Route path="/usuarios"           element={<ProtectedRoute><UsuariosPage /></ProtectedRoute>} />
         <Route path="/permisos"           element={<ProtectedRoute><PermisosPage /></ProtectedRoute>} />
