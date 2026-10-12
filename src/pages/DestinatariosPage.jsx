@@ -11,8 +11,62 @@ const API = API_URL;
 const emptyForm = {
     nombre: "", razonSocial: "", rfc: "", telefono: "", email: "",
     direccion: "", ciudad: "", estado: "", pais: "México", codigoPostal: "",
-    contacto: "", contactoTelefono: "", horariosRecepcion: "", requisitosDescarga: "", notas: "", status: "Activo"
+    contacto: "", contactoTelefono: "", horariosRecepcion: "", requisitosDescarga: "", notas: "", status: "Activo",
+    // Campos SAT
+    regimenFiscal: "", regimenFiscalDesc: "",
+    usoCfdi: "", usoCfdiDesc: "",
+    numRegIdTrib: "", residenciaFiscal: "",
 };
+
+// Regímenes fiscales más comunes (SAT México)
+const REGIMENES = [
+    { clave: "601", desc: "General de Ley Personas Morales" },
+    { clave: "603", desc: "Personas Morales con Fines no Lucrativos" },
+    { clave: "605", desc: "Sueldos y Salarios e Ingresos Asimilados" },
+    { clave: "606", desc: "Arrendamiento" },
+    { clave: "607", desc: "Régimen de Enajenación o Adquisición de Bienes" },
+    { clave: "608", desc: "Demás Ingresos" },
+    { clave: "610", desc: "Residentes en el Extranjero" },
+    { clave: "611", desc: "Ingresos por Dividendos (socios y accionistas)" },
+    { clave: "612", desc: "Personas Físicas con Actividades Empresariales" },
+    { clave: "614", desc: "Ingresos por intereses" },
+    { clave: "615", desc: "Régimen de los ingresos por obtención de premios" },
+    { clave: "616", desc: "Sin obligaciones fiscales" },
+    { clave: "620", desc: "Sociedades Cooperativas de Producción" },
+    { clave: "621", desc: "Incorporación Fiscal" },
+    { clave: "622", desc: "Actividades Agrícolas, Ganaderas, Silvícolas y Pesqueras" },
+    { clave: "623", desc: "Opcional para Grupos de Sociedades" },
+    { clave: "624", desc: "Coordinados" },
+    { clave: "625", desc: "Régimen de las Actividades Empresariales con ingresos a través de Plataformas Tecnológicas" },
+    { clave: "626", desc: "Régimen Simplificado de Confianza (RESICO)" },
+];
+
+const USOS_CFDI = [
+    { clave: "G01", desc: "Adquisición de mercancias" },
+    { clave: "G02", desc: "Devoluciones, descuentos o bonificaciones" },
+    { clave: "G03", desc: "Gastos en general" },
+    { clave: "I01", desc: "Construcciones" },
+    { clave: "I02", desc: "Mobilario y equipo de oficina por inversiones" },
+    { clave: "I03", desc: "Equipo de transporte" },
+    { clave: "I04", desc: "Equipo de computo y accesorios" },
+    { clave: "I05", desc: "Dados, troqueles, moldes, matrices y herramental" },
+    { clave: "I06", desc: "Comunicaciones telefónicas" },
+    { clave: "I07", desc: "Comunicaciones satelitales" },
+    { clave: "I08", desc: "Otra maquinaria y equipo" },
+    { clave: "D01", desc: "Honorarios médicos, dentales y gastos hospitalarios" },
+    { clave: "D02", desc: "Gastos médicos por incapacidad o discapacidad" },
+    { clave: "D03", desc: "Gastos funerales" },
+    { clave: "D04", desc: "Donativos" },
+    { clave: "D05", desc: "Intereses reales efectivamente pagados por créditos hipotecarios (casa habitación)" },
+    { clave: "D06", desc: "Aportaciones voluntarias al SAR" },
+    { clave: "D07", desc: "Primas por seguros de gastos médicos" },
+    { clave: "D08", desc: "Gastos de transportación escolar obligatoria" },
+    { clave: "D09", desc: "Depósitos en cuentas para el ahorro, primas que tengan como base planes de pensiones" },
+    { clave: "D10", desc: "Pagos por servicios educativos (colegiaturas)" },
+    { clave: "S01", desc: "Sin efectos fiscales" },
+    { clave: "CP01", desc: "Pagos" },
+    { clave: "CN01", desc: "Nómina" },
+];
 
 const inputCls  = "w-full bg-white/5 border border-cyan-400/10 rounded-xl px-5 py-3 text-white outline-none focus:border-cyan-400/40 transition-all";
 const selectCls = "w-full bg-[#020617] border border-cyan-400/10 rounded-xl px-5 py-3 text-white outline-none focus:border-cyan-400/40 transition-all";
@@ -32,6 +86,7 @@ export default function DestinatariosPage() {
     const [editando,      setEditando]      = useState(null);
     const [form,          setForm]          = useState(emptyForm);
     const [loading,       setLoading]       = useState(false);
+    const [errorGuardar,  setErrorGuardar]  = useState("");
 
     const [showHistorial,     setShowHistorial]     = useState(false);
     const [destinatarioActivo, setDestinatarioActivo] = useState(null);
@@ -53,19 +108,31 @@ export default function DestinatariosPage() {
 
     const set = (f) => (e) => setForm(prev => ({ ...prev, [f]: e.target.value }));
 
-    const openNew  = () => { setEditando(null); setForm(emptyForm); setShowModal(true); };
-    const openEdit = (d) => { setEditando(d.id); setForm({ ...emptyForm, ...d }); setShowModal(true); };
+    const openNew  = () => { setEditando(null); setForm(emptyForm); setErrorGuardar(""); setShowModal(true); };
+    const openEdit = (d) => { setEditando(d.id); setForm({ ...emptyForm, ...d }); setErrorGuardar(""); setShowModal(true); };
 
+    // Si el servidor rechaza el guardado ({"error": mensaje}), el mensaje se
+    // muestra en la ventana, que sigue abierta para corregir.
     const handleSubmit = async () => {
         setLoading(true);
+        setErrorGuardar("");
         try {
             const url    = editando ? `${API}/destinatarios/${editando}` : `${API}/destinatarios`;
             const method = editando ? "PUT" : "POST";
-            await fetch(url, { method, headers, body: JSON.stringify(form) });
+            const res = await fetch(url, { method, headers, body: JSON.stringify(form) });
+            if (!res.ok) {
+                const cuerpo = await res.json().catch(() => null);
+                setErrorGuardar(cuerpo?.error || `No se pudo guardar (error ${res.status}).`);
+                return;
+            }
             setShowModal(false);
             fetchDestinatarios();
-        } catch (e) { console.error(e); }
-        setLoading(false);
+        } catch (e) {
+            console.error(e);
+            setErrorGuardar("No se pudo conectar con el servidor. Intenta de nuevo.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleDelete = async (id) => {
@@ -110,18 +177,25 @@ export default function DestinatariosPage() {
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="text-gray-400 border-b border-cyan-400/10 text-sm">
-                                    {["Nombre", "RFC", "Ciudad", "Contacto", "Status", "Acciones"].map(h => <th key={h} className="pb-4 pr-4">{h}</th>)}
+                                    {["Nombre", "RFC", "Régimen Fiscal", "Ciudad", "Contacto", "Status", "Acciones"].map(h => <th key={h} className="pb-4 pr-4">{h}</th>)}
                                 </tr>
                             </thead>
                             <tbody>
                                 {destinatarios.length === 0 && (
-                                    <tr><td colSpan={6} className="py-10 text-center text-gray-500">No hay destinatarios registrados</td></tr>
+                                    <tr><td colSpan={7} className="py-10 text-center text-gray-500">No hay destinatarios registrados</td></tr>
                                 )}
                                 {destinatarios.map((d, i) => (
                                     <motion.tr key={d.id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }}
                                         className="border-b border-cyan-400/5 hover:bg-cyan-500/5 transition-all">
                                         <td className="py-4 pr-4 font-bold text-cyan-300 text-sm">{d.nombre}</td>
                                         <td className="py-4 pr-4 text-gray-400 text-sm font-mono">{d.rfc || "—"}</td>
+                                        <td className="py-4 pr-4">
+                                            {d.regimenFiscal ? (
+                                                <span className="px-2 py-1 rounded-lg bg-purple-500/10 text-purple-300 text-xs font-mono font-bold">
+                                                    {d.regimenFiscal}
+                                                </span>
+                                            ) : <span className="text-gray-600">—</span>}
+                                        </td>
                                         <td className="py-4 pr-4 text-gray-300 text-sm">{d.ciudad || "—"}</td>
                                         <td className="py-4 pr-4 text-gray-300 text-sm">{d.contacto || "—"}</td>
                                         <td className="py-4 pr-4">
@@ -245,6 +319,38 @@ export default function DestinatariosPage() {
                                     <Field label="RFC">
                                         <input value={form.rfc} onChange={set("rfc")} className={inputCls} />
                                     </Field>
+
+                                    {/* SECCIÓN SAT */}
+                                    <div className="col-span-2 mt-2 p-4 rounded-2xl bg-purple-500/5 border border-purple-400/20">
+                                        <p className="text-purple-400 text-xs font-bold uppercase tracking-widest mb-4">Datos fiscales SAT (para timbrado CFDI)</p>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <Field label="Régimen Fiscal (SAT)" span2>
+                                                <select value={form.regimenFiscal || ""} onChange={e => {
+                                                    const reg = REGIMENES.find(r => r.clave === e.target.value);
+                                                    setForm(prev => ({ ...prev, regimenFiscal: e.target.value, regimenFiscalDesc: reg?.desc || "" }));
+                                                }} className={selectCls}>
+                                                    <option value="">Seleccionar régimen fiscal...</option>
+                                                    {REGIMENES.map(r => <option key={r.clave} value={r.clave}>{r.clave} — {r.desc}</option>)}
+                                                </select>
+                                            </Field>
+                                            <Field label="Uso CFDI (SAT)" span2>
+                                                <select value={form.usoCfdi || ""} onChange={e => {
+                                                    const uso = USOS_CFDI.find(u => u.clave === e.target.value);
+                                                    setForm(prev => ({ ...prev, usoCfdi: e.target.value, usoCfdiDesc: uso?.desc || "" }));
+                                                }} className={selectCls}>
+                                                    <option value="">Seleccionar uso de CFDI...</option>
+                                                    {USOS_CFDI.map(u => <option key={u.clave} value={u.clave}>{u.clave} — {u.desc}</option>)}
+                                                </select>
+                                            </Field>
+                                            <Field label="Num. Reg. ID Trib. (extranjeros)" span2>
+                                                <input value={form.numRegIdTrib || ""} onChange={set("numRegIdTrib")} placeholder="Solo si es extranjero" className={inputCls} />
+                                            </Field>
+                                        </div>
+                                        <p className="text-purple-300/60 text-xs mt-3">
+                                            El código postal fiscal es el campo «Código Postal» de la dirección, más abajo.
+                                        </p>
+                                    </div>
+
                                     <Field label="Teléfono">
                                         <input value={form.telefono} onChange={set("telefono")} className={inputCls} />
                                     </Field>
@@ -289,6 +395,11 @@ export default function DestinatariosPage() {
                                     </Field>
                                 </div>
                             </div>
+                            {errorGuardar && (
+                                <p role="alert" className="mx-8 mt-4 px-4 py-3 rounded-xl border border-red-400/30 bg-red-500/10 text-red-300 text-sm flex-shrink-0">
+                                    {errorGuardar}
+                                </p>
+                            )}
                             <div className="flex gap-4 p-8 pt-4 flex-shrink-0">
                                 <button onClick={() => setShowModal(false)} className="flex-1 py-4 rounded-2xl border border-white/10 text-gray-400 hover:bg-white/5 transition-all font-bold">Cancelar</button>
                                 <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleSubmit} disabled={loading}

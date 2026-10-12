@@ -135,6 +135,7 @@ export default function ClientesPage() {
     const [loading,   setLoading]   = useState(false);
     const [busqueda,  setBusqueda]  = useState("");
     const [activeTab, setActiveTab] = useState("pagos");
+    const [errorGuardar, setErrorGuardar] = useState("");
 
     const [contactos,    setContactos]    = useState([]);
     const [nuevoContacto, setNuevoContacto] = useState({ ...emptyContacto, telefonos: [] });
@@ -163,6 +164,7 @@ export default function ClientesPage() {
         setNuevoContacto({ ...emptyContacto, telefonos: [] });
         setNuevoTel({ ...emptyTelefono });
         setActiveTab("pagos");
+        setErrorGuardar("");
         setShowModal(true);
     };
 
@@ -173,6 +175,7 @@ export default function ClientesPage() {
         setNuevoContacto({ ...emptyContacto, telefonos: [] });
         setNuevoTel({ ...emptyTelefono });
         setActiveTab("pagos");
+        setErrorGuardar("");
         setShowModal(true);
     };
 
@@ -191,8 +194,11 @@ export default function ClientesPage() {
     };
     const quitarContacto = (idx) => setContactos(cs => cs.filter((_, i) => i !== idx));
 
+    // Si el servidor rechaza el guardado ({"error": mensaje}), el mensaje se
+    // muestra en la ventana, que sigue abierta para corregir.
     const handleSubmit = async () => {
         setLoading(true);
+        setErrorGuardar("");
         try {
             const numFields = ["limiteCreditoPesos","limiteCreditoDolares","saldoFacturadoPesos","saldoFacturadoDolares",
                 "viajesPendFacturarPesos","viajesPendFacturarDolares"];
@@ -202,11 +208,20 @@ export default function ClientesPage() {
 
             const url    = editando ? `${API}/clients/${editando}` : `${API}/clients`;
             const method = editando ? "PUT" : "POST";
-            await fetch(url, { method, headers, body: JSON.stringify(payload) });
+            const res = await fetch(url, { method, headers, body: JSON.stringify(payload) });
+            if (!res.ok) {
+                const cuerpo = await res.json().catch(() => null);
+                setErrorGuardar(cuerpo?.error || `No se pudo guardar (error ${res.status}).`);
+                return;
+            }
             setShowModal(false);
             fetchClientes();
-        } catch (e) { console.error(e); }
-        setLoading(false);
+        } catch (e) {
+            console.error(e);
+            setErrorGuardar("No se pudo conectar con el servidor. Intenta de nuevo.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleDelete = async (id) => {
@@ -689,6 +704,11 @@ export default function ClientesPage() {
                                 </div>
                             </div>
 
+                            {errorGuardar && (
+                                <p role="alert" className="mx-5 sm:mx-8 mt-4 px-4 py-3 rounded-xl border border-red-400/30 bg-red-500/10 text-red-300 text-sm flex-shrink-0">
+                                    {errorGuardar}
+                                </p>
+                            )}
                             <div className="flex gap-4 p-5 sm:p-8 pt-4 flex-shrink-0 border-t border-cyan-400/10">
                                 <button onClick={() => setShowModal(false)} className="flex-1 py-3 sm:py-4 rounded-2xl border border-white/10 text-gray-400 hover:bg-white/5 transition-all font-bold">Cancelar</button>
                                 <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleSubmit} disabled={loading}
