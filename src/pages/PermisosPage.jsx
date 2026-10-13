@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
-import { FaShieldAlt, FaCheck, FaSave, FaSync } from "react-icons/fa";
+import { FaShieldAlt, FaCheck, FaSave, FaSync, FaExclamationTriangle } from "react-icons/fa";
 
 import { API_URL } from "../config/api";
 const API = API_URL;
@@ -130,6 +130,15 @@ export default function PermisosPage() {
                         <button onClick={guardar} disabled={saving || !dirty} className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 font-bold hover:bg-cyan-500/30 transition-all disabled:opacity-40">
                             <FaSave /> {saving ? "Guardando..." : "Guardar Cambios"}
                         </button>
+                    </div>
+                </div>
+
+                {/* La matriz se guarda, pero ningún código la aplica todavía: el acceso lo decide solo el rol (P1-7, hallazgo F4). */}
+                <div className="mb-6 rounded-2xl border border-yellow-400/20 bg-yellow-500/5 p-5 flex items-start gap-4">
+                    <FaExclamationTriangle className="text-yellow-400 text-xl flex-shrink-0 mt-0.5" />
+                    <div>
+                        <p className="text-yellow-300 font-bold text-sm mb-1">Esta matriz todavía no se aplica.</p>
+                        <p className="text-gray-400 text-sm">Los permisos que marques aquí se guardan, pero el sistema aún no los usa para dar ni quitar acceso. Hoy el acceso depende solo del rol: ADMIN puede todo; OPERADOR puede consultar, crear, editar y eliminar en casi todos los módulos, aunque aquí tenga «Eliminar» desmarcado; REPORTES solo puede consultar. Aplicar la matriz en el servidor es un pendiente de alta prioridad.</p>
                     </div>
                 </div>
 

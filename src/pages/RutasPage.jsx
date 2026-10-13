@@ -94,6 +94,15 @@ function Check({ label, checked, onChange }) {
     );
 }
 
+// Mensaje para un guardado o un borrado que el servidor rechazó: el que manda
+// ({"error": mensaje}) o, si no hay, uno con el código. Un 403 llega con el
+// cuerpo por defecto de Spring ("Forbidden"): falta de permiso o sesión vencida.
+async function mensajeDeError(res, accion) {
+    if (res.status === 403) return "No tienes permiso para esta acción o tu sesión expiró.";
+    const cuerpo = await res.json().catch(() => null);
+    return cuerpo?.error || `No se pudo ${accion} la ruta (error ${res.status}).`;
+}
+
 export default function RutasPage() {
     const [rutas,          setRutas]          = useState([]);
     const [clientes,       setClientes]       = useState([]);
@@ -105,6 +114,8 @@ export default function RutasPage() {
     const [loading,        setLoading]        = useState(false);
     const [busqueda,       setBusqueda]       = useState("");
     const [activeTab,      setActiveTab]      = useState("trayectos");
+    const [errorGuardar,   setErrorGuardar]   = useState("");
+    const [errorBorrar,    setErrorBorrar]    = useState("");
 
     const [trayectos,        setTrayectos]        = useState([]);
     const [nuevoTrayecto,    setNuevoTrayecto]    = useState(emptyTrayecto());
@@ -158,6 +169,7 @@ export default function RutasPage() {
         setNotificaciones([]); setNuevaNotificacion({ ...emptyNotificacion });
         setInfoAdicional({ observaciones: "", referenciaInterna: "" });
         setActiveTab("trayectos");
+        setErrorGuardar("");
         setShowModal(true);
     };
 
@@ -174,6 +186,7 @@ export default function RutasPage() {
         setNuevaMercancia({ ...emptyMercancia });
         setNuevaNotificacion({ ...emptyNotificacion });
         setActiveTab("trayectos");
+        setErrorGuardar("");
         setShowModal(true);
     };
 
@@ -226,8 +239,11 @@ export default function RutasPage() {
     };
     const quitarNotificacion = (idx) => setNotificaciones(ns => ns.filter((_, i) => i !== idx));
 
+    // Si el servidor rechaza el guardado, el mensaje se muestra en la ventana,
+    // que sigue abierta para corregir.
     const handleSubmit = async () => {
         setLoading(true);
+        setErrorGuardar("");
         try {
             const payload = {
                 ...form,
@@ -242,17 +258,34 @@ export default function RutasPage() {
             };
             const url    = editando ? `${API}/rutas/${editando}` : `${API}/rutas`;
             const method = editando ? "PUT" : "POST";
-            await fetch(url, { method, headers, body: JSON.stringify(payload) });
+            const res = await fetch(url, { method, headers, body: JSON.stringify(payload) });
+            if (!res.ok) {
+                setErrorGuardar(await mensajeDeError(res, "guardar"));
+                return;
+            }
             setShowModal(false);
             fetchAll();
-        } catch (e) { console.error(e); }
-        setLoading(false);
+        } catch (e) {
+            console.error(e);
+            setErrorGuardar("No se pudo conectar con el servidor. Intenta de nuevo.");
+        } finally {
+            setLoading(false);
+        }
     };
 
+    // Si el servidor rechaza el borrado (por ejemplo, 409 porque la ruta tiene
+    // viajes), el mensaje se muestra en un letrero encima de la tabla.
     const handleDelete = async (id) => {
         if (!confirm("¿Eliminar esta ruta?")) return;
-        try { await fetch(`${API}/rutas/${id}`, { method: "DELETE", headers }); fetchAll(); }
-        catch (e) { console.error(e); }
+        setErrorBorrar("");
+        try {
+            const res = await fetch(`${API}/rutas/${id}`, { method: "DELETE", headers });
+            if (!res.ok) setErrorBorrar(await mensajeDeError(res, "eliminar"));
+        } catch (e) {
+            console.error(e);
+            setErrorBorrar("No se pudo conectar con el servidor. Intenta de nuevo.");
+        }
+        fetchAll();
     };
 
     const filtradas = rutas.filter(r => {
@@ -300,6 +333,13 @@ export default function RutasPage() {
                         placeholder="Buscar por folio, origen, destino o cliente..."
                         className="w-full max-w-md bg-white/5 border border-cyan-400/10 rounded-2xl px-6 py-3 text-white outline-none focus:border-cyan-400/40 transition-all" />
                 </div>
+
+                {errorBorrar && (
+                    <div role="alert" className="mb-6 px-4 py-3 rounded-xl border border-red-400/30 bg-red-500/10 text-red-300 text-sm flex items-start justify-between gap-4">
+                        <span>{errorBorrar}</span>
+                        <button onClick={() => setErrorBorrar("")} aria-label="Cerrar aviso" className="text-red-300 hover:text-white flex-shrink-0 mt-0.5"><FaTimes /></button>
+                    </div>
+                )}
 
                 <div className="rounded-3xl bg-white/5 border border-cyan-400/10 p-4 md:p-8">
                     <h2 className="text-2xl md:text-3xl font-black text-cyan-300 mb-8 flex items-center gap-3"><FaRoute /> Rutas Registradas</h2>
@@ -839,6 +879,11 @@ export default function RutasPage() {
                                 </div>
                             </div>
 
+                            {errorGuardar && (
+                                <p role="alert" className="mx-5 sm:mx-8 mt-4 px-4 py-3 rounded-xl border border-red-400/30 bg-red-500/10 text-red-300 text-sm flex-shrink-0">
+                                    {errorGuardar}
+                                </p>
+                            )}
                             <div className="flex gap-4 p-5 sm:p-8 pt-4 flex-shrink-0 border-t border-cyan-400/10">
                                 <button onClick={() => setShowModal(false)} className="flex-1 py-3 sm:py-4 rounded-2xl border border-white/10 text-gray-400 hover:bg-white/5 transition-all font-bold">Cancelar</button>
                                 <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleSubmit} disabled={loading}
