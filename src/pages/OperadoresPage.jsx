@@ -167,6 +167,16 @@ function diasParaVencer(fecha) {
     return Math.ceil((new Date(fecha) - new Date()) / (1000 * 60 * 60 * 24));
 }
 
+// Mensaje para una petición que el servidor rechazó: el que manda
+// ({"error": mensaje}) o, si no hay, uno con el código. Desde F4-a, el 403 de
+// la seguridad también trae su mensaje en español (sin permiso o sesión vencida).
+async function mensajeDeError(res, queFallo) {
+    const cuerpo = await res.json().catch(() => null);
+    if (cuerpo?.error) return cuerpo.error;
+    if (res.status === 403) return "No tienes permiso para esta acción o tu sesión expiró.";
+    return `${queFallo} (error ${res.status}).`;
+}
+
 export default function OperadoresPage() {
     const [operadores, setOperadores] = useState([]);
     const [showModal,  setShowModal]  = useState(false);
@@ -182,15 +192,29 @@ export default function OperadoresPage() {
     const [documentos, setDocumentos] = useState([]);
     const [nuevoDoc,   setNuevoDoc]   = useState({ ...emptyDocumento });
 
+    const [errorGuardar, setErrorGuardar] = useState("");
+    const [errorBorrar,  setErrorBorrar]  = useState("");
+    const [errorCargar,  setErrorCargar]  = useState("");
+
     const token = localStorage.getItem("token");
     const headers = { "Content-Type": "application/json", ...(token && { Authorization: `Bearer ${token}` }) };
 
+    // Si la lista no se puede cargar, se avisa encima de la tabla y se conserva
+    // la que ya se mostraba (antes quedaba vacía, como si no hubiera operadores).
     const fetchOperadores = async () => {
         try {
-            const res  = await fetch(`${API}/drivers`, { headers });
+            const res = await fetch(`${API}/drivers`, { headers });
+            if (!res.ok) {
+                setErrorCargar(await mensajeDeError(res, "No se pudo cargar la lista de operadores"));
+                return;
+            }
             const data = await res.json();
             setOperadores(Array.isArray(data) ? data : []);
-        } catch (e) { console.error(e); }
+            setErrorCargar("");
+        } catch (e) {
+            console.error(e);
+            setErrorCargar("No se pudo conectar con el servidor. Intenta de nuevo.");
+        }
     };
 
     useEffect(() => { fetchOperadores(); }, []);
@@ -217,6 +241,7 @@ export default function OperadoresPage() {
     const openNew = () => {
         setEditando(null);
         setForm(emptyForm);
+        setErrorGuardar("");
         setValores(emptyValoresLiquidar);
         setDocumentos([]);
         setNuevoDoc({ ...emptyDocumento });
@@ -228,6 +253,7 @@ export default function OperadoresPage() {
     const openEdit = (o) => {
         setEditando(o.id);
         setForm({ ...emptyForm, ...o });
+        setErrorGuardar("");
         try {
             const parsed = o.valoresLiquidarJson ? JSON.parse(o.valoresLiquidarJson) : emptyValoresLiquidar;
             setValores({ ...emptyValoresLiquidar, ...parsed, tasas: { pesos: { ...emptyTasasMoneda(), ...(parsed.tasas?.pesos || {}) }, dolares: { ...emptyTasasMoneda(), ...(parsed.tasas?.dolares || {}) } } });
@@ -246,8 +272,11 @@ export default function OperadoresPage() {
     };
     const quitarDocumento = (idx) => setDocumentos(ds => ds.filter((_, i) => i !== idx));
 
+    // Si el servidor rechaza el guardado, el mensaje se muestra en la ventana,
+    // que sigue abierta para corregir.
     const handleSubmit = async () => {
         setLoading(true);
+        setErrorGuardar("");
         try {
             const url    = editando ? `${API}/drivers/${editando}` : `${API}/drivers`;
             const method = editando ? "PUT" : "POST";
@@ -257,17 +286,34 @@ export default function OperadoresPage() {
             payload.valoresLiquidarJson = JSON.stringify(valores);
             payload.documentosJson = JSON.stringify(documentos);
 
-            await fetch(url, { method, headers, body: JSON.stringify(payload) });
+            const res = await fetch(url, { method, headers, body: JSON.stringify(payload) });
+            if (!res.ok) {
+                setErrorGuardar(await mensajeDeError(res, "No se pudo guardar el operador"));
+                return;
+            }
             setShowModal(false);
             fetchOperadores();
-        } catch (e) { console.error(e); }
-        setLoading(false);
+        } catch (e) {
+            console.error(e);
+            setErrorGuardar("No se pudo conectar con el servidor. Intenta de nuevo.");
+        } finally {
+            setLoading(false);
+        }
     };
 
+    // Si el servidor rechaza el borrado, el mensaje se muestra en un letrero
+    // encima de la tabla.
     const handleDelete = async (id) => {
         if (!confirm("¿Eliminar este operador?")) return;
-        try { await fetch(`${API}/drivers/${id}`, { method: "DELETE", headers }); fetchOperadores(); }
-        catch (e) { console.error(e); }
+        setErrorBorrar("");
+        try {
+            const res = await fetch(`${API}/drivers/${id}`, { method: "DELETE", headers });
+            if (!res.ok) setErrorBorrar(await mensajeDeError(res, "No se pudo eliminar el operador"));
+        } catch (e) {
+            console.error(e);
+            setErrorBorrar("No se pudo conectar con el servidor. Intenta de nuevo.");
+        }
+        fetchOperadores();
     };
 
     const filtrados = operadores.filter(o =>
@@ -319,6 +365,20 @@ export default function OperadoresPage() {
                         placeholder="Buscar por nombre, licencia o placas..."
                         className="w-full max-w-md bg-white/5 border border-cyan-400/10 rounded-2xl px-6 py-3 text-white outline-none focus:border-cyan-400/40 transition-all" />
                 </div>
+
+                {errorCargar && (
+                    <div role="alert" className="mb-6 px-4 py-3 rounded-xl border border-red-400/30 bg-red-500/10 text-red-300 text-sm flex items-start justify-between gap-4">
+                        <span>{errorCargar}</span>
+                        <button onClick={() => setErrorCargar("")} aria-label="Cerrar aviso" className="text-red-300 hover:text-white flex-shrink-0 mt-0.5"><FaTimes /></button>
+                    </div>
+                )}
+
+                {errorBorrar && (
+                    <div role="alert" className="mb-6 px-4 py-3 rounded-xl border border-red-400/30 bg-red-500/10 text-red-300 text-sm flex items-start justify-between gap-4">
+                        <span>{errorBorrar}</span>
+                        <button onClick={() => setErrorBorrar("")} aria-label="Cerrar aviso" className="text-red-300 hover:text-white flex-shrink-0 mt-0.5"><FaTimes /></button>
+                    </div>
+                )}
 
                 <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
                     className="rounded-3xl bg-white/5 border border-cyan-400/10 backdrop-blur-xl p-4 md:p-8">
@@ -760,6 +820,11 @@ export default function OperadoresPage() {
                                 </div>
                             </div>
 
+                            {errorGuardar && (
+                                <p role="alert" className="mx-5 sm:mx-8 mt-4 px-4 py-3 rounded-xl border border-red-400/30 bg-red-500/10 text-red-300 text-sm flex-shrink-0">
+                                    {errorGuardar}
+                                </p>
+                            )}
                             <div className="flex gap-4 p-5 sm:p-8 pt-4 flex-shrink-0 border-t border-cyan-400/10">
                                 <button onClick={() => setShowModal(false)} className="flex-1 py-3 sm:py-4 rounded-2xl border border-white/10 text-gray-400 hover:bg-white/5 transition-all font-bold">Cancelar</button>
                                 <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleSubmit} disabled={loading}
