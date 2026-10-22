@@ -10,27 +10,14 @@ import { useNavigate } from "react-router-dom";
 import { API_URL } from "../config/api";
 const API = API_URL;
 
-const FLUJO = ["PENDIENTE", "ASIGNADO", "EN_RUTA", "ENTREGADO", "FACTURADO", "COBRADO"];
-
 const normalizar = (s) => (s || "").toUpperCase().replace(/\s+/g, "_").replace(/\s/g, "_");
 
-const statusColor = (s) => {
-    if (!s) return "text-gray-300 bg-white/5 border-white/10";
-    const m = normalizar(s);
-    if (m === "PENDIENTE")  return "text-yellow-300 bg-yellow-500/10 border-yellow-400/30";
-    if (m === "ASIGNADO")   return "text-blue-300 bg-blue-500/10 border-blue-400/30";
-    if (m === "EN_RUTA")    return "text-cyan-300 bg-cyan-500/10 border-cyan-400/30";
-    if (m === "ENTREGADO")  return "text-green-300 bg-green-500/10 border-green-400/30";
-    if (m === "FACTURADO")  return "text-purple-300 bg-purple-500/10 border-purple-400/30";
-    if (m === "COBRADO")    return "text-emerald-300 bg-emerald-500/10 border-emerald-400/30";
-    if (m === "CANCELADO")  return "text-red-300 bg-red-500/10 border-red-400/30";
-    return "text-gray-300 bg-white/5 border-white/10";
-};
-
-const siguienteStatus = (actual) => {
-    const idx = FLUJO.indexOf(normalizar(actual));
-    return idx >= 0 && idx < FLUJO.length - 1 ? FLUJO[idx + 1] : null;
-};
+// Estatus de viaje (VID-I2): la lista fija del backend, GET /api/estatus-viaje,
+// con clave, descripción, color (#rrggbb), orden y transiciones; la primera
+// transición de cada estatus es su avance normal. Un estatus que no está en la
+// lista se muestra tal cual, en gris.
+const SIN_COLOR = "text-gray-300 bg-white/5 border-white/10";
+const estiloStatus = (e) => e ? { color: e.color, backgroundColor: `${e.color}1a`, borderColor: `${e.color}4d` } : undefined;
 
 const emptyForm = {
     clienteId: "", rutaId: "", driverId: "", vehicleId: "",
@@ -63,6 +50,7 @@ export default function ViajesPage() {
     const [rutasFiltradas, setRutasFiltradas] = useState([]);
     const [drivers,        setDrivers]        = useState([]);
     const [vehicles,       setVehicles]       = useState([]);
+    const [estatus,        setEstatus]        = useState([]);
     const [showModal,      setShowModal]      = useState(false);
     const [form,           setForm]           = useState(emptyForm);
     const [loading,        setLoading]        = useState(false);
@@ -103,20 +91,27 @@ export default function ViajesPage() {
     const headers = { "Content-Type": "application/json", ...(token && { Authorization: `Bearer ${token}` }) };
     const usuario = localStorage.getItem("usuario") || "Sistema";
 
+    const estatusDe       = (s) => estatus.find(e => e.clave === normalizar(s));
+    const siguienteStatus = (actual) => estatusDe(actual)?.siguientes?.[0] ?? null;
+    const textoStatus     = (s) => estatusDe(s)?.descripcion || s || "-";
+
     const fetchAll = async () => {
         try {
-            const [v, c, r, d, vh] = await Promise.all([
+            // Si la lista de estatus no carga, los viajes se muestran igual, con sus claves.
+            const [v, c, r, d, vh, es] = await Promise.all([
                 fetch(`${API}/orders`, { headers }).then(r => r.json()),
                 fetch(`${API}/clients`, { headers }).then(r => r.json()),
                 fetch(`${API}/rutas`, { headers }).then(r => r.json()),
                 fetch(`${API}/drivers`, { headers }).then(r => r.json()),
                 fetch(`${API}/vehicles`, { headers }).then(r => r.json()),
+                fetch(`${API}/api/estatus-viaje`, { headers }).then(r => (r.ok ? r.json() : [])).catch(() => []),
             ]);
             setViajes(Array.isArray(v) ? v : []);
             setClientes(Array.isArray(c) ? c : []);
             setTodasRutas(Array.isArray(r) ? r : []);
             setDrivers(Array.isArray(d) ? d : []);
             setVehicles(Array.isArray(vh) ? vh : []);
+            setEstatus(Array.isArray(es) ? es : []);
         } catch (e) { console.error(e); }
     };
 
@@ -182,7 +177,7 @@ export default function ViajesPage() {
                 headers: { ...headers, "X-Usuario": usuario }
             });
             if (res.ok) {
-                showMsgFn(true, `Status actualizado a ${nuevoStatus}`);                fetchAll();
+                showMsgFn(true, `Status actualizado a ${textoStatus(nuevoStatus)}`);                fetchAll();
             } else {
                 const txt = await res.text();
                 showMsgFn(false, txt);
@@ -505,8 +500,9 @@ export default function ViajesPage() {
                                                 {v.cost ? `$${v.cost.toLocaleString()}` : "-"}
                                             </td>
                                             <td className="py-4 pr-4">
-                                                <span className={`px-3 py-1 rounded-full border text-xs font-bold ${statusColor(v.status)}`}>
-                                                    {v.status || "-"}
+                                                <span className={`px-3 py-1 rounded-full border text-xs font-bold ${estatusDe(v.status) ? "" : SIN_COLOR}`}
+                                                    style={estiloStatus(estatusDe(v.status))}>
+                                                    {textoStatus(v.status)}
                                                 </span>
                                             </td>
                                             <td className="py-4 pr-4">
@@ -516,7 +512,7 @@ export default function ViajesPage() {
                                                             ${siguiente === "ENTREGADO"
                                                                 ? "bg-green-500/10 border-green-400/30 text-green-300 hover:bg-green-500/20"
                                                                 : "bg-cyan-500/10 border-cyan-400/20 text-cyan-300 hover:bg-cyan-500/20"}`}>
-                                                        <FaArrowRight size={10} /> {siguiente}
+                                                        <FaArrowRight size={10} /> {textoStatus(siguiente)}
                                                     </button>
                                                 )}
                                             </td>
@@ -666,8 +662,9 @@ export default function ViajesPage() {
                                                 }`} />
                                                 <div className="bg-white/5 border border-cyan-400/10 rounded-xl p-4">
                                                     <div className="flex items-center justify-between mb-1">
-                                                        <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${statusColor(e.statusNuevo)}`}>
-                                                            {e.statusNuevo || e.accion}
+                                                        <span className={`px-2 py-0.5 rounded-full text-xs font-bold ${estatusDe(e.statusNuevo) ? "" : SIN_COLOR}`}
+                                                            style={estiloStatus(estatusDe(e.statusNuevo))}>
+                                                            {e.statusNuevo ? textoStatus(e.statusNuevo) : e.accion}
                                                         </span>
                                                         <span className="text-gray-500 text-xs">{e.fecha} {e.hora}</span>
                                                     </div>
