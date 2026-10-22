@@ -33,7 +33,7 @@ const emptyForm = {
     identificadorConvoy: "", operadorNombre: "", grupoUnidadesNumero: "1", grupoUnidadesNombre: "GENERAL",
     // Base
     plate: "", brand: "", model: "", year: "", tipo: "", color: "", numSerie: "", numMotor: "",
-    capacidadCarga: "", notas: "", status: "Disponible", odometroKm: "",
+    capacidadCarga: "", notas: "", status: "DISPONIBLE", odometroKm: "",
     // SAT
     configAutotransporte: "", configAutotransporteDesc: "",
     tipoPermiso: "", tipoPermisoDesc: "", numPermisoSct: "",
@@ -166,6 +166,12 @@ function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2
     );
 }
 
+// Estatus de unidades (TEC-ESTADOS y VID-I3): la lista fija del backend,
+// GET /api/estatus-unidad, con clave, descripción, color (#rrggbb) y orden. Un
+// estatus que no está en la lista (heredado) se muestra tal cual, en gris.
+const SIN_COLOR = "text-gray-300 bg-white/5 border-white/10";
+const estiloStatus = (e) => e ? { color: e.color, backgroundColor: `${e.color}1a`, borderColor: `${e.color}4d` } : undefined;
+
 // Mensaje para una petición que el servidor rechazó: el que manda
 // ({"error": mensaje}) o, si no hay, uno con el código. Desde F4-a, el 403 de
 // la seguridad también trae su mensaje en español (sin permiso o sesión vencida).
@@ -194,6 +200,7 @@ export default function VehiclesPage() {
     const [errorGuardar, setErrorGuardar] = useState("");
     const [errorBorrar,  setErrorBorrar]  = useState("");
     const [errorCargar,  setErrorCargar]  = useState("");
+    const [estatusUnidad, setEstatusUnidad] = useState([]);
     // Odómetro con el que se abrió la edición. Si el usuario no lo cambia, no se
     // envía: así se conserva el que el servidor suma con cada viaje cobrado.
     const [odometroOriginal, setOdometroOriginal] = useState(null);
@@ -204,6 +211,12 @@ export default function VehiclesPage() {
     // Si la lista no se puede cargar, se avisa encima de la tabla y se conserva
     // la que ya se mostraba (antes quedaba vacía, como si no hubiera vehículos).
     const fetchVehicles = async () => {
+        // La lista de estatus (TEC-ESTADOS) se pide junto con las unidades; si no
+        // carga, se conserva la anterior y un estatus sin lista se ve en gris.
+        fetch(`${API}/api/estatus-unidad`, { headers })
+            .then(r => (r.ok ? r.json() : null))
+            .then(l => { if (Array.isArray(l)) setEstatusUnidad(l); })
+            .catch(() => {});
         try {
             const res = await fetch(`${API}/vehicles`, { headers });
             if (!res.ok) {
@@ -323,9 +336,11 @@ export default function VehiclesPage() {
         v.model?.toLowerCase().includes(busqueda.toLowerCase())
     );
 
-    const disponibles   = vehicles.filter(v => v.status === "Disponible").length;
-    const enRuta        = vehicles.filter(v => v.status === "En Ruta").length;
-    const mantenimiento = vehicles.filter(v => v.status === "Mantenimiento").length;
+    // Estatus de la lista (TEC-ESTADOS); uno heredado no está en ella.
+    const estatusDe     = (s) => estatusUnidad.find(e => e.clave === s);
+    const disponibles   = vehicles.filter(v => v.status === "DISPONIBLE").length;
+    const enRuta        = vehicles.filter(v => v.status === "EN_RUTA").length;
+    const mantenimiento = vehicles.filter(v => v.status === "MANTENIMIENTO").length;
 
     return (
         <div className="flex min-h-screen bg-[#020617] text-white overflow-hidden">
@@ -421,12 +436,10 @@ export default function VehiclesPage() {
                                                 : <span className="text-gray-600">-</span>}
                                         </td>
                                         <td className="py-4 pr-5">
-                                            <span className={`px-3 py-1 rounded-full border text-xs font-bold whitespace-nowrap ${
-                                                v.status === "Disponible"    ? "text-green-300 bg-green-500/10 border-green-400/30" :
-                                                v.status === "En Ruta"       ? "text-blue-300 bg-blue-500/10 border-blue-400/30" :
-                                                v.status === "Mantenimiento" ? "text-yellow-300 bg-yellow-500/10 border-yellow-400/30" :
-                                                "text-red-300 bg-red-500/10 border-red-400/30"}`}>
-                                                {v.status}
+                                            <span className={`px-3 py-1 rounded-full border text-xs font-bold whitespace-nowrap ${estatusDe(v.status) ? "" : SIN_COLOR}`}
+                                                style={estiloStatus(estatusDe(v.status))}
+                                                title={estatusDe(v.status) ? undefined : "Estatus heredado: elige uno de la lista al editar"}>
+                                                {estatusDe(v.status)?.descripcion || v.status || "-"}
                                             </span>
                                         </td>
                                         <td className="py-4">
@@ -499,7 +512,11 @@ export default function VehiclesPage() {
                                     </Field>
                                     <Field label="Status">
                                         <select value={form.status} onChange={set("status")} className={selectCls}>
-                                            <option>Disponible</option><option>En Ruta</option><option>Mantenimiento</option><option>Fuera de Servicio</option>
+                                            {/* Un estatus heredado se ve, pero no se puede elegir (TEC-ESTADOS). */}
+                                            {form.status && !estatusDe(form.status) && (
+                                                <option value={form.status} disabled={estatusUnidad.length > 0}>{form.status} (heredado)</option>
+                                            )}
+                                            {estatusUnidad.map(e => <option key={e.clave} value={e.clave}>{e.descripcion}</option>)}
                                         </select>
                                     </Field>
                                     <Field label="Operador">

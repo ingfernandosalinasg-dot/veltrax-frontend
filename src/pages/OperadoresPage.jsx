@@ -42,7 +42,7 @@ const emptyForm = {
     // Encabezado general
     name: "", apellidos: "", curp: "", fechaContratacion: "", sucursal: "",
     telefono: "", celular: "", registroPatronal: "", observaciones: "", email: "",
-    status: "Disponible",
+    status: "DISPONIBLE",
     // Base
     licenseNumber: "", licenciaTipo: "E", licenseExpiration: "",
     vehiculoTipo: "", vehiculoMarca: "", vehiculoModelo: "", vehiculoAnio: "",
@@ -167,6 +167,12 @@ function diasParaVencer(fecha) {
     return Math.ceil((new Date(fecha) - new Date()) / (1000 * 60 * 60 * 24));
 }
 
+// Estatus de operadores (TEC-ESTADOS): la lista fija del backend,
+// GET /api/estatus-operador, con clave, descripción, color (#rrggbb) y orden. Un
+// estatus que no está en la lista (heredado) se muestra tal cual, en gris.
+const SIN_COLOR = "text-gray-300 bg-white/5 border-white/10";
+const estiloStatus = (e) => e ? { color: e.color, backgroundColor: `${e.color}1a`, borderColor: `${e.color}4d` } : undefined;
+
 // Mensaje para una petición que el servidor rechazó: el que manda
 // ({"error": mensaje}) o, si no hay, uno con el código. Desde F4-a, el 403 de
 // la seguridad también trae su mensaje en español (sin permiso o sesión vencida).
@@ -195,6 +201,7 @@ export default function OperadoresPage() {
     const [errorGuardar, setErrorGuardar] = useState("");
     const [errorBorrar,  setErrorBorrar]  = useState("");
     const [errorCargar,  setErrorCargar]  = useState("");
+    const [estatusOperador, setEstatusOperador] = useState([]);
 
     const token = localStorage.getItem("token");
     const headers = { "Content-Type": "application/json", ...(token && { Authorization: `Bearer ${token}` }) };
@@ -202,6 +209,12 @@ export default function OperadoresPage() {
     // Si la lista no se puede cargar, se avisa encima de la tabla y se conserva
     // la que ya se mostraba (antes quedaba vacía, como si no hubiera operadores).
     const fetchOperadores = async () => {
+        // La lista de estatus (TEC-ESTADOS) se pide junto con los operadores; si no
+        // carga, se conserva la anterior y un estatus sin lista se ve en gris.
+        fetch(`${API}/api/estatus-operador`, { headers })
+            .then(r => (r.ok ? r.json() : null))
+            .then(l => { if (Array.isArray(l)) setEstatusOperador(l); })
+            .catch(() => {});
         try {
             const res = await fetch(`${API}/drivers`, { headers });
             if (!res.ok) {
@@ -322,7 +335,9 @@ export default function OperadoresPage() {
         o.vehiculoPlacas?.toLowerCase().includes(busqueda.toLowerCase())
     );
 
-    const activos   = operadores.filter(o => o.status === "Disponible").length;
+    // Estatus de la lista (TEC-ESTADOS); uno heredado no está en ella.
+    const estatusDe = (s) => estatusOperador.find(e => e.clave === s);
+    const activos   = operadores.filter(o => o.status === "DISPONIBLE").length;
     const porVencer = operadores.filter(o => { const d = diasParaVencer(o.licenseExpiration); return d !== null && d <= 30 && d >= 0; }).length;
     const vencidos  = operadores.filter(o => { const d = diasParaVencer(o.licenseExpiration); return d !== null && d < 0; }).length;
 
@@ -419,11 +434,11 @@ export default function OperadoresPage() {
                                             <td className="py-4 pr-5 text-cyan-300 font-mono text-sm whitespace-nowrap">{o.vehiculoPlacas || "-"}</td>
                                             <td className="py-4 pr-5 text-gray-400 whitespace-nowrap">{o.telefono || "-"}</td>
                                             <td className="py-4 pr-5">
-                                                <span className={`px-3 py-1 rounded-full border text-xs font-bold whitespace-nowrap ${
-                                                    o.status === "Disponible" ? "text-green-300 bg-green-500/10 border-green-400/30" :
-                                                    o.status === "En Ruta"    ? "text-blue-300 bg-blue-500/10 border-blue-400/30" :
-                                                    o.status === "Descanso"   ? "text-yellow-300 bg-yellow-500/10 border-yellow-400/30" :
-                                                    "text-red-300 bg-red-500/10 border-red-400/30"}`}>{o.status}</span>
+                                                <span className={`px-3 py-1 rounded-full border text-xs font-bold whitespace-nowrap ${estatusDe(o.status) ? "" : SIN_COLOR}`}
+                                                    style={estiloStatus(estatusDe(o.status))}
+                                                    title={estatusDe(o.status) ? undefined : "Estatus heredado: elige uno de la lista al editar"}>
+                                                    {estatusDe(o.status)?.descripcion || o.status || "-"}
+                                                </span>
                                             </td>
                                             <td className="py-4">
                                                 <div className="flex gap-2">
@@ -488,7 +503,11 @@ export default function OperadoresPage() {
                                         </Field>
                                         <Field label="Status">
                                             <select value={form.status} onChange={set("status")} className={selectCls}>
-                                                <option>Disponible</option><option>En Ruta</option><option>Descanso</option><option>Suspendido</option>
+                                                {/* Un estatus heredado se ve, pero no se puede elegir (TEC-ESTADOS). */}
+                                                {form.status && !estatusDe(form.status) && (
+                                                    <option value={form.status} disabled={estatusOperador.length > 0}>{form.status} (heredado)</option>
+                                                )}
+                                                {estatusOperador.map(e => <option key={e.clave} value={e.clave}>{e.descripcion}</option>)}
                                             </select>
                                         </Field>
                                         <Field label="Observaciones" span2>
