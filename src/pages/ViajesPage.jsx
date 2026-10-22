@@ -19,6 +19,16 @@ const normalizar = (s) => (s || "").toUpperCase().replace(/\s+/g, "_").replace(/
 const SIN_COLOR = "text-gray-300 bg-white/5 border-white/10";
 const estiloStatus = (e) => e ? { color: e.color, backgroundColor: `${e.color}1a`, borderColor: `${e.color}4d` } : undefined;
 
+// Mensaje de una evidencia rechazada (SEG-AO-F4-F): el del servidor, que viene en
+// {"error": ...}, o uno con el código. El viaje no se marca como entregado.
+async function mensajeEvidencia(res) {
+    const cuerpo = await res.json().catch(() => null);
+    if (cuerpo?.error) return cuerpo.error;
+    if (res.status === 413) return "La foto o la firma pesan demasiado.";
+    if (res.status === 403) return "No tienes permiso para esta acción o tu sesión expiró.";
+    return `No se pudo guardar la evidencia (error ${res.status}).`;
+}
+
 const emptyForm = {
     clienteId: "", rutaId: "", driverId: "", vehicleId: "",
     date: "", cost: "", status: "PENDIENTE", notas: ""
@@ -83,6 +93,7 @@ export default function ViajesPage() {
     const [receptorPuesto,    setReceptorPuesto]    = useState("");
     const [comentarioEv,      setComentarioEv]      = useState("");
     const [loadingEv,         setLoadingEv]         = useState(false);
+    const [errorEv,           setErrorEv]           = useState("");
     const canvasRef = useRef(null);
     const ctxRef    = useRef(null);
 
@@ -168,6 +179,7 @@ export default function ViajesPage() {
     const cambiarStatus = async (viaje, nuevoStatus) => {
         if (nuevoStatus === "ENTREGADO") {
             setViajeEvidencia(viaje);
+            setErrorEv("");
             setShowEvidencia(true);
             return;
         }
@@ -244,6 +256,7 @@ export default function ViajesPage() {
             return;
         }
         setLoadingEv(true);
+        setErrorEv("");
         try {
             const fd = new FormData();
             if (fotoFile) fd.append("foto", fotoFile);
@@ -268,22 +281,13 @@ export default function ViajesPage() {
                 setReceptorNombre(""); setReceptorPuesto(""); setComentarioEv("");
                 fetchAll();
             } else {
-                await fetch(`${API}/orders/${viajeEvidencia.id}/status?status=ENTREGADO`, {
-                    method: "PUT", headers: { ...headers, "X-Usuario": usuario }
-                });
-                showMsgFn(true, "Viaje marcado como ENTREGADO");setShowEvidencia(false);
-                setFotoFile(null); setFotoPreview(null); setFirmaDataUrl(null);
-                setReceptorNombre(""); setReceptorPuesto(""); setComentarioEv("");
-                fetchAll();
+                // SEG-AO-F4-F: si el servidor rechaza la evidencia, el viaje no se marca. Se
+                // muestra su mensaje y la ventana sigue abierta, con la foto y la firma.
+                setErrorEv(await mensajeEvidencia(res));
             }
         } catch (e) {
-            try {
-                await fetch(`${API}/orders/${viajeEvidencia.id}/status?status=ENTREGADO`, {
-                    method: "PUT", headers: { ...headers, "X-Usuario": usuario }
-                });
-                showMsgFn(true, "Viaje marcado como ENTREGADO");setShowEvidencia(false);
-                fetchAll();
-            } catch { showMsgFn(false, "Error de conexión"); }
+            console.error(e);
+            setErrorEv("No se pudo conectar con el servidor. La evidencia no se guardó; intenta de nuevo.");
         }
         setLoadingEv(false);
     };
@@ -802,6 +806,11 @@ export default function ViajesPage() {
                                     </div>
                                 </div>
                             </div>
+                            {errorEv && (
+                                <div className="mx-6 mb-4 rounded-xl border border-red-400/30 bg-red-500/10 text-red-300 px-4 py-3 text-sm flex-shrink-0">
+                                    {errorEv}
+                                </div>
+                            )}
                             <div className="flex gap-4 p-6 pt-0 flex-shrink-0">
                                 <button onClick={() => setShowEvidencia(false)}
                                     className="flex-1 py-3 rounded-2xl border border-white/10 text-gray-400 hover:bg-white/5 font-bold">Cancelar</button>
