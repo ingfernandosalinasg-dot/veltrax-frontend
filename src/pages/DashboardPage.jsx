@@ -4,7 +4,7 @@ import Topbar from "../components/Topbar";
 import { FaRoute, FaTruck, FaMoneyBillWave, FaBox, FaGavel,
          FaShoppingCart, FaFileInvoiceDollar, FaCrown,
          FaChartLine, FaExclamationTriangle, FaCheckCircle,
-         FaClock, FaBolt, FaUsers } from "react-icons/fa";
+         FaClock, FaBolt, FaUsers, FaUserTie } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip,
          ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
@@ -14,10 +14,41 @@ const API = API_URL;
 const fmt  = n => "$"+Number(n||0).toLocaleString("es-MX", { minimumFractionDigits:2 });
 const fmtM = n => "$"+Number(n||0).toLocaleString("es-MX", { maximumFractionDigits:0 });
 
-const COLORS = ["#06b6d4","#8b5cf6","#10b981","#f59e0b","#ef4444"];
+// Colores de las listas oficiales de estatus (VAC-17), como en Viajes, Unidades y Operadores.
+const estiloStatus = (e) => ({ color: e.color, backgroundColor: `${e.color}1a`, borderColor: `${e.color}4d` });
+const COLOR_OTRO   = "#9ca3af";
+
+// Bloque de plataforma (clientes de Veltrax, licencias y MRR): oculto durante el
+// piloto para todos los roles (VAC-17); se retoma en S-PLATAFORMA.
+const MOSTRAR_PLATAFORMA = false;
+
+// Contadores de una lista oficial de estatus, con sus colores (VAC-17).
+function TarjetaEstatus({ titulo, icono, resumen, porEstatus, otros, delay }) {
+    return (
+        <motion.div initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ delay }}
+            className="rounded-3xl bg-white/5 border border-cyan-400/10 p-6">
+            <h3 className="text-cyan-300 font-black mb-1 flex items-center gap-2">{icono} {titulo}</h3>
+            <p className="text-gray-500 text-xs mb-4">{resumen}</p>
+            <div className="grid grid-cols-2 gap-3">
+                {porEstatus.map(e => (
+                    <div key={e.clave} className="rounded-xl p-3 border" style={estiloStatus(e)}>
+                        <p className="text-xs opacity-80">{e.descripcion}</p>
+                        <p className="font-black text-lg">{e.cantidad}</p>
+                    </div>
+                ))}
+                {otros > 0 && (
+                    <div className="rounded-xl p-3 border text-gray-300 bg-white/5 border-white/10">
+                        <p className="text-xs opacity-80">Otro estatus</p>
+                        <p className="font-black text-lg">{otros}</p>
+                    </div>
+                )}
+            </div>
+        </motion.div>
+    );
+}
 
 export default function DashboardPage() {
-    const [viajes,       setViajes]       = useState([]);
+    const [stats,        setStats]        = useState(null);
     const [cobranza,     setCobranza]     = useState({});
     const [cajas,        setCajas]        = useState({});
     const [licitaciones, setLicitaciones] = useState([]);
@@ -45,17 +76,17 @@ export default function DashboardPage() {
     useEffect(() => {
         const load = async () => {
             setLoading(true);
-            const [v, c, ca, l, oc, f, t, b] = await Promise.all([
-                fetchJson(API+"/orders"),
+            const [s, c, ca, l, oc, f, t, b] = await Promise.all([
+                fetchJson(API+"/dashboard/stats"),
                 fetchJson(API+"/api/cobranza/resumen"),
                 fetchJson(API+"/api/cajas/resumen"),
                 fetchJson(API+"/api/licitaciones/resumen"),
                 fetchJson(API+"/api/ordenes-compra/resumen"),
                 fetchJson(API+"/api/facturas"),
-                fetchJson(API+"/api/tenants/resumen"),
+                MOSTRAR_PLATAFORMA ? fetchJson(API+"/api/tenants/resumen") : null,
                 fetchJson(API+"/api/bitacora"),
             ]);
-            setViajes(Array.isArray(v) ? v : []);
+            setStats(s);
             setCobranza(c || {});
             setCajas(ca || {});
             setLicitaciones(Array.isArray(l) ? l : []);
@@ -68,27 +99,24 @@ export default function DashboardPage() {
         load();
     }, []);
 
-    const enRuta     = viajes.filter(v => v?.status === "EN_RUTA").length;
-    const pendientes = viajes.filter(v => v?.status === "PENDIENTE").length;
-    const entregados = viajes.filter(v => ["ENTREGADO","COBRADO","FACTURADO"].includes(v?.status)).length;
-    const ingresoMes = viajes.filter(v => v?.date?.startsWith(new Date().toISOString().slice(0,7))).reduce((s,v) => s+(v?.cost||0), 0);
+    // Resumen de la operación calculado en el backend (VAC-17) con las listas
+    // oficiales de estatus. Lo «del mes» usa la fecha del viaje y el mes de la
+    // Ciudad de México.
+    const viajes     = stats?.viajes || {};
+    const unidades   = stats?.unidades || {};
+    const operadores = stats?.operadores || {};
+    const cantidad   = (clave) => viajes.porEstatus?.find(e => e.clave === clave)?.cantidad || 0;
+    const enRuta     = cantidad("EN_RUTA");
+    const pendientes = cantidad("PENDIENTE");
 
     const viajesChartData = [
-        { name:"Pendiente", value: viajes.filter(v=>v?.status==="PENDIENTE").length },
-        { name:"Asignado",  value: viajes.filter(v=>v?.status==="ASIGNADO").length },
-        { name:"En Ruta",   value: viajes.filter(v=>v?.status==="EN_RUTA").length },
-        { name:"Entregado", value: viajes.filter(v=>v?.status==="ENTREGADO").length },
-        { name:"Facturado", value: viajes.filter(v=>v?.status==="FACTURADO").length },
-        { name:"Cobrado",   value: viajes.filter(v=>v?.status==="COBRADO").length },
+        ...(viajes.porEstatus || []).map(e => ({ name:e.descripcion, value:e.cantidad, color:e.color })),
+        { name:"Otro estatus", value:viajes.otros || 0, color:COLOR_OTRO },
     ].filter(d => d.value > 0);
 
-    const mesesData = Array.from({ length:6 }, (_, i) => {
-        const d    = new Date();
-        d.setMonth(d.getMonth() - (5-i));
-        const key  = d.toISOString().slice(0,7);
-        const mes  = d.toLocaleString("es-MX", { month:"short" });
-        const ing  = viajes.filter(v => v?.date?.startsWith(key)).reduce((s,v) => s+(v?.cost||0), 0);
-        return { mes, ingreso: ing || 0 };
+    const mesesData = (viajes.ultimosMeses || []).map(m => {
+        const [anio, mes] = m.mes.split("-").map(Number);
+        return { mes: new Date(anio, mes-1, 1).toLocaleString("es-MX", { month:"short" }), valor: Number(m.valor) || 0 };
     });
 
     const licsGanadas   = licitaciones.filter(l => l?.status==="GANADA").length;
@@ -150,12 +178,18 @@ export default function DashboardPage() {
                     <div className="h-px flex-1 bg-cyan-400/20" />
                 </div>
 
+                {!stats && (
+                    <p className="mb-5 px-4 py-3 rounded-xl bg-red-500/10 border border-red-400/20 text-red-300 text-sm">
+                        No se pudo cargar el resumen de viajes, unidades y operadores.
+                    </p>
+                )}
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-8">
                     {[
-                        { label:"En Ruta",     value:enRuta,          sub:"viajes activos",  color:"text-cyan-300",   icon:<FaTruck />,          bg:"bg-cyan-500/10 border-cyan-400/20" },
-                        { label:"Pendientes",  value:pendientes,       sub:"por asignar",     color:"text-yellow-300", icon:<FaClock />,          bg:"bg-yellow-500/10 border-yellow-400/20" },
-                        { label:"Completados", value:entregados,       sub:"este periodo",    color:"text-green-300",  icon:<FaCheckCircle />,   bg:"bg-green-500/10 border-green-400/20" },
-                        { label:"Ingreso Mes", value:fmtM(ingresoMes), sub:"total del mes",   color:"text-green-300",  icon:<FaMoneyBillWave />, bg:"bg-green-500/10 border-green-400/20" },
+                        { label:"En Ruta",                 value:enRuta,                     sub:"viajes activos",                    color:"text-cyan-300",   icon:<FaTruck />,          bg:"bg-cyan-500/10 border-cyan-400/20" },
+                        { label:"Pendientes",              value:pendientes,                 sub:"por asignar",                       color:"text-yellow-300", icon:<FaClock />,          bg:"bg-yellow-500/10 border-yellow-400/20" },
+                        { label:"Completados del mes",     value:viajes.completadosMes || 0, sub:"entregados, facturados o cobrados", color:"text-green-300",  icon:<FaCheckCircle />,   bg:"bg-green-500/10 border-green-400/20" },
+                        { label:"Valor de viajes del mes", value:fmtM(viajes.valorMes),      sub:"sin cancelados",                    color:"text-green-300",  icon:<FaMoneyBillWave />, bg:"bg-green-500/10 border-green-400/20" },
                     ].map((s,i) => (
                         <motion.div key={i} initial={{ opacity:0, y:30 }} animate={{ opacity:1, y:0 }} transition={{ delay:i*0.1 }}
                             className={"rounded-3xl border backdrop-blur-xl p-6 flex items-center gap-5 "+s.bg}>
@@ -172,41 +206,51 @@ export default function DashboardPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                     <motion.div initial={{ opacity:0, x:-20 }} animate={{ opacity:1, x:0 }} transition={{ delay:0.4 }}
                         className="rounded-3xl bg-white/5 border border-cyan-400/10 p-6">
-                        <h3 className="text-cyan-300 font-black mb-4">Ingresos Ultimos 6 Meses</h3>
+                        <h3 className="text-cyan-300 font-black mb-1">Valor de viajes, últimos 6 meses</h3>
+                        <p className="text-gray-500 text-xs mb-3">Por fecha del viaje, sin cancelados</p>
                         <ResponsiveContainer width="100%" height={180}>
                             <LineChart data={mesesData}>
                                 <XAxis dataKey="mes" stroke="#4b5563" tick={{ fill:"#9ca3af", fontSize:12 }} />
                                 <YAxis stroke="#4b5563" tick={{ fill:"#9ca3af", fontSize:12 }} tickFormatter={v => "$"+Number(v/1000).toFixed(0)+"k"} />
                                 <Tooltip formatter={v => fmt(v)} contentStyle={{ background:"#020617", border:"1px solid #06b6d4", borderRadius:"12px", color:"#fff" }} />
-                                <Line type="monotone" dataKey="ingreso" stroke="#06b6d4" strokeWidth={3} dot={{ fill:"#06b6d4", r:4 }} />
+                                <Line type="monotone" dataKey="valor" name="Valor" stroke="#06b6d4" strokeWidth={3} dot={{ fill:"#06b6d4", r:4 }} />
                             </LineChart>
                         </ResponsiveContainer>
                     </motion.div>
 
                     <motion.div initial={{ opacity:0, x:20 }} animate={{ opacity:1, x:0 }} transition={{ delay:0.4 }}
                         className="rounded-3xl bg-white/5 border border-cyan-400/10 p-6">
-                        <h3 className="text-cyan-300 font-black mb-4">Viajes por Status</h3>
+                        <h3 className="text-cyan-300 font-black mb-4">Viajes por estatus</h3>
                         {viajesChartData.length === 0 ? (
                             <p className="text-gray-500 text-center py-16">Sin viajes registrados</p>
                         ) : (
                             <ResponsiveContainer width="100%" height={180}>
                                 <PieChart>
                                     <Pie data={viajesChartData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} dataKey="value" nameKey="name">
-                                        {viajesChartData.map((_,i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
+                                        {viajesChartData.map(d => <Cell key={d.name} fill={d.color} />)}
                                     </Pie>
                                     <Tooltip contentStyle={{ background:"#020617", border:"1px solid #06b6d4", borderRadius:"12px", color:"#fff" }} />
                                 </PieChart>
                             </ResponsiveContainer>
                         )}
                         <div className="flex flex-wrap gap-2 mt-2">
-                            {viajesChartData.map((d,i) => (
+                            {viajesChartData.map(d => (
                                 <span key={d.name} className="flex items-center gap-1 text-xs text-gray-400">
-                                    <span className="w-2 h-2 rounded-full inline-block" style={{ background:COLORS[i%COLORS.length] }} />
+                                    <span className="w-2 h-2 rounded-full inline-block" style={{ background:d.color }} />
                                     {d.name} ({d.value})
                                 </span>
                             ))}
                         </div>
                     </motion.div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                    <TarjetaEstatus titulo="Unidades por estatus" icono={<FaTruck />} delay={0.45}
+                        resumen={`${unidades.activas || 0} activas de ${unidades.total || 0} registradas (los estatus cuentan solo las activas)`}
+                        porEstatus={unidades.porEstatus || []} otros={unidades.otros || 0} />
+                    <TarjetaEstatus titulo="Operadores por estatus" icono={<FaUserTie />} delay={0.45}
+                        resumen={`${operadores.total || 0} registrados`}
+                        porEstatus={operadores.porEstatus || []} otros={operadores.otros || 0} />
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
@@ -235,7 +279,7 @@ export default function DashboardPage() {
                             {[
                                 { label:"Total",         value:cajas?.total||0,              color:"text-white" },
                                 { label:"Disponibles",   value:cajas?.disponibles||0,        color:"text-green-300" },
-                                { label:"En Transito",   value:cajas?.enCliente||0,          color:"text-yellow-300" },
+                                { label:"En cliente",    value:cajas?.enClientes||0,         color:"text-yellow-300" },
                                 { label:"Val. Retenido", value:fmt(cajas?.valorRetenido||0), color:"text-cyan-300" },
                             ].map(s => (
                                 <div key={s.label} className="bg-white/5 rounded-xl p-3">
@@ -309,6 +353,7 @@ export default function DashboardPage() {
                     </motion.div>
                 </div>
 
+                {MOSTRAR_PLATAFORMA && (<>
                 <div className="flex items-center gap-3 mb-5">
                     <div className="h-px flex-1 bg-yellow-400/20" />
                     <p className="text-yellow-400 text-xs font-black uppercase tracking-widest">SaaS</p>
@@ -333,6 +378,7 @@ export default function DashboardPage() {
                         </motion.div>
                     ))}
                 </div>
+                </>)}
 
                 <motion.div initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ delay:0.8 }}
                     className="rounded-3xl bg-white/5 border border-cyan-400/10 p-6">
