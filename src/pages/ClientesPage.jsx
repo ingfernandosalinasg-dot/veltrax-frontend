@@ -66,7 +66,8 @@ const emptyForm = {
     // Encabezado general
     numeroCliente: "", nombre: "", razonSocial: "", fechaAlta: "", rfc: "", curp: "",
     tipoCliente: "NACIONAL", monedaCliente: "PESOS", ivaPorcentaje: "IVA 16%",
-    grupoCliente: "", sucursalCliente: "MATRIZ",
+    // El grupo se elige del catálogo «Grupos de clientes» (BLQ-VA, VID-D2): clave y descripción.
+    grupoClienteClave: "", grupoCliente: "", sucursalCliente: "MATRIZ",
     activo: true, operadorLogistico: false, detallePorViajeXml: false,
     tipo: "Empresa", status: "Activo",
     // Base
@@ -136,6 +137,8 @@ export default function ClientesPage() {
     const [busqueda,  setBusqueda]  = useState("");
     const [activeTab, setActiveTab] = useState("pagos");
     const [errorGuardar, setErrorGuardar] = useState("");
+    // Grupos de clientes activos del catálogo (BLQ-VA, VID-D2); null mientras no cargan.
+    const [gruposCliente, setGruposCliente] = useState(null);
 
     const [contactos,    setContactos]    = useState([]);
     const [nuevoContacto, setNuevoContacto] = useState({ ...emptyContacto, telefonos: [] });
@@ -145,6 +148,12 @@ export default function ClientesPage() {
     const headers = { "Content-Type": "application/json", ...(token && { Authorization: `Bearer ${token}` }) };
 
     const fetchClientes = async () => {
+        // Grupos de clientes (BLQ-VA, VID-D2): solo los activos del catálogo. Si no
+        // cargan, el servidor revisa el grupo al guardar.
+        fetch(`${API}/api/catalogos-trafico/grupos-clientes?activos=true`, { headers })
+            .then(r => (r.ok ? r.json() : null))
+            .then(l => { if (Array.isArray(l)) setGruposCliente(l); })
+            .catch(() => {});
         try {
             const res  = await fetch(`${API}/clients`, { headers });
             const data = await res.json();
@@ -156,6 +165,16 @@ export default function ClientesPage() {
 
     const set  = (field) => (e) => setForm(f => ({ ...f, [field]: e.target.value }));
     const setB = (field) => (e) => setForm(f => ({ ...f, [field]: e.target.checked }));
+    // Grupo de cliente (BLQ-VA, VID-D2): uno que no está entre los activos del
+    // catálogo es heredado (DEC-1020-LEGADO), incluida la descripción sin clave
+    // de antes de VA4. Solo se marca si el catálogo cargó.
+    const grupoDe       = (clave) => gruposCliente?.find(g => g.clave === clave);
+    const grupoHeredado = (c) => Array.isArray(gruposCliente) && !!(c.grupoClienteClave || c.grupoCliente) && !grupoDe(c.grupoClienteClave);
+    // Elegir un grupo guarda su clave y su descripción, como están en el catálogo.
+    const elegirGrupo   = (e) => {
+        const g = grupoDe(e.target.value);
+        setForm(f => ({ ...f, grupoClienteClave: g?.clave ?? "", grupoCliente: g?.descripcion ?? "" }));
+    };
 
     const openNew = () => {
         setEditando(null);
@@ -197,6 +216,14 @@ export default function ClientesPage() {
     // Si el servidor rechaza el guardado ({"error": mensaje}), el mensaje se
     // muestra en la ventana, que sigue abierta para corregir.
     const handleSubmit = async () => {
+        // El grupo debe ser uno activo del catálogo (BLQ-VA): uno heredado se
+        // corrige al editar (DEC-1020-LEGADO). El servidor también lo revisa.
+        if (Array.isArray(gruposCliente) && !grupoDe(form.grupoClienteClave)) {
+            setErrorGuardar(gruposCliente.length === 0
+                ? "No hay grupos de clientes activos: captúralos en Catálogos de tráfico → Grupos de clientes."
+                : "Elige un grupo de clientes del catálogo.");
+            return;
+        }
         setLoading(true);
         setErrorGuardar("");
         try {
@@ -307,13 +334,13 @@ export default function ClientesPage() {
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="text-gray-400 border-b border-cyan-400/10 text-sm">
-                                    {["Código","Nombre / Razón Social","RFC","Régimen Fiscal","Tipo","Ciudad","Teléfono","Crédito","Status","Acciones"]
+                                    {["Código","Nombre / Razón Social","RFC","Régimen Fiscal","Tipo","Grupo","Ciudad","Teléfono","Crédito","Status","Acciones"]
                                         .map(h => <th key={h} className="pb-4 pr-5 whitespace-nowrap">{h}</th>)}
                                 </tr>
                             </thead>
                             <tbody>
                                 {filtrados.length === 0 && (
-                                    <tr><td colSpan={10} className="py-10 text-center text-gray-500">No hay clientes registrados</td></tr>
+                                    <tr><td colSpan={11} className="py-10 text-center text-gray-500">No hay clientes registrados</td></tr>
                                 )}
                                 {filtrados.map((c, i) => (
                                     <motion.tr key={c.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
@@ -333,6 +360,15 @@ export default function ClientesPage() {
                                             <span className={`px-3 py-1 rounded-full border text-xs font-bold whitespace-nowrap ${tipoColor[c.tipo] || "text-gray-300 bg-white/5 border-white/10"}`}>
                                                 {c.tipo}
                                             </span>
+                                        </td>
+                                        <td className="py-4 pr-5 text-sm whitespace-nowrap">
+                                            {/* Un grupo heredado (fuera del catálogo) se marca para corregirlo al editar. */}
+                                            {c.grupoClienteClave || c.grupoCliente
+                                                ? <span className={grupoHeredado(c) ? "text-yellow-300" : "text-gray-300"}
+                                                    title={grupoHeredado(c) ? "Grupo heredado: elige uno del catálogo al editar" : c.grupoClienteClave}>
+                                                    {c.grupoCliente || c.grupoClienteClave}{grupoHeredado(c) && " (heredado)"}
+                                                  </span>
+                                                : <span className="text-gray-600">-</span>}
                                         </td>
                                         <td className="py-4 pr-5 text-gray-400 whitespace-nowrap">{c.ciudad || "-"}</td>
                                         <td className="py-4 pr-5 text-gray-400 whitespace-nowrap">{c.telefono || "-"}</td>
@@ -409,7 +445,23 @@ export default function ClientesPage() {
                                             </select>
                                         </Field>
                                         <Field label="Grupo">
-                                            <input value={form.grupoCliente} onChange={set("grupoCliente")} className={inputCls} />
+                                            <select value={form.grupoClienteClave || ""} onChange={elegirGrupo} className={selectCls}>
+                                                {/* Solo grupos activos del catálogo (BLQ-VA). Uno heredado se ve, pero no se puede elegir (DEC-1020-LEGADO). */}
+                                                {!form.grupoClienteClave && (
+                                                    <option value="" disabled>{form.grupoCliente ? `${form.grupoCliente} (heredado)` : "Elige un grupo"}</option>
+                                                )}
+                                                {form.grupoClienteClave && !grupoDe(form.grupoClienteClave) && (
+                                                    <option value={form.grupoClienteClave} disabled={Array.isArray(gruposCliente)}>
+                                                        {form.grupoClienteClave} · {form.grupoCliente || "sin descripción"}{grupoHeredado(form) ? " (heredado)" : ""}
+                                                    </option>
+                                                )}
+                                                {(gruposCliente || []).map(g => <option key={g.id} value={g.clave}>{g.clave} · {g.descripcion}</option>)}
+                                            </select>
+                                            {gruposCliente?.length === 0 ? (
+                                                <p className="text-yellow-300 text-xs mt-1.5">No hay grupos activos: captúralos en Catálogos de tráfico → Grupos de clientes.</p>
+                                            ) : grupoHeredado(form) && (
+                                                <p className="text-yellow-300 text-xs mt-1.5">Grupo heredado o inactivo: elige uno del catálogo para poder guardar.</p>
+                                            )}
                                         </Field>
                                         <Field label="Sucursal">
                                             <input value={form.sucursalCliente} onChange={set("sucursalCliente")} placeholder="MATRIZ" className={inputCls} />
