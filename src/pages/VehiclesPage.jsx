@@ -30,7 +30,9 @@ const emptyForm = {
     // Encabezado general
     codigo: "", activa: true, rentada: false, unidadPermisionario: false,
     descripcion: "", tipoUnidad: "", sucursal: "", identidadSatelital: "",
-    identificadorConvoy: "", operadorNombre: "", grupoUnidadesNumero: "1", grupoUnidadesNombre: "GENERAL",
+    identificadorConvoy: "", operadorNombre: "",
+    // Sin grupo fijo («1» / «GENERAL»): se elige del catálogo (DEC-1020-LEGADO-UNIDADES).
+    grupoUnidadesNumero: "", grupoUnidadesNombre: "",
     // Base
     plate: "", brand: "", model: "", year: "", tipo: "", color: "", numSerie: "", numMotor: "",
     capacidadCarga: "", notas: "", status: "DISPONIBLE", odometroKm: "",
@@ -201,6 +203,8 @@ export default function VehiclesPage() {
     const [errorBorrar,  setErrorBorrar]  = useState("");
     const [errorCargar,  setErrorCargar]  = useState("");
     const [estatusUnidad, setEstatusUnidad] = useState([]);
+    // Grupos de unidades activos del catálogo (BLQ-VA, VID-H2); null mientras no cargan.
+    const [gruposUnidad, setGruposUnidad] = useState(null);
     // Odómetro con el que se abrió la edición. Si el usuario no lo cambia, no se
     // envía: así se conserva el que el servidor suma con cada viaje cobrado.
     const [odometroOriginal, setOdometroOriginal] = useState(null);
@@ -216,6 +220,12 @@ export default function VehiclesPage() {
         fetch(`${API}/api/estatus-unidad`, { headers })
             .then(r => (r.ok ? r.json() : null))
             .then(l => { if (Array.isArray(l)) setEstatusUnidad(l); })
+            .catch(() => {});
+        // Los grupos de unidades (BLQ-VA, VID-H2), igual: solo los activos del
+        // catálogo. Si no cargan, el servidor revisa el grupo al guardar.
+        fetch(`${API}/api/catalogos-trafico/grupos-unidades?activos=true`, { headers })
+            .then(r => (r.ok ? r.json() : null))
+            .then(l => { if (Array.isArray(l)) setGruposUnidad(l); })
             .catch(() => {});
         try {
             const res = await fetch(`${API}/vehicles`, { headers });
@@ -281,6 +291,14 @@ export default function VehiclesPage() {
     // Si el servidor rechaza el guardado, el mensaje se muestra en la ventana,
     // que sigue abierta para corregir.
     const handleSubmit = async () => {
+        // El grupo debe ser uno activo del catálogo (BLQ-VA): uno heredado se
+        // corrige al editar (DEC-1020-LEGADO). El servidor también lo revisa.
+        if (Array.isArray(gruposUnidad) && !grupoDe(form.grupoUnidadesNumero)) {
+            setErrorGuardar(gruposUnidad.length === 0
+                ? "No hay grupos de unidades activos: captúralos en Catálogos de tráfico → Grupos de unidades."
+                : "Elige un grupo de unidades del catálogo.");
+            return;
+        }
         setLoading(true);
         setErrorGuardar("");
         try {
@@ -338,6 +356,15 @@ export default function VehiclesPage() {
 
     // Estatus de la lista (TEC-ESTADOS); uno heredado no está en ella.
     const estatusDe     = (s) => estatusUnidad.find(e => e.clave === s);
+    // Grupo de unidades (BLQ-VA, VID-H2): uno que no está entre los activos del
+    // catálogo es heredado (DEC-1020-LEGADO). Solo se marca si el catálogo cargó.
+    const grupoDe       = (clave) => gruposUnidad?.find(g => g.clave === clave);
+    const grupoHeredado = (clave) => Array.isArray(gruposUnidad) && !!clave && !grupoDe(clave);
+    // Elegir un grupo guarda su clave y su descripción, como están en el catálogo.
+    const elegirGrupo   = (e) => {
+        const g = grupoDe(e.target.value);
+        setForm(f => ({ ...f, grupoUnidadesNumero: g?.clave ?? "", grupoUnidadesNombre: g?.descripcion ?? "" }));
+    };
     const disponibles   = vehicles.filter(v => v.status === "DISPONIBLE").length;
     const enRuta        = vehicles.filter(v => v.status === "EN_RUTA").length;
     const mantenimiento = vehicles.filter(v => v.status === "MANTENIMIENTO").length;
@@ -403,13 +430,13 @@ export default function VehiclesPage() {
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="text-gray-400 border-b border-cyan-400/10 text-sm">
-                                    {["Código","Placas","Marca","Modelo","Año","Tipo","Odómetro","Config SAT","Permiso SCT","Status","Acciones"]
+                                    {["Código","Placas","Marca","Modelo","Año","Tipo","Grupo","Odómetro","Config SAT","Permiso SCT","Status","Acciones"]
                                         .map(h => <th key={h} className="pb-4 pr-5 whitespace-nowrap">{h}</th>)}
                                 </tr>
                             </thead>
                             <tbody>
                                 {filtrados.length === 0 && (
-                                    <tr><td colSpan={11} className="py-10 text-center text-gray-500">No hay vehículos registrados</td></tr>
+                                    <tr><td colSpan={12} className="py-10 text-center text-gray-500">No hay vehículos registrados</td></tr>
                                 )}
                                 {filtrados.map((v, i) => (
                                     <motion.tr key={v.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
@@ -420,6 +447,15 @@ export default function VehiclesPage() {
                                         <td className="py-4 pr-5 text-gray-300 whitespace-nowrap">{v.model}</td>
                                         <td className="py-4 pr-5 text-gray-400 whitespace-nowrap">{v.year}</td>
                                         <td className="py-4 pr-5 text-gray-400 text-sm whitespace-nowrap">{v.tipo || "-"}</td>
+                                        <td className="py-4 pr-5 text-sm whitespace-nowrap">
+                                            {/* Un grupo heredado (fuera del catálogo) se marca para corregirlo al editar. */}
+                                            {v.grupoUnidadesNumero
+                                                ? <span className={grupoHeredado(v.grupoUnidadesNumero) ? "text-yellow-300" : "text-gray-300"}
+                                                    title={grupoHeredado(v.grupoUnidadesNumero) ? "Grupo heredado: elige uno del catálogo al editar" : v.grupoUnidadesNumero}>
+                                                    {v.grupoUnidadesNombre || v.grupoUnidadesNumero}{grupoHeredado(v.grupoUnidadesNumero) && " (heredado)"}
+                                                  </span>
+                                                : <span className="text-gray-600">-</span>}
+                                        </td>
                                         <td className="py-4 pr-5">
                                             <span className="flex items-center gap-2 text-orange-300 font-bold text-sm whitespace-nowrap">
                                                 <FaTachometerAlt size={12} /> {(v.odometroKm || 0).toLocaleString()} km
@@ -522,11 +558,22 @@ export default function VehiclesPage() {
                                     <Field label="Operador">
                                         <input value={form.operadorNombre} onChange={set("operadorNombre")} className={inputCls} />
                                     </Field>
-                                    <Field label="Grupo de unidades #">
-                                        <input value={form.grupoUnidadesNumero} onChange={set("grupoUnidadesNumero")} className={inputCls} />
-                                    </Field>
                                     <Field label="Grupo de unidades" span2>
-                                        <input value={form.grupoUnidadesNombre} onChange={set("grupoUnidadesNombre")} placeholder="GENERAL" className={inputCls} />
+                                        <select value={form.grupoUnidadesNumero || ""} onChange={elegirGrupo} className={selectCls}>
+                                            {/* Solo grupos activos del catálogo (BLQ-VA). Uno heredado se ve, pero no se puede elegir (DEC-1020-LEGADO). */}
+                                            {!form.grupoUnidadesNumero && <option value="" disabled>Elige un grupo</option>}
+                                            {form.grupoUnidadesNumero && !grupoDe(form.grupoUnidadesNumero) && (
+                                                <option value={form.grupoUnidadesNumero} disabled={Array.isArray(gruposUnidad)}>
+                                                    {form.grupoUnidadesNumero} · {form.grupoUnidadesNombre || "sin descripción"}{grupoHeredado(form.grupoUnidadesNumero) ? " (heredado)" : ""}
+                                                </option>
+                                            )}
+                                            {(gruposUnidad || []).map(g => <option key={g.id} value={g.clave}>{g.clave} · {g.descripcion}</option>)}
+                                        </select>
+                                        {gruposUnidad?.length === 0 ? (
+                                            <p className="text-yellow-300 text-xs mt-1.5">No hay grupos activos: captúralos en Catálogos de tráfico → Grupos de unidades.</p>
+                                        ) : grupoHeredado(form.grupoUnidadesNumero) && (
+                                            <p className="text-yellow-300 text-xs mt-1.5">Grupo heredado o inactivo: elige uno del catálogo para poder guardar.</p>
+                                        )}
                                     </Field>
                                 </div>
                             </div>
