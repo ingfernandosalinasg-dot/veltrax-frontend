@@ -66,13 +66,19 @@ const emptyForm = {
     clienteId: "", remitenteId: "", destinatarioId: "",
     origenTexto: "", destinoTexto: "", descripcionRuta: "", regionIstmo: false,
     tipoUnidad: "TODOS LOS TIPOS DE UNIDADES",
-    tipoViajeClave: "1", tipoViajeDesc: "NACIONAL",
+    // Tipo y clasificación se eligen de los catálogos «Tipos de viaje» y
+    // «Clasificaciones de viaje» (BLQ-VA, VID-F3): clave y descripción.
+    tipoViajeClave: "", tipoViajeDesc: "",
     clasificacionClave: "", clasificacionDesc: "",
     importeBase: "", viajeRepartoRecolecta: false,
     item: "", planta: "", convenio: "",
     distanciaKm: "", tiempoEstimado: "", tarifa: "", notas: "", status: "Activa",
     monedaFacturar: "PESOS",
 };
+
+// Valor del selector para una clasificación heredada que solo tiene descripción.
+// Es más largo que cualquier clave del catálogo (20 caracteres): no choca con ninguna.
+const CLASIFICACION_SOLO_DESCRIPCION = "heredada-sin-clave-de-catalogo";
 
 const inputCls  = "w-full bg-white/5 border border-cyan-400/10 rounded-xl px-4 py-2.5 text-white outline-none focus:border-cyan-400/40 transition-all text-sm";
 const selectCls = "w-full bg-[#020617] border border-cyan-400/10 rounded-xl px-4 py-2.5 text-white outline-none focus:border-cyan-400/40 transition-all text-sm";
@@ -116,6 +122,9 @@ export default function RutasPage() {
     const [activeTab,      setActiveTab]      = useState("trayectos");
     const [errorGuardar,   setErrorGuardar]   = useState("");
     const [errorBorrar,    setErrorBorrar]    = useState("");
+    // Tipos y clasificaciones de viaje activos de los catálogos (BLQ-VA, VID-F3); null mientras no cargan.
+    const [tiposViaje,      setTiposViaje]      = useState(null);
+    const [clasificaciones, setClasificaciones] = useState(null);
 
     const [trayectos,        setTrayectos]        = useState([]);
     const [nuevoTrayecto,    setNuevoTrayecto]    = useState(emptyTrayecto());
@@ -140,6 +149,16 @@ export default function RutasPage() {
     const headers = { "Content-Type": "application/json", ...(token && { Authorization: `Bearer ${token}` }) };
 
     const fetchAll = async () => {
+        // Tipos y clasificaciones de viaje (BLQ-VA, VID-F3): solo los activos de
+        // los catálogos. Si no cargan, el servidor los revisa al guardar.
+        fetch(`${API}/api/catalogos-trafico/tipos-viaje?activos=true`, { headers })
+            .then(r => (r.ok ? r.json() : null))
+            .then(l => { if (Array.isArray(l)) setTiposViaje(l); })
+            .catch(() => {});
+        fetch(`${API}/api/catalogos-trafico/clasificaciones-viaje?activos=true`, { headers })
+            .then(r => (r.ok ? r.json() : null))
+            .then(l => { if (Array.isArray(l)) setClasificaciones(l); })
+            .catch(() => {});
         try {
             const [rRes, cRes, remRes, destRes] = await Promise.all([
                 fetch(`${API}/rutas`, { headers }),
@@ -159,6 +178,23 @@ export default function RutasPage() {
 
     const set  = (field) => (e) => setForm(f => ({ ...f, [field]: e.target.value }));
     const setB = (field) => (e) => setForm(f => ({ ...f, [field]: e.target.checked }));
+    // Tipo y clasificación de viaje (BLQ-VA, VID-F3): uno que no está entre los
+    // activos del catálogo es heredado (DEC-1020-LEGADO), incluida la descripción
+    // sin clave. Solo se marca si el catálogo cargó.
+    const tipoDe                = (clave) => tiposViaje?.find(t => t.clave === clave);
+    const clasificacionDe       = (clave) => clasificaciones?.find(c => c.clave === clave);
+    const tipoHeredado          = (r) => Array.isArray(tiposViaje) && !!(r.tipoViajeClave || r.tipoViajeDesc) && !tipoDe(r.tipoViajeClave);
+    const clasificacionHeredada = (r) => Array.isArray(clasificaciones) && !!(r.clasificacionClave || r.clasificacionDesc) && !clasificacionDe(r.clasificacionClave);
+    // Elegir guarda la clave y la descripción como están en el catálogo; «Sin
+    // clasificación» deja la ruta sin clasificación.
+    const elegirTipo = (e) => {
+        const t = tipoDe(e.target.value);
+        setForm(f => ({ ...f, tipoViajeClave: t?.clave ?? "", tipoViajeDesc: t?.descripcion ?? "" }));
+    };
+    const elegirClasificacion = (e) => {
+        const c = clasificacionDe(e.target.value);
+        setForm(f => ({ ...f, clasificacionClave: c?.clave ?? "", clasificacionDesc: c?.descripcion ?? "" }));
+    };
 
     const openNew = () => {
         setEditando(null);
@@ -242,6 +278,19 @@ export default function RutasPage() {
     // Si el servidor rechaza el guardado, el mensaje se muestra en la ventana,
     // que sigue abierta para corregir.
     const handleSubmit = async () => {
+        // El tipo de viaje debe ser uno activo del catálogo, y la clasificación,
+        // si se elige, también (BLQ-VA): uno heredado se corrige al editar
+        // (DEC-1020-LEGADO). El servidor también los revisa.
+        if (Array.isArray(tiposViaje) && !tipoDe(form.tipoViajeClave)) {
+            setErrorGuardar(tiposViaje.length === 0
+                ? "No hay tipos de viaje activos: captúralos en Catálogos de tráfico → Tipos de viaje."
+                : "Elige un tipo de viaje del catálogo.");
+            return;
+        }
+        if (clasificacionHeredada(form)) {
+            setErrorGuardar("Elige una clasificación del catálogo o «Sin clasificación».");
+            return;
+        }
         setLoading(true);
         setErrorGuardar("");
         try {
@@ -347,13 +396,13 @@ export default function RutasPage() {
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="text-gray-400 border-b border-cyan-400/10 text-sm">
-                                    {["Folio","Cliente","Origen","Destino","Distancia","Tiempo","Tarifa","Status","Acciones"]
+                                    {["Folio","Cliente","Origen","Destino","Tipo de viaje","Distancia","Tiempo","Tarifa","Status","Acciones"]
                                         .map(h => <th key={h} className="pb-4 pr-4 whitespace-nowrap">{h}</th>)}
                                 </tr>
                             </thead>
                             <tbody>
                                 {filtradas.length === 0 && (
-                                    <tr><td colSpan={9} className="py-10 text-center text-gray-500">No hay rutas registradas</td></tr>
+                                    <tr><td colSpan={10} className="py-10 text-center text-gray-500">No hay rutas registradas</td></tr>
                                 )}
                                 {filtradas.map(r => (
                                     <tr key={r.id} className="border-b border-cyan-400/5 hover:bg-cyan-500/5 transition-all">
@@ -361,6 +410,21 @@ export default function RutasPage() {
                                         <td className="py-4 pr-4 whitespace-nowrap">{r.cliente?.nombre || r.cliente?.name || "-"}</td>
                                         <td className="py-4 pr-4 text-gray-300 whitespace-nowrap">{r.origenTexto || r.remitente?.ciudad || "-"}</td>
                                         <td className="py-4 pr-4 text-gray-300 whitespace-nowrap">{r.destinoTexto || r.destinatario?.ciudad || "-"}</td>
+                                        <td className="py-4 pr-4 text-sm whitespace-nowrap">
+                                            {/* Un tipo o una clasificación heredados (fuera del catálogo) se marcan para corregirlos al editar. */}
+                                            {r.tipoViajeClave || r.tipoViajeDesc
+                                                ? <span className={tipoHeredado(r) ? "text-yellow-300" : "text-gray-300"}
+                                                    title={tipoHeredado(r) ? "Tipo heredado: elige uno del catálogo al editar" : r.tipoViajeClave}>
+                                                    {r.tipoViajeDesc || r.tipoViajeClave}{tipoHeredado(r) && " (heredado)"}
+                                                  </span>
+                                                : <span className="text-gray-600">-</span>}
+                                            {(r.clasificacionClave || r.clasificacionDesc) && (
+                                                <span className={`block text-xs ${clasificacionHeredada(r) ? "text-yellow-300" : "text-gray-500"}`}
+                                                    title={clasificacionHeredada(r) ? "Clasificación heredada: elige una del catálogo al editar" : r.clasificacionClave}>
+                                                    {r.clasificacionDesc || r.clasificacionClave}{clasificacionHeredada(r) && " (heredado)"}
+                                                </span>
+                                            )}
+                                        </td>
                                         <td className="py-4 pr-4 text-gray-400 whitespace-nowrap">{r.distanciaKm ? `${r.distanciaKm} km` : "-"}</td>
                                         <td className="py-4 pr-4 text-gray-400 whitespace-nowrap">{r.tiempoEstimado || "-"}</td>
                                         <td className="py-4 pr-4 text-green-300 font-bold whitespace-nowrap">{r.tarifa ? `$${r.tarifa.toLocaleString()}` : "-"}</td>
@@ -457,10 +521,42 @@ export default function RutasPage() {
                                     </div>
                                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
                                         <Field label="Tipo de Viaje">
-                                            <input value={form.tipoViajeDesc} onChange={set("tipoViajeDesc")} placeholder="NACIONAL" className={inputCls} />
+                                            <select value={form.tipoViajeClave || ""} onChange={elegirTipo} className={selectCls}>
+                                                {/* Solo tipos activos del catálogo (BLQ-VA). Uno heredado se ve, pero no se puede elegir (DEC-1020-LEGADO). */}
+                                                {!form.tipoViajeClave && (
+                                                    <option value="" disabled>{form.tipoViajeDesc ? `${form.tipoViajeDesc} (heredado)` : "Elige un tipo de viaje"}</option>
+                                                )}
+                                                {form.tipoViajeClave && !tipoDe(form.tipoViajeClave) && (
+                                                    <option value={form.tipoViajeClave} disabled={Array.isArray(tiposViaje)}>
+                                                        {form.tipoViajeClave} · {form.tipoViajeDesc || "sin descripción"}{tipoHeredado(form) ? " (heredado)" : ""}
+                                                    </option>
+                                                )}
+                                                {(tiposViaje || []).map(t => <option key={t.id} value={t.clave}>{t.clave} · {t.descripcion}</option>)}
+                                            </select>
+                                            {tiposViaje?.length === 0 ? (
+                                                <p className="text-yellow-300 text-xs mt-1.5">No hay tipos activos: captúralos en Catálogos de tráfico → Tipos de viaje.</p>
+                                            ) : tipoHeredado(form) && (
+                                                <p className="text-yellow-300 text-xs mt-1.5">Tipo heredado o inactivo: elige uno del catálogo para poder guardar.</p>
+                                            )}
                                         </Field>
                                         <Field label="Clasificación">
-                                            <input value={form.clasificacionDesc} onChange={set("clasificacionDesc")} className={inputCls} />
+                                            <select value={form.clasificacionClave || (form.clasificacionDesc ? CLASIFICACION_SOLO_DESCRIPCION : "")}
+                                                onChange={elegirClasificacion} className={selectCls}>
+                                                {/* Opcional (BLQ-VA): sin clasificación o una activa del catálogo. Una heredada se ve, pero no se puede elegir (DEC-1020-LEGADO). */}
+                                                <option value="">Sin clasificación</option>
+                                                {!form.clasificacionClave && form.clasificacionDesc && (
+                                                    <option value={CLASIFICACION_SOLO_DESCRIPCION} disabled>{form.clasificacionDesc} (heredado)</option>
+                                                )}
+                                                {form.clasificacionClave && !clasificacionDe(form.clasificacionClave) && (
+                                                    <option value={form.clasificacionClave} disabled={Array.isArray(clasificaciones)}>
+                                                        {form.clasificacionClave} · {form.clasificacionDesc || "sin descripción"}{clasificacionHeredada(form) ? " (heredado)" : ""}
+                                                    </option>
+                                                )}
+                                                {(clasificaciones || []).map(c => <option key={c.id} value={c.clave}>{c.clave} · {c.descripcion}</option>)}
+                                            </select>
+                                            {clasificacionHeredada(form) && (
+                                                <p className="text-yellow-300 text-xs mt-1.5">Clasificación heredada o inactiva: elige una del catálogo o «Sin clasificación» para poder guardar.</p>
+                                            )}
                                         </Field>
                                         <Field label="Importe Base">
                                             <input type="number" value={form.importeBase} onChange={set("importeBase")} className={inputCls} />
