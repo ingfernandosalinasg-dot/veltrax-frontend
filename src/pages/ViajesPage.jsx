@@ -82,6 +82,12 @@ export default function ViajesPage() {
 
     const [rentabilidad,      setRentabilidad]      = useState(null);
     const [loadingRent,       setLoadingRent]       = useState(false);
+    // Trayectos del viaje (TEC-RUTA-A-VIAJE): los copiados de la ruta y «Más trayectos».
+    const [trayectosViaje,    setTrayectosViaje]    = useState(null);
+    const [loadingTrayectos,  setLoadingTrayectos]  = useState(false);
+    const [errorTrayectos,    setErrorTrayectos]    = useState("");
+    // Error del alta de viaje, visible dentro de la ventana.
+    const [errorAlta,         setErrorAlta]         = useState("");
 
     const [showEvidencia,     setShowEvidencia]     = useState(false);
     const [viajeEvidencia,    setViajeEvidencia]    = useState(null);
@@ -174,7 +180,40 @@ export default function ViajesPage() {
     const set  = (f) => (e) => setForm(prev => ({ ...prev, [f]: e.target.value }));
     const setG = (f) => (e) => setGastoForm(prev => ({ ...prev, [f]: e.target.value }));
 
-    const showMsgFn = (ok, txt) => { setMsg({ ok, txt }); setTimeout(() => setMsg(null), 3000); };
+    // Un aviso (amarillo) dura más en pantalla que un mensaje de éxito o de error.
+    const showMsgFn = (ok, txt, aviso = false) => { setMsg({ ok, txt, aviso }); setTimeout(() => setMsg(null), aviso ? 8000 : 3000); };
+
+    // Trayectos del viaje (TEC-RUTA-A-VIAJE): consultar, agregar uno de la ruta y
+    // quitar uno del viaje devuelven el mismo resumen (trayectos, km totales, los
+    // de la ruta que faltan y un aviso si la ruta no se puede leer). Un rechazo
+    // muestra el mensaje del servidor.
+    const pedirTrayectos = async (url, opciones = {}) => {
+        setLoadingTrayectos(true);
+        setErrorTrayectos("");
+        try {
+            const res  = await fetch(url, { headers, ...opciones });
+            const data = await res.json().catch(() => null);
+            if (!res.ok) {
+                setErrorTrayectos(data?.error || (res.status === 403
+                    ? "No tienes permiso para esta acción o tu sesión expiró."
+                    : `No se pudieron cargar los trayectos (error ${res.status}).`));
+                return;
+            }
+            setTrayectosViaje(data);
+        } catch (e) {
+            console.error(e);
+            setErrorTrayectos("No se pudo conectar con el servidor. Intenta de nuevo.");
+        } finally {
+            setLoadingTrayectos(false);
+        }
+    };
+    const fetchTrayectos  = (viajeId) => { setTrayectosViaje(null); pedirTrayectos(`${API}/orders/${viajeId}/trayectos`); };
+    const agregarTrayecto = (indiceRuta) => pedirTrayectos(`${API}/orders/${viajeSeleccionado.id}/trayectos`,
+        { method: "POST", body: JSON.stringify({ indiceRuta }) });
+    const quitarTrayecto  = (trayectoId) => {
+        if (!confirm("¿Quitar este trayecto del viaje? La ruta no cambia.")) return;
+        pedirTrayectos(`${API}/orders/${viajeSeleccionado.id}/trayectos/${trayectoId}`, { method: "DELETE" });
+    };
 
     const cambiarStatus = async (viaje, nuevoStatus) => {
         if (nuevoStatus === "ENTREGADO") {
@@ -292,10 +331,11 @@ export default function ViajesPage() {
         setLoadingEv(false);
     };
 
-    const openNew = () => { setForm(emptyForm); setShowModal(true); };
+    const openNew = () => { setForm(emptyForm); setErrorAlta(""); setShowModal(true); };
 
     const handleSubmit = async () => {
         setLoading(true);
+        setErrorAlta("");
         try {
             const body = {
                 clienteId: Number(form.clienteId),
@@ -307,15 +347,30 @@ export default function ViajesPage() {
                 status:    "PENDIENTE",
                 notas:     form.notas,
             };
-            await fetch(`${API}/orders`, {
+            const res = await fetch(`${API}/orders`, {
                 method: "POST", headers: { ...headers, "X-Usuario": usuario },
                 body: JSON.stringify(body)
             });
+            const data = await res.json().catch(() => null);
+            if (!res.ok) {
+                setErrorAlta(data?.error || (res.status === 403
+                    ? "No tienes permiso para esta acción o tu sesión expiró."
+                    : `No se pudo crear el viaje (error ${res.status}).`));
+                return;
+            }
             setShowModal(false);
             setForm(emptyForm);
             fetchAll();
-            showMsgFn(true, "Viaje creado");} catch (e) { console.error(e); }
-        setLoading(false);
+            // TEC-RUTA-A-VIAJE: si los trayectos de la ruta no se pudieron copiar, el
+            // viaje se creó igual y el servidor lo avisa (DEC-1024-TRAYECTOS-VIAJE).
+            if (data?.avisos?.length) showMsgFn(true, `Viaje creado. ${data.avisos.join(". ")}.`, true);
+            else showMsgFn(true, "Viaje creado");
+        } catch (e) {
+            console.error(e);
+            setErrorAlta("No se pudo conectar con el servidor. Intenta de nuevo.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleDelete = async (id) => {
@@ -329,9 +384,12 @@ export default function ViajesPage() {
     const abrirPanelGastos = (viaje, tab = "gastos") => {
         setViajeSeleccionado(viaje);
         setTabPanel(tab);
+        setTrayectosViaje(null);
+        setErrorTrayectos("");
         fetchGastos(viaje.id);
         if (tab === "timeline")     fetchTimeline(viaje);
         if (tab === "rentabilidad") fetchRentabilidad(viaje.id);
+        if (tab === "trayectos")    fetchTrayectos(viaje.id);
         setShowPanelGastos(true);
     };
 
@@ -339,6 +397,7 @@ export default function ViajesPage() {
         setTabPanel(tab);
         if (tab === "timeline" && timelineEventos.length === 0)     fetchTimeline(viajeSeleccionado);
         if (tab === "rentabilidad" && !rentabilidad)                fetchRentabilidad(viajeSeleccionado.id);
+        if (tab === "trayectos")                                     fetchTrayectos(viajeSeleccionado.id);
     };
 
     const irAFacturar = () => {
@@ -439,7 +498,7 @@ export default function ViajesPage() {
                 <Topbar />
 
                 {msg && (
-                    <div className={`mb-4 px-5 py-3 rounded-xl text-sm font-bold ${msg.ok ? "bg-green-500/10 border border-green-400/30 text-green-300" : "bg-red-500/10 border border-red-400/30 text-red-300"}`}>
+                    <div className={`mb-4 px-5 py-3 rounded-xl text-sm font-bold ${msg.aviso ? "bg-yellow-500/10 border border-yellow-400/30 text-yellow-300" : msg.ok ? "bg-green-500/10 border border-green-400/30 text-green-300" : "bg-red-500/10 border border-red-400/30 text-red-300"}`}>
                         {msg.txt}
                     </div>
                 )}
@@ -579,6 +638,7 @@ export default function ViajesPage() {
                                 { id: "gastos",       label: "Gastos",       icon: <FaMoneyBillWave size={11} /> },
                                 { id: "timeline",     label: "Timeline",     icon: <FaHistory size={11} /> },
                                 { id: "rentabilidad", label: "Rentabilidad", icon: <FaChartLine size={11} /> },
+                                { id: "trayectos",    label: "Trayectos",    icon: <FaRoute size={11} /> },
                             ].map(t => (
                                 <button key={t.id} onClick={() => cambiarTabPanel(t.id)}
                                     className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all
@@ -678,6 +738,73 @@ export default function ViajesPage() {
                                             </motion.div>
                                         ))}
                                     </div>
+                                )}
+                            </div>
+                        )}
+
+                        {/* TAB: TRAYECTOS (TEC-RUTA-A-VIAJE) */}
+                        {tabPanel === "trayectos" && (
+                            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+                                {errorTrayectos && (
+                                    <div className="px-4 py-3 rounded-xl text-sm bg-red-500/10 border border-red-400/30 text-red-300">{errorTrayectos}</div>
+                                )}
+                                {loadingTrayectos && !trayectosViaje ? (
+                                    <p className="text-center text-gray-500 py-10">Cargando trayectos...</p>
+                                ) : trayectosViaje && (
+                                    <>
+                                        {trayectosViaje.aviso && (
+                                            <div className="px-4 py-3 rounded-xl text-sm bg-yellow-500/10 border border-yellow-400/30 text-yellow-300">{trayectosViaje.aviso}</div>
+                                        )}
+                                        <div className="rounded-2xl bg-cyan-500/10 border border-cyan-400/20 p-4">
+                                            <p className="text-cyan-400 text-xs font-bold uppercase">Kilómetros del viaje</p>
+                                            <p className="text-2xl font-black text-cyan-300 mt-1">{trayectosViaje.kmTotal.toLocaleString()} km</p>
+                                            <p className="text-gray-500 text-xs mt-1">
+                                                Suma de sus trayectos{viajeSeleccionado.ruta ? ` · Ruta ${viajeSeleccionado.ruta.folioRuta || viajeSeleccionado.ruta.descripcionRuta || ""}` : " · Sin ruta"}
+                                            </p>
+                                        </div>
+                                        <div className="space-y-2">
+                                            {trayectosViaje.trayectos.length === 0 ? (
+                                                <p className="text-center text-gray-500 py-6">Este viaje no tiene trayectos</p>
+                                            ) : trayectosViaje.trayectos.map(t => (
+                                                <div key={t.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
+                                                    <span className="text-cyan-300 font-black w-6 text-center">{t.secuencia}</span>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-white text-sm font-bold truncate">
+                                                            {t.origen || "?"} <FaArrowRight className="inline mx-1 text-gray-500" size={10} /> {t.destino || "?"}
+                                                        </p>
+                                                        <p className="text-gray-500 text-xs">
+                                                            {t.km != null ? `${t.km} km` : "sin km"}{t.horas != null ? ` · ${t.horas} h` : ""} · {t.tipo || "-"}{t.liquidable === false ? " · no liquidable" : ""}
+                                                        </p>
+                                                    </div>
+                                                    <button onClick={() => quitarTrayecto(t.id)} disabled={loadingTrayectos} aria-label="Quitar trayecto"
+                                                        className="p-2 rounded-lg bg-red-500/10 border border-red-400/20 text-red-400 hover:bg-red-500/20 transition-all disabled:opacity-40">
+                                                        <FaTrash size={11} />
+                                                    </button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                        {trayectosViaje.disponibles.length > 0 && (
+                                            <div>
+                                                <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-2">Más trayectos de la ruta</p>
+                                                <div className="space-y-2">
+                                                    {trayectosViaje.disponibles.map(d => (
+                                                        <div key={d.indiceRuta} className="flex items-center gap-3 p-3 rounded-xl border border-dashed border-white/10">
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="text-gray-300 text-sm truncate">
+                                                                    {d.origen || "?"} <FaArrowRight className="inline mx-1 text-gray-600" size={10} /> {d.destino || "?"}
+                                                                </p>
+                                                                <p className="text-gray-500 text-xs">{d.km != null ? `${d.km} km` : "sin km"} · {d.tipo || "-"}</p>
+                                                            </div>
+                                                            <button onClick={() => agregarTrayecto(d.indiceRuta)} disabled={loadingTrayectos}
+                                                                className="px-3 py-2 rounded-lg bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 text-xs font-bold hover:bg-cyan-500/20 transition-all disabled:opacity-40 flex items-center gap-1">
+                                                                <FaPlus size={10} /> Agregar
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
                                 )}
                             </div>
                         )}
@@ -882,6 +1009,9 @@ export default function ViajesPage() {
                                     </Field>
                                 </div>
                             </div>
+                            {errorAlta && (
+                                <div className="mx-8 px-4 py-3 rounded-xl text-sm bg-red-500/10 border border-red-400/30 text-red-300 flex-shrink-0">{errorAlta}</div>
+                            )}
                             <div className="flex gap-4 p-8 pt-4 flex-shrink-0">
                                 <button onClick={() => setShowModal(false)}
                                     className="flex-1 py-4 rounded-2xl border border-white/10 text-gray-400 hover:bg-white/5 transition-all font-bold">Cancelar</button>
