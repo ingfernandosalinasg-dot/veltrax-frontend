@@ -53,6 +53,21 @@ function Field({ label, children, span2 = false }) {
     );
 }
 
+// Texto de cada ruta en el selector de «Nuevo Viaje» (TEC-RUTA-A-VIAJE): folio,
+// descripción, origen → destino, km y tipo de viaje, para distinguir rutas con
+// el mismo origen y destino. Lo que la ruta no tenga se omite.
+function etiquetaRuta(r) {
+    const origen  = r.origenTexto  || r.remitente?.ciudad    || "?";
+    const destino = r.destinoTexto || r.destinatario?.ciudad || "?";
+    return [
+        r.folioRuta,
+        r.descripcionRuta,
+        `${origen} → ${destino}`,
+        r.distanciaKm ? `${r.distanciaKm} km` : null,
+        r.tipoViajeDesc,
+    ].filter(Boolean).join(" · ");
+}
+
 export default function ViajesPage() {
     const [viajes,         setViajes]         = useState([]);
     const [clientes,       setClientes]       = useState([]);
@@ -977,7 +992,7 @@ export default function ViajesPage() {
                                             <option value="">{form.clienteId ? "Seleccionar ruta..." : "Primero selecciona un cliente"}</option>
                                             {rutasFiltradas.map(r => (
                                                 <option key={r.id} value={r.id}>
-                                                    {r.remitente?.ciudad || "?"} →{r.destinatario?.ciudad || "?"} {r.distanciaKm ? `(${r.distanciaKm} km)` : ""}
+                                                    {etiquetaRuta(r)}
                                                 </option>
                                             ))}
                                         </select>
