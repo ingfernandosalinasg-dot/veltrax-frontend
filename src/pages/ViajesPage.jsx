@@ -229,6 +229,9 @@ export default function ViajesPage() {
         if (!confirm("¿Quitar este trayecto del viaje? La ruta no cambia.")) return;
         pedirTrayectos(`${API}/orders/${viajeSeleccionado.id}/trayectos/${trayectoId}`, { method: "DELETE" });
     };
+    // En un viaje facturado, cobrado o cancelado los trayectos son solo de
+    // consulta (TEC-TRAYECTOS-CERRADOS): el resumen llega con editable en false.
+    const trayectosSoloConsulta = trayectosViaje?.editable === false;
 
     const cambiarStatus = async (viaje, nuevoStatus) => {
         if (nuevoStatus === "ENTREGADO") {
@@ -770,6 +773,11 @@ export default function ViajesPage() {
                                         {trayectosViaje.aviso && (
                                             <div className="px-4 py-3 rounded-xl text-sm bg-yellow-500/10 border border-yellow-400/30 text-yellow-300">{trayectosViaje.aviso}</div>
                                         )}
+                                        {trayectosSoloConsulta && (
+                                            <div className="px-4 py-3 rounded-xl text-sm bg-white/5 border border-white/10 text-gray-400">
+                                                Viaje {textoStatus(viajeSeleccionado.status).toLowerCase()}: sus trayectos son solo de consulta.
+                                            </div>
+                                        )}
                                         <div className="rounded-2xl bg-cyan-500/10 border border-cyan-400/20 p-4">
                                             <p className="text-cyan-400 text-xs font-bold uppercase">Kilómetros del viaje</p>
                                             <p className="text-2xl font-black text-cyan-300 mt-1">{trayectosViaje.kmTotal.toLocaleString()} km</p>
@@ -791,14 +799,16 @@ export default function ViajesPage() {
                                                             {t.km != null ? `${t.km} km` : "sin km"}{t.horas != null ? ` · ${t.horas} h` : ""} · {t.tipo || "-"}{t.liquidable === false ? " · no liquidable" : ""}
                                                         </p>
                                                     </div>
-                                                    <button onClick={() => quitarTrayecto(t.id)} disabled={loadingTrayectos} aria-label="Quitar trayecto"
-                                                        className="p-2 rounded-lg bg-red-500/10 border border-red-400/20 text-red-400 hover:bg-red-500/20 transition-all disabled:opacity-40">
-                                                        <FaTrash size={11} />
-                                                    </button>
+                                                    {!trayectosSoloConsulta && (
+                                                        <button onClick={() => quitarTrayecto(t.id)} disabled={loadingTrayectos} aria-label="Quitar trayecto"
+                                                            className="p-2 rounded-lg bg-red-500/10 border border-red-400/20 text-red-400 hover:bg-red-500/20 transition-all disabled:opacity-40">
+                                                            <FaTrash size={11} />
+                                                        </button>
+                                                    )}
                                                 </div>
                                             ))}
                                         </div>
-                                        {trayectosViaje.disponibles.length > 0 && (
+                                        {!trayectosSoloConsulta && trayectosViaje.disponibles.length > 0 && (
                                             <div>
                                                 <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-2">Más trayectos de la ruta</p>
                                                 <div className="space-y-2">
