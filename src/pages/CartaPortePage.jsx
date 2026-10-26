@@ -451,7 +451,8 @@ export default function CartaPortePage() {
     };
     const openNew = () => {
         setEditando(null);
-        setForm({ ...emptyForm, folio:`CP-${Date.now().toString().slice(-6)}`, fechaEmision: new Date().toISOString().split("T")[0] });
+        // El folio lo asigna el sistema al guardar (TEC-FOLIOS).
+        setForm({ ...emptyForm, fechaEmision: new Date().toISOString().split("T")[0] });
         setMercancias([{ ...emptyMerc }]);
         setActiveTab("encabezado");
         setShowModal(true);
@@ -613,7 +614,7 @@ export default function CartaPortePage() {
                             {activeTab === "encabezado" && (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                                     <Field label="Folio" span2>
-                                        <input value={form.folio} onChange={set("folio")} className={inputCls} />
+                                        <input value={form.folio || ""} readOnly placeholder="Lo asigna el sistema al guardar" className={inputCls + " opacity-60 cursor-not-allowed"} />
                                     </Field>
                                     <div className="col-span-1 sm:col-span-2">
                                         <label className="text-gray-400 text-sm mb-2 block">Tipo de CFDI con Carta Porte</label>

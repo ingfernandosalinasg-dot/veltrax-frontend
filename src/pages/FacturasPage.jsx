@@ -48,6 +48,7 @@ export default function FacturasPage() {
     const [step,        setStep]        = useState(1);
     const [loading,     setLoading]     = useState(false);
     const [msg,         setMsg]         = useState(null);
+    const [errorAlta,   setErrorAlta]   = useState("");
     const [filtroTipo,  setFiltroTipo]  = useState("TODOS");
     const [form,        setForm]        = useState({ ...emptyForm });
     const [conceptos,   setConceptos]   = useState([{ ...emptyConcepto }]);
@@ -110,6 +111,7 @@ export default function FacturasPage() {
     };
 
     const abrirNueva = () => {
+        setErrorAlta("");
         setForm({ ...emptyForm });
         setConceptos([{ ...emptyConcepto }]);
         setStep(1);
@@ -136,8 +138,9 @@ export default function FacturasPage() {
 
     const handleSubmit = async () => {
         setLoading(true);
+        setErrorAlta("");
         try {
-            await fetch(API+"/api/facturas", {
+            const res = await fetch(API+"/api/facturas", {
                 method: "POST", headers,
                 body: JSON.stringify({
                     ...form, tipoFactura,
@@ -146,6 +149,14 @@ export default function FacturasPage() {
                     conceptos
                 })
             });
+            // Un rechazo (por ejemplo, el 409 de un folio repetido, TEC-FOLIOS) se
+            // muestra en la ventana, que sigue abierta para corregirlo.
+            if (!res.ok) {
+                const data = await res.json().catch(() => null);
+                setErrorAlta(data?.error || "No se pudo crear la factura (error " + res.status + ").");
+                setLoading(false);
+                return;
+            }
             setShowModal(false);
             setConceptos([{ ...emptyConcepto }]);
             fetchAll();
@@ -456,6 +467,9 @@ export default function FacturasPage() {
                                         </div>
                                         <div><label className="text-gray-400 text-xs mb-1 block">Notas</label><textarea value={form.notas} onChange={setF("notas")} rows={2} className={inputCls+" resize-none"} /></div>
                                     </div>
+                                    {errorAlta && (
+                                        <div className="mx-8 px-4 py-3 rounded-xl text-sm bg-red-500/10 border border-red-400/30 text-red-300 flex-shrink-0">{errorAlta}</div>
+                                    )}
                                     <div className="flex gap-4 p-8 pt-4 flex-shrink-0">
                                         <button onClick={() => setShowModal(false)} className="flex-1 py-4 rounded-2xl border border-white/10 text-gray-400 hover:bg-white/5 transition-all font-bold">Cancelar</button>
                                         <motion.button whileHover={{ scale:1.02 }} whileTap={{ scale:0.98 }} onClick={handleSubmit} disabled={loading}
