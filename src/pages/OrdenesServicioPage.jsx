@@ -6,6 +6,7 @@ import { FaTools, FaPlus, FaTrash, FaTimes, FaCheck, FaArrowRight,
 import { motion, AnimatePresence } from "framer-motion";
 
 import { API_URL } from "../config/api";
+import { hoyMexico } from "../utils/fechas";
 const API = API_URL;
 
 const TIPOS_ORDEN = ["Preventivo", "Correctivo"];
@@ -77,7 +78,7 @@ export default function OrdenesServicioPage() {
     const showMsgFn = (ok, txt) => { setMsg({ ok, txt }); setTimeout(() => setMsg(null), 4000); };
 
     const openNew = () => {
-        setForm({ ...emptyForm, fechaEntrada: new Date().toISOString().split("T")[0] });
+        setForm({ ...emptyForm, fechaEntrada: hoyMexico() });
         setShowModal(true);
     };
 

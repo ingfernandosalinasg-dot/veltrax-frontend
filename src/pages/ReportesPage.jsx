@@ -5,6 +5,7 @@ import { FaFilePdf, FaFileExcel, FaFilter, FaSyncAlt } from "react-icons/fa";
 import { motion } from "framer-motion";
 
 import { API_URL } from "../config/api";
+import { hoyMexico } from "../utils/fechas";
 const API = API_URL;
 
 const MODULOS = [
@@ -193,7 +194,7 @@ export default function ReportesPage() {
         const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
         const link = document.createElement("a");
         link.href = URL.createObjectURL(blob);
-        link.download = `reporte_${moduloActivo.key}_${new Date().toISOString().slice(0, 10)}.csv`;
+        link.download = `reporte_${moduloActivo.key}_${hoyMexico()}.csv`;
         link.click();
         setMensaje({ tipo: "ok", texto: "Excel exportado correctamente" });
     };

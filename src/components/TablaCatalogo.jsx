@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { FaSort, FaSortUp, FaSortDown, FaFileCsv } from "react-icons/fa";
+import { hoyMexico } from "../utils/fechas";
 
 // Tabla reutilizable para catálogos (Fase 0, D5). Todo ocurre en el navegador
 // sobre `filas`: búsqueda general, filtro y orden por columna, paginación
@@ -96,7 +97,7 @@ export default function TablaCatalogo({
         const url = URL.createObjectURL(blob);
         const enlace = document.createElement("a");
         enlace.href = url;
-        enlace.download = `${nombreArchivo}_${new Date().toISOString().slice(0, 10)}.csv`;
+        enlace.download = `${nombreArchivo}_${hoyMexico()}.csv`;
         document.body.appendChild(enlace);
         enlace.click();
         enlace.remove();

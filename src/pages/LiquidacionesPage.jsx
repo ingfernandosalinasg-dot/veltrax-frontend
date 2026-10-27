@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams } from "react-router-dom";
 
 import { API_URL } from "../config/api";
+import { hoyMexico } from "../utils/fechas";
 const API = API_URL;
 
 const emptyForm = {
@@ -309,7 +310,7 @@ export default function LiquidacionesPage() {
                 modo: "VIAJE",
                 orderId: orderIdParam,
                 driverId: driverIdParam || "",
-                fechaLiquidacion: new Date().toISOString().split("T")[0],
+                fechaLiquidacion: hoyMexico(),
             });
             setFormError("");
             setShowModal(true);
@@ -341,7 +342,7 @@ export default function LiquidacionesPage() {
 
     const openNew = () => {
         setEditando(null);
-        setForm({ ...emptyForm, fechaLiquidacion: new Date().toISOString().split("T")[0] });
+        setForm({ ...emptyForm, fechaLiquidacion: hoyMexico() });
         setFormError("");
         setShowModal(true);
     };
@@ -434,7 +435,7 @@ export default function LiquidacionesPage() {
 
     const abrirPago = (liq) => {
         setLiquidacionActiva(liq);
-        setFormPago({ fechaPago: new Date().toISOString().split("T")[0], formaPago: "Transferencia", referenciaPago: "" });
+        setFormPago({ fechaPago: hoyMexico(), formaPago: "Transferencia", referenciaPago: "" });
         setShowPagoModal(true);
     };
 

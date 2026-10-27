@@ -7,6 +7,7 @@ import { FaExclamationTriangle, FaPlus, FaTrash, FaTimes, FaCheck,
 import { motion, AnimatePresence } from "framer-motion";
 
 import { API_URL } from "../config/api";
+import { hoyMexico } from "../utils/fechas";
 const API = API_URL;
 
 const PRIORIDADES = ["Baja", "Media", "Alta", "Urgente"];
@@ -83,7 +84,7 @@ export default function ReportesFallaPage() {
     const showMsgFn = (ok, txt) => { setMsg({ ok, txt }); setTimeout(() => setMsg(null), 4000); };
 
     const openNew = () => {
-        setForm({ ...emptyForm, fecha: new Date().toISOString().split("T")[0] });
+        setForm({ ...emptyForm, fecha: hoyMexico() });
         setShowModal(true);
     };
 
@@ -109,7 +110,7 @@ export default function ReportesFallaPage() {
 
     const openConvertir = (r) => {
         setReporteActivo(r);
-        setConvForm({ ...emptyConv, descripcion: r.descripcion || "", fechaEntrada: new Date().toISOString().split("T")[0] });
+        setConvForm({ ...emptyConv, descripcion: r.descripcion || "", fechaEntrada: hoyMexico() });
         setShowConvModal(true);
     };
 

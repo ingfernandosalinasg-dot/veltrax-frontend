@@ -6,6 +6,7 @@ import {
     FaExclamationTriangle, FaTruck, FaMapMarkerAlt, FaUser, FaBox, FaSearch
 } from "react-icons/fa";
 import { API_URL } from "../config/api";
+import { hoyMexico } from "../utils/fechas";
 const API = API_URL;
 const estadoColor = {
     "Activa":      "text-cyan-300 bg-cyan-500/10 border-cyan-400/30",
@@ -452,7 +453,7 @@ export default function CartaPortePage() {
     const openNew = () => {
         setEditando(null);
         // El folio lo asigna el sistema al guardar (TEC-FOLIOS).
-        setForm({ ...emptyForm, fechaEmision: new Date().toISOString().split("T")[0] });
+        setForm({ ...emptyForm, fechaEmision: hoyMexico() });
         setMercancias([{ ...emptyMerc }]);
         setActiveTab("encabezado");
         setShowModal(true);

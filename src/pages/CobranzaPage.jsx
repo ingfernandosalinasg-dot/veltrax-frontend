@@ -9,6 +9,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 
 import { API_URL } from "../config/api";
+import { hoyMexico } from "../utils/fechas";
 const API = API_URL;
 
 // Catálogos SAT para timbrado
@@ -79,7 +80,7 @@ export default function CobranzaPage() {
     const [busqueda,    setBusqueda]    = useState("");
     const [filtroStatus, setFiltroStatus] = useState("");
     const [formPago,    setFormPago]    = useState({
-        monto: "", fecha: new Date().toISOString().split("T")[0],
+        monto: "", fecha: hoyMexico(),
         formaPago: "03", metodoPago: "PUE",
         referencia: "", notas: "",
     });
@@ -121,7 +122,7 @@ export default function CobranzaPage() {
     const abrirPago = (factura) => {
         setFacturaActiva(factura);
         setFormPago({
-            monto: "", fecha: new Date().toISOString().split("T")[0],
+            monto: "", fecha: hoyMexico(),
             formaPago: "03", metodoPago: "PUE",
             referencia: "", notas: "",
         });

@@ -6,6 +6,7 @@ import { FaPlus, FaTimes, FaCheck, FaTrash, FaEdit, FaMoneyBillWave,
 import { motion, AnimatePresence } from 'framer-motion';
 
 import { API_URL } from "../config/api";
+import { hoyMexico } from "../utils/fechas";
 const API = API_URL;
 
 const inputCls  = 'w-full bg-white/5 border border-cyan-400/10 rounded-xl px-4 py-3 text-white outline-none focus:border-cyan-400/40 transition-all text-sm';
@@ -34,7 +35,7 @@ export default function PrestamosPage() {
     const [prestamoSel,  setPrestamoSel]  = useState(null);
     const [abonos,       setAbonos]       = useState([]);
     const [abonoMonto,   setAbonoMonto]   = useState('');
-    const [abonoFecha,   setAbonoFecha]   = useState(new Date().toISOString().slice(0, 10));
+    const [abonoFecha,   setAbonoFecha]   = useState(hoyMexico());
     const [loadingAbono, setLoadingAbono] = useState(false);
 
     const [filtroDriver, setFiltroDriver] = useState('');
@@ -68,7 +69,7 @@ export default function PrestamosPage() {
 
     const openNew = () => {
         setEditando(null);
-        setForm({ ...emptyForm, fechaOtorgamiento: new Date().toISOString().slice(0, 10) });
+        setForm({ ...emptyForm, fechaOtorgamiento: hoyMexico() });
         setShowModal(true);
     };
 
@@ -105,7 +106,7 @@ export default function PrestamosPage() {
         setPrestamoSel(p);
         fetchAbonos(p.id);
         setAbonoMonto('');
-        setAbonoFecha(new Date().toISOString().slice(0, 10));
+        setAbonoFecha(hoyMexico());
         setShowAbonos(true);
     };
 

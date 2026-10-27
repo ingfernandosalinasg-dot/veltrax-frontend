@@ -5,6 +5,7 @@ import { FaPlus, FaBox, FaTimes, FaCheck, FaUndo, FaTrash, FaExclamationTriangle
 import { motion, AnimatePresence } from "framer-motion";
 
 import { API_URL } from "../config/api";
+import { hoyMexico } from "../utils/fechas";
 const API = API_URL;
 
 const inputCls  = "w-full bg-white/5 border border-cyan-400/10 rounded-xl px-4 py-3 text-white outline-none focus:border-cyan-400/40 transition-all text-sm";
@@ -12,7 +13,7 @@ const selectCls = "w-full bg-[#020617] border border-cyan-400/10 rounded-xl px-4
 
 const emptyForm = {
     tipoMovimiento: "SALIDA", tipoCajaId: "", clienteId: "", orderId: "",
-    driverId: "", cantidad: "", fecha: new Date().toISOString().slice(0, 10),
+    driverId: "", cantidad: "", fecha: "",
     fechaCompromisoDevolucion: "", status: "PENDIENTE", notas: ""
 };
 
@@ -164,7 +165,7 @@ export default function CajasPage() {
                             Tipos de Caja
                         </motion.button>
                         <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-                            onClick={() => setShowModal(true)}
+                            onClick={() => { setForm(f => ({ ...f, fecha: hoyMexico() })); setShowModal(true); }}
                             className="flex items-center gap-3 px-8 py-4 rounded-2xl bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 font-bold hover:bg-cyan-500/20 transition-all">
                             <FaPlus /> Nuevo Movimiento
                         </motion.button>

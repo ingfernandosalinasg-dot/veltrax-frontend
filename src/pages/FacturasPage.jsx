@@ -6,6 +6,7 @@ import { FaPlus, FaFilePdf, FaTrash, FaFileInvoiceDollar, FaTimes, FaCheck } fro
 import { motion, AnimatePresence } from "framer-motion";
 
 import { API_URL } from "../config/api";
+import { hoyMexico } from "../utils/fechas";
 const API = API_URL;
 
 const TIPOS_FACTURA = [
@@ -25,7 +26,7 @@ const inputCls  = "w-full bg-white/5 border border-cyan-400/10 rounded-xl px-4 p
 const selectCls = "w-full bg-[#020617] border border-cyan-400/10 rounded-xl px-4 py-3 text-white outline-none focus:border-cyan-400/40 transition-all text-sm";
 
 const emptyConcepto = { descripcion:"", tipoConcepto:"FLETE", claveProdServ:"78101800", claveUnidad:"E48", cantidad:1, valorUnitario:"", descuento:0, orderId:"" };
-const emptyForm = { clienteId:"", serie:"A", folio:"", fecha:new Date().toISOString().slice(0,10), formaPago:"03 - Transferencia electronica", metodoPago:"PUE - Pago en una sola exhibicion", usoCfdi:"G03 - Gastos en general", tipoComprobante:"I", receptorRfc:"", receptorRazonSocial:"", receptorRegimenFiscal:"", receptorUsoCfdi:"G03 - Gastos en general", receptorCodigoPostal:"", descuento:0, notas:"", orderId:"", facturaRelacionadaId:"" };
+const emptyForm = { clienteId:"", serie:"A", folio:"", fecha:"", formaPago:"03 - Transferencia electronica", metodoPago:"PUE - Pago en una sola exhibicion", usoCfdi:"G03 - Gastos en general", tipoComprobante:"I", receptorRfc:"", receptorRazonSocial:"", receptorRegimenFiscal:"", receptorUsoCfdi:"G03 - Gastos en general", receptorCodigoPostal:"", descuento:0, notas:"", orderId:"", facturaRelacionadaId:"" };
 
 const tipoColor = (tipo) => {
     const map = { VIAJE:"text-cyan-300 bg-cyan-500/10 border-cyan-400/30", CONCEPTO:"text-blue-300 bg-blue-500/10 border-blue-400/30", NOTA_CARGO:"text-orange-300 bg-orange-500/10 border-orange-400/30", NOTA_CREDITO:"text-red-300 bg-red-500/10 border-red-400/30", GLOBAL:"text-purple-300 bg-purple-500/10 border-purple-400/30" };
@@ -50,7 +51,7 @@ export default function FacturasPage() {
     const [msg,         setMsg]         = useState(null);
     const [errorAlta,   setErrorAlta]   = useState("");
     const [filtroTipo,  setFiltroTipo]  = useState("TODOS");
-    const [form,        setForm]        = useState({ ...emptyForm });
+    const [form,        setForm]        = useState(() => ({ ...emptyForm, fecha: hoyMexico() }));
     const [conceptos,   setConceptos]   = useState([{ ...emptyConcepto }]);
 
     const token   = localStorage.getItem("token");
@@ -112,7 +113,7 @@ export default function FacturasPage() {
 
     const abrirNueva = () => {
         setErrorAlta("");
-        setForm({ ...emptyForm });
+        setForm({ ...emptyForm, fecha: hoyMexico() });
         setConceptos([{ ...emptyConcepto }]);
         setStep(1);
         setShowModal(true);

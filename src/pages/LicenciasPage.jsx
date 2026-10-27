@@ -7,6 +7,7 @@ import { FaPlus, FaTimes, FaCheck, FaTrash, FaEdit,
 import { motion, AnimatePresence } from "framer-motion";
 
 import { API_URL } from "../config/api";
+import { fechaMexico, hoyMexico, mesMexico } from "../utils/fechas";
 const API = API_URL;
 const inputCls  = "w-full bg-white/5 border border-cyan-400/10 rounded-xl px-4 py-3 text-white outline-none focus:border-cyan-400/40 transition-all text-sm";
 const selectCls = "w-full bg-[#020617] border border-cyan-400/10 rounded-xl px-4 py-3 text-white outline-none focus:border-cyan-400/40 transition-all text-sm";
@@ -99,8 +100,8 @@ export default function LicenciasPage() {
 
     const openNew = () => {
         setEditando(null);
-        const hoy = new Date().toISOString().slice(0,10);
-        const venc = new Date(Date.now()+30*24*60*60*1000).toISOString().slice(0,10);
+        const hoy = hoyMexico();
+        const venc = fechaMexico(new Date(Date.now()+30*24*60*60*1000));
         setForm({ ...emptyForm, fechaInicio: hoy, fechaVencimiento: venc });
         setShowModal(true);
     };
@@ -133,7 +134,7 @@ export default function LicenciasPage() {
     const abrirPanel = (t, tab="pagos") => {
         setTenantSel(t); setPanelTab(tab);
         fetchPagos(t.id); fetchUsuarios(t.id);
-        setPagoForm({ monto:t.precioMensual||"", metodoPago:"TRANSFERENCIA", referencia:"", periodo:new Date().toISOString().slice(0,7), meses:"1", notas:"" });
+        setPagoForm({ monto:t.precioMensual||"", metodoPago:"TRANSFERENCIA", referencia:"", periodo:mesMexico(), meses:"1", notas:"" });
         setShowPanel(true);
     };
 

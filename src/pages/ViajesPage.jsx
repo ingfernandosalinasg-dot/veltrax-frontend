@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
 import { API_URL } from "../config/api";
+import { hoyMexico } from "../utils/fechas";
 const API = API_URL;
 
 const normalizar = (s) => (s || "").toUpperCase().replace(/\s+/g, "_").replace(/\s/g, "_");
@@ -436,7 +437,7 @@ export default function ViajesPage() {
         setEditandoGasto(null);
         setGastoActivo(null);
         setTicketFile(null);
-        setGastoForm({ ...emptyGasto, fecha: new Date().toISOString().split("T")[0] });
+        setGastoForm({ ...emptyGasto, fecha: hoyMexico() });
         setShowGastoModal(true);
     };
 
