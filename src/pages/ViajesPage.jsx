@@ -32,7 +32,7 @@ async function mensajeEvidencia(res) {
 
 const emptyForm = {
     clienteId: "", rutaId: "", driverId: "", vehicleId: "",
-    date: "", cost: "", status: "PENDIENTE", notas: ""
+    date: "", horaSalida: "", cost: "", status: "PENDIENTE", notas: ""
 };
 
 const emptyGasto = {
@@ -67,6 +67,13 @@ function etiquetaRuta(r) {
         r.distanciaKm ? `${r.distanciaKm} km` : null,
         r.tipoViajeDesc,
     ].filter(Boolean).join(" · ");
+}
+
+// Nombre y domicilio del remitente o destinatario de la ruta (VID-J3).
+function domicilio(p) {
+    if (!p) return "-";
+    const lugar = [p.direccion, p.ciudad, p.estado].filter(Boolean).join(", ");
+    return [p.nombre, lugar].filter(Boolean).join(" · ") || "-";
 }
 
 export default function ViajesPage() {
@@ -233,6 +240,8 @@ export default function ViajesPage() {
     // En un viaje facturado, cobrado o cancelado los trayectos son solo de
     // consulta (TEC-TRAYECTOS-CERRADOS): el resumen llega con editable en false.
     const trayectosSoloConsulta = trayectosViaje?.editable === false;
+    // VID-J3: la ruta elegida en «Nuevo Viaje», para mostrar su tipo de unidad.
+    const rutaElegida = rutasFiltradas.find(r => String(r.id) === String(form.rutaId));
 
     const cambiarStatus = async (viaje, nuevoStatus) => {
         if (nuevoStatus === "ENTREGADO") {
@@ -362,6 +371,7 @@ export default function ViajesPage() {
                 driverId:  form.driverId  ? Number(form.driverId)  : null,
                 vehicleId: form.vehicleId ? Number(form.vehicleId) : null,
                 date:      form.date,
+                horaSalida: form.horaSalida || null,
                 cost:      form.cost ? Number(form.cost) : null,
                 status:    "PENDIENTE",
                 notas:     form.notas,
@@ -779,9 +789,19 @@ export default function ViajesPage() {
                                                 Viaje {textoStatus(viajeSeleccionado.status).toLowerCase()}: sus trayectos son solo de consulta.
                                             </div>
                                         )}
+                                        <div className="rounded-2xl bg-white/5 border border-white/10 p-4 space-y-1 text-sm">
+                                            <p className="text-gray-300"><span className="text-gray-500">Remitente: </span>{domicilio(viajeSeleccionado.ruta?.remitente)}</p>
+                                            <p className="text-gray-300"><span className="text-gray-500">Destinatario: </span>{domicilio(viajeSeleccionado.ruta?.destinatario)}</p>
+                                            <p className="text-gray-300"><span className="text-gray-500">Tipo de unidad: </span>{viajeSeleccionado.tipoUnidad || "-"}</p>
+                                            <p className="text-gray-300"><span className="text-gray-500">Salida: </span>{[viajeSeleccionado.date, viajeSeleccionado.horaSalida].filter(Boolean).join(" ") || "-"}</p>
+                                            <p className="text-gray-300"><span className="text-gray-500">Entrega estimada: </span>
+                                                {trayectosViaje.entregaEstimada || <span className="text-yellow-300">{trayectosViaje.motivoSinEntrega || "-"}</span>}
+                                            </p>
+                                        </div>
                                         <div className="rounded-2xl bg-cyan-500/10 border border-cyan-400/20 p-4">
                                             <p className="text-cyan-400 text-xs font-bold uppercase">Kilómetros del viaje</p>
                                             <p className="text-2xl font-black text-cyan-300 mt-1">{trayectosViaje.kmTotal.toLocaleString()} km</p>
+                                            <p className="text-cyan-200 text-sm mt-1">{(trayectosViaje.horasTotal ?? 0).toLocaleString()} h de trayectos</p>
                                             <p className="text-gray-500 text-xs mt-1">
                                                 Suma de sus trayectos{viajeSeleccionado.ruta ? ` · Ruta ${viajeSeleccionado.ruta.folioRuta || viajeSeleccionado.ruta.descripcionRuta || ""}` : " · Sin ruta"}
                                             </p>
@@ -1010,6 +1030,9 @@ export default function ViajesPage() {
                                         {form.clienteId && rutasFiltradas.length === 0 && (
                                             <p className="text-yellow-400 text-xs mt-1">Sin rutas. <a href="/rutas" className="underline">Agregar ruta</a></p>
                                         )}
+                                        {rutaElegida?.tipoUnidad && (
+                                            <p className="text-gray-400 text-xs mt-1">Tipo de unidad: {rutaElegida.tipoUnidad}</p>
+                                        )}
                                     </Field>
                                     <Field label="Conductor">
                                         <select value={form.driverId} onChange={set("driverId")} className={selectCls}>
@@ -1026,6 +1049,9 @@ export default function ViajesPage() {
                                     <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-2">Detalles</p>
                                     <Field label="Fecha salida">
                                         <input type="date" value={form.date} onChange={set("date")} className={inputCls} />
+                                    </Field>
+                                    <Field label="Hora salida">
+                                        <input type="time" value={form.horaSalida} onChange={set("horaSalida")} className={inputCls} />
                                     </Field>
                                     <Field label="Costo ($)">
                                         <input type="number" value={form.cost} onChange={set("cost")} placeholder="0.00" className={inputCls} />
