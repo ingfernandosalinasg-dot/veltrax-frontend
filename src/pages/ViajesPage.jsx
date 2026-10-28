@@ -76,6 +76,9 @@ function domicilio(p) {
     return [p.nombre, lugar].filter(Boolean).join(" · ") || "-";
 }
 
+// VID-J5: cada remolque del trayecto va cargado (C), vacío (V) o no se lleva.
+const OPCIONES_REMOLQUE = [["", "Sin remolque"], ["C", "Cargado"], ["V", "Vacío"]];
+
 export default function ViajesPage() {
     const [viajes,         setViajes]         = useState([]);
     const [clientes,       setClientes]       = useState([]);
@@ -107,6 +110,10 @@ export default function ViajesPage() {
     const [loadingRent,       setLoadingRent]       = useState(false);
     // Trayectos del viaje (TEC-RUTA-A-VIAJE): los copiados de la ruta y «Más trayectos».
     const [trayectosViaje,    setTrayectosViaje]    = useState(null);
+    // VID-J5: el trayecto que se está asignando y los datos de su ventana.
+    const [asignando,         setAsignando]         = useState(null);
+    const [formAsignar,       setFormAsignar]       = useState({});
+    const [errorAsignar,      setErrorAsignar]      = useState("");
     const [loadingTrayectos,  setLoadingTrayectos]  = useState(false);
     const [errorTrayectos,    setErrorTrayectos]    = useState("");
     // Error del alta de viaje, visible dentro de la ventana.
@@ -242,6 +249,50 @@ export default function ViajesPage() {
     const trayectosSoloConsulta = trayectosViaje?.editable === false;
     // VID-J3: la ruta elegida en «Nuevo Viaje», para mostrar su tipo de unidad.
     const rutaElegida = rutasFiltradas.find(r => String(r.id) === String(form.rutaId));
+
+    // VID-J5: «Asignar» abre la ventana del trayecto con sus datos. Las fechas
+    // planeadas llegan como «AAAA-MM-DD HH:mm» y el campo de fecha y hora usa «T».
+    const abrirAsignar = (t) => {
+        setFormAsignar({
+            operadorId: t.operadorId ?? "", auxiliarId: t.auxiliarId ?? "", unidadId: t.unidadId ?? "",
+            remolque1: t.remolque1 ?? "", remolque2: t.remolque2 ?? "",
+            km: t.km ?? "", horas: t.horas ?? "", liquidable: t.liquidable !== false,
+            cargaPlaneada: (t.cargaPlaneada || "").replace(" ", "T"),
+            descargaPlaneada: (t.descargaPlaneada || "").replace(" ", "T"),
+        });
+        setErrorAsignar("");
+        setAsignando(t);
+    };
+    const setA = (f) => (e) => setFormAsignar(prev => ({ ...prev, [f]: e.target.type === "checkbox" ? e.target.checked : e.target.value }));
+    // Un rechazo del servidor (400 o 409) se muestra en la ventana, que sigue abierta.
+    const guardarAsignacion = async () => {
+        const id    = (v) => (v === "" || v == null ? null : Number(v));
+        const texto = (v) => (v === "" || v == null ? null : String(v));
+        const body = {
+            operadorId: id(formAsignar.operadorId), auxiliarId: id(formAsignar.auxiliarId),
+            unidadId: id(formAsignar.unidadId),
+            remolque1: texto(formAsignar.remolque1), remolque2: texto(formAsignar.remolque2),
+            km: texto(formAsignar.km), horas: texto(formAsignar.horas),
+            liquidable: formAsignar.liquidable,
+            cargaPlaneada: texto(formAsignar.cargaPlaneada), descargaPlaneada: texto(formAsignar.descargaPlaneada),
+        };
+        setErrorAsignar("");
+        try {
+            const res  = await fetch(`${API}/orders/${viajeSeleccionado.id}/trayectos/${asignando.id}`,
+                { method: "PUT", headers, body: JSON.stringify(body) });
+            const data = await res.json().catch(() => null);
+            if (!res.ok) {
+                setErrorAsignar(data?.error || `No se pudo guardar (error ${res.status}).`);
+                return;
+            }
+            setTrayectosViaje(data);
+            setAsignando(null);
+            fetchAll();
+        } catch (e) {
+            console.error(e);
+            setErrorAsignar("No se pudo conectar con el servidor. Intenta de nuevo.");
+        }
+    };
 
     const cambiarStatus = async (viaje, nuevoStatus) => {
         if (nuevoStatus === "ENTREGADO") {
@@ -819,7 +870,19 @@ export default function ViajesPage() {
                                                         <p className="text-gray-500 text-xs">
                                                             {t.km != null ? `${t.km} km` : "sin km"}{t.horas != null ? ` · ${t.horas} h` : ""} · {t.tipo || "-"}{t.liquidable === false ? " · no liquidable" : ""}
                                                         </p>
+                                                        <p className="text-gray-400 text-xs truncate">
+                                                            {t.operador || "Sin operador"}{t.auxiliar ? ` + ${t.auxiliar}` : ""} · {t.unidad || "sin unidad"} · R1 {t.remolque1 || "—"} · R2 {t.remolque2 || "—"}
+                                                        </p>
+                                                        {(t.cargaPlaneada || t.descargaPlaneada) && (
+                                                            <p className="text-gray-500 text-xs">Carga {t.cargaPlaneada || "—"} · Descarga {t.descargaPlaneada || "—"}</p>
+                                                        )}
                                                     </div>
+                                                    {!trayectosSoloConsulta && (
+                                                        <button onClick={() => abrirAsignar(t)} disabled={loadingTrayectos} aria-label="Asignar operador y unidad"
+                                                            className="p-2 rounded-lg bg-cyan-500/10 border border-cyan-400/20 text-cyan-300 hover:bg-cyan-500/20 transition-all disabled:opacity-40">
+                                                            <FaEdit size={11} />
+                                                        </button>
+                                                    )}
                                                     {!trayectosSoloConsulta && (
                                                         <button onClick={() => quitarTrayecto(t.id)} disabled={loadingTrayectos} aria-label="Quitar trayecto"
                                                             className="p-2 rounded-lg bg-red-500/10 border border-red-400/20 text-red-400 hover:bg-red-500/20 transition-all disabled:opacity-40">
@@ -1080,6 +1143,74 @@ export default function ViajesPage() {
 
             {/* MODAL GASTO */}
             <AnimatePresence>
+                {/* VID-J5: operador, unidad, remolques, km, horas y fechas planeadas de un trayecto */}
+                {asignando && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[60] p-6">
+                        <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
+                            className="bg-[#020617] border border-cyan-400/20 rounded-3xl w-full max-w-lg flex flex-col max-h-[90vh]">
+                            <div className="flex justify-between items-center p-6 pb-0 flex-shrink-0">
+                                <div>
+                                    <h2 className="text-2xl font-black text-cyan-300">Asignar trayecto {asignando.secuencia}</h2>
+                                    <p className="text-gray-400 text-sm">{asignando.origen || "?"} → {asignando.destino || "?"}</p>
+                                </div>
+                                <button onClick={() => setAsignando(null)} className="text-gray-400 hover:text-white text-xl"><FaTimes /></button>
+                            </div>
+                            <div className="px-6 py-5 grid grid-cols-2 gap-4 overflow-y-auto">
+                                <Field label="Operador" span2>
+                                    <select value={formAsignar.operadorId} onChange={setA("operadorId")} className={selectCls}>
+                                        <option value="">Sin operador</option>
+                                        {drivers.map(d => <option key={d.id} value={d.id}>{d.name} {d.apellidos || ""}{d.status ? ` (${d.status})` : ""}</option>)}
+                                    </select>
+                                </Field>
+                                <Field label="Operador auxiliar" span2>
+                                    <select value={formAsignar.auxiliarId} onChange={setA("auxiliarId")} className={selectCls}>
+                                        <option value="">Sin auxiliar</option>
+                                        {drivers.map(d => <option key={d.id} value={d.id}>{d.name} {d.apellidos || ""}{d.status ? ` (${d.status})` : ""}</option>)}
+                                    </select>
+                                </Field>
+                                <Field label="Unidad" span2>
+                                    <select value={formAsignar.unidadId} onChange={setA("unidadId")} className={selectCls}>
+                                        <option value="">Sin unidad</option>
+                                        {vehicles.map(v => <option key={v.id} value={v.id}>{v.codigo ? `[${v.codigo}] ` : ""}{v.plate} -{v.brand} {v.model}</option>)}
+                                    </select>
+                                </Field>
+                                <Field label="Remolque 1">
+                                    <select value={formAsignar.remolque1} onChange={setA("remolque1")} className={selectCls}>
+                                        {OPCIONES_REMOLQUE.map(([v, t]) => <option key={v} value={v}>{t}</option>)}
+                                    </select>
+                                </Field>
+                                <Field label="Remolque 2">
+                                    <select value={formAsignar.remolque2} onChange={setA("remolque2")} className={selectCls}>
+                                        {OPCIONES_REMOLQUE.map(([v, t]) => <option key={v} value={v}>{t}</option>)}
+                                    </select>
+                                </Field>
+                                <Field label="Kilómetros">
+                                    <input type="number" min="0" step="any" value={formAsignar.km} onChange={setA("km")} className={inputCls} />
+                                </Field>
+                                <Field label="Horas">
+                                    <input type="number" min="0" step="any" value={formAsignar.horas} onChange={setA("horas")} className={inputCls} />
+                                </Field>
+                                <Field label="Carga planeada">
+                                    <input type="datetime-local" value={formAsignar.cargaPlaneada} onChange={setA("cargaPlaneada")} className={inputCls} />
+                                </Field>
+                                <Field label="Descarga planeada">
+                                    <input type="datetime-local" value={formAsignar.descargaPlaneada} onChange={setA("descargaPlaneada")} className={inputCls} />
+                                </Field>
+                                <label className="col-span-2 flex items-center gap-2 text-gray-300 text-sm">
+                                    <input type="checkbox" checked={formAsignar.liquidable} onChange={setA("liquidable")} /> Trayecto liquidable
+                                </label>
+                            </div>
+                            {errorAsignar && (
+                                <div className="mx-6 px-4 py-3 rounded-xl text-sm bg-red-500/10 border border-red-400/30 text-red-300 flex-shrink-0">{errorAsignar}</div>
+                            )}
+                            <div className="flex gap-4 p-6 flex-shrink-0">
+                                <button onClick={() => setAsignando(null)} className="flex-1 py-3 rounded-2xl border border-white/10 text-gray-400 hover:bg-white/5 transition-all font-bold">Cancelar</button>
+                                <button onClick={guardarAsignacion} className="flex-1 py-3 rounded-2xl bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 font-bold hover:bg-cyan-500/30 transition-all">Guardar</button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
                 {showGastoModal && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                         className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[60] p-6">
