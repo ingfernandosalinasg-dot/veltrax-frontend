@@ -109,6 +109,19 @@ async function mensajeDeError(res, accion) {
     return cuerpo?.error || `No se pudo ${accion} la ruta (error ${res.status}).`;
 }
 
+// Km y horas de un trayecto (VID-J3): vacíos o solo números, con punto decimal.
+// El servidor también los revisa. El mensaje si alguno no sirve; si no, null.
+const NUMERO_TRAYECTO = /^\d+(\.\d+)?$/;
+function numeroNoValido(t, posicion) {
+    for (const campo of ["km", "horas"]) {
+        const valor = t[campo] == null ? "" : String(t[campo]).trim();
+        if (valor !== "" && !NUMERO_TRAYECTO.test(valor)) {
+            return `El trayecto ${posicion} (${t.origen || "?"} → ${t.destino || "?"}) tiene ${campo} «${valor}»: escribe solo el número, con punto decimal (por ejemplo 3.5).`;
+        }
+    }
+    return null;
+}
+
 export default function RutasPage() {
     const [rutas,          setRutas]          = useState([]);
     const [clientes,       setClientes]       = useState([]);
@@ -248,6 +261,12 @@ export default function RutasPage() {
     };
     const agregarTrayecto = () => {
         if (!nuevoTrayecto.origen || !nuevoTrayecto.destino) return;
+        const errorTrayecto = numeroNoValido(nuevoTrayecto, trayectos.length + 1);
+        if (errorTrayecto) {
+            setErrorGuardar(errorTrayecto);
+            return;
+        }
+        setErrorGuardar("");
         setTrayectos(ts => [...ts, nuevoTrayecto]);
         setNuevoTrayecto(emptyTrayecto());
         setTrayectoSubTab("gastos");
@@ -278,6 +297,12 @@ export default function RutasPage() {
     // Si el servidor rechaza el guardado, el mensaje se muestra en la ventana,
     // que sigue abierta para corregir.
     const handleSubmit = async () => {
+        // VID-J3: km y horas de los trayectos, solo números (el servidor también lo revisa).
+        const errorTrayectos = trayectos.map((t, i) => numeroNoValido(t, i + 1)).find(Boolean);
+        if (errorTrayectos) {
+            setErrorGuardar(errorTrayectos);
+            return;
+        }
         // El tipo de viaje debe ser uno activo del catálogo, y la clasificación,
         // si se elige, también (BLQ-VA): uno heredado se corrige al editar
         // (DEC-1020-LEGADO). El servidor también los revisa.
@@ -642,8 +667,8 @@ export default function RutasPage() {
                                                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
                                                     <Field label="Origen" span2><input value={nuevoTrayecto.origen} onChange={e => setNuevoTrayecto(t => ({ ...t, origen: e.target.value }))} className={inputCls} /></Field>
                                                     <Field label="Destino" span2><input value={nuevoTrayecto.destino} onChange={e => setNuevoTrayecto(t => ({ ...t, destino: e.target.value }))} className={inputCls} /></Field>
-                                                    <Field label="Horas"><input value={nuevoTrayecto.horas} onChange={e => setNuevoTrayecto(t => ({ ...t, horas: e.target.value }))} placeholder="1h 34 Min" className={inputCls} /></Field>
-                                                    <Field label="Kilómetros"><input type="number" value={nuevoTrayecto.km} onChange={e => setNuevoTrayecto(t => ({ ...t, km: e.target.value }))} className={inputCls} /></Field>
+                                                    <Field label="Horas"><input type="number" min="0" step="any" value={nuevoTrayecto.horas} onChange={e => setNuevoTrayecto(t => ({ ...t, horas: e.target.value }))} placeholder="1.5" className={inputCls} /></Field>
+                                                    <Field label="Kilómetros"><input type="number" min="0" step="any" value={nuevoTrayecto.km} onChange={e => setNuevoTrayecto(t => ({ ...t, km: e.target.value }))} className={inputCls} /></Field>
                                                     <Field label="Millas"><input type="number" value={nuevoTrayecto.millas} onChange={e => setNuevoTrayecto(t => ({ ...t, millas: e.target.value }))} className={inputCls} /></Field>
                                                     <Field label="Tipo Trayecto">
                                                         <select value={nuevoTrayecto.tipoTrayecto} onChange={e => setNuevoTrayecto(t => ({ ...t, tipoTrayecto: e.target.value }))} className={selectCls}>
