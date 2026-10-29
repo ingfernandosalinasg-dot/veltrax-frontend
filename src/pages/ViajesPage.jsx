@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 
 import { API_URL } from "../config/api";
 import { hoyMexico } from "../utils/fechas";
+import { etiquetaCliente } from "../utils/clientes";
 const API = API_URL;
 
 const normalizar = (s) => (s || "").toUpperCase().replace(/\s+/g, "_").replace(/\s/g, "_");
@@ -216,7 +217,7 @@ export default function ViajesPage() {
     // Trayectos del viaje (TEC-RUTA-A-VIAJE): consultar, agregar uno de la ruta y
     // quitar uno del viaje devuelven el mismo resumen (trayectos, km totales, los
     // de la ruta que faltan y un aviso si la ruta no se puede leer). Un rechazo
-    // muestra el mensaje del servidor.
+    // muestra el mensaje del servidor. Devuelve el resumen, o nada si hubo error.
     const pedirTrayectos = async (url, opciones = {}) => {
         setLoadingTrayectos(true);
         setErrorTrayectos("");
@@ -230,6 +231,7 @@ export default function ViajesPage() {
                 return;
             }
             setTrayectosViaje(data);
+            return data;
         } catch (e) {
             console.error(e);
             setErrorTrayectos("No se pudo conectar con el servidor. Intenta de nuevo.");
@@ -250,9 +252,19 @@ export default function ViajesPage() {
     // VID-J3: la ruta elegida en «Nuevo Viaje», para mostrar su tipo de unidad.
     const rutaElegida = rutasFiltradas.find(r => String(r.id) === String(form.rutaId));
 
-    // VID-J5: «Asignar» abre la ventana del trayecto con sus datos. Las fechas
-    // planeadas llegan como «AAAA-MM-DD HH:mm» y el campo de fecha y hora usa «T».
-    const abrirAsignar = (t) => {
+    // VID-J5: «Asignar» abre la ventana del trayecto con sus datos actuales:
+    // antes vuelve a leer los trayectos del viaje, porque los de la pestaña
+    // pueden ser de antes de otro cambio, y avisa si el trayecto ya no está.
+    // Las fechas planeadas llegan como «AAAA-MM-DD HH:mm» y el campo de fecha y
+    // hora usa «T».
+    const abrirAsignar = async (trayectoId) => {
+        const resumen = await pedirTrayectos(`${API}/orders/${viajeSeleccionado.id}/trayectos`);
+        if (!resumen) return;
+        const t = resumen.trayectos?.find(x => x.id === trayectoId);
+        if (!t) {
+            setErrorTrayectos("Ese trayecto ya no está en el viaje; la lista se actualizó.");
+            return;
+        }
         setFormAsignar({
             operadorId: t.operadorId ?? "", auxiliarId: t.auxiliarId ?? "", unidadId: t.unidadId ?? "",
             remolque1: t.remolque1 ?? "", remolque2: t.remolque2 ?? "",
@@ -632,7 +644,7 @@ export default function ViajesPage() {
                                             transition={{ delay: i * 0.05 }}
                                             className="border-b border-cyan-400/5 hover:bg-cyan-500/5 transition-all">
                                             <td className="py-4 pr-4 font-black text-cyan-300 text-sm">{v.folio || `#${v.id}`}</td>
-                                            <td className="py-4 pr-4">{v.cliente?.nombre || v.cliente?.name || v.clienteNombre || "-"}</td>
+                                            <td className="py-4 pr-4">{etiquetaCliente(v.cliente) || "-"}</td>
                                             <td className="py-4 pr-4 text-gray-300 text-sm">{v.origen || v.ruta?.remitente?.ciudad || "-"}</td>
                                             <td className="py-4 pr-4 text-gray-300 text-sm">{v.destino || v.ruta?.destinatario?.ciudad || "-"}</td>
                                             <td className="py-4 pr-4 text-gray-400 text-sm">
@@ -707,7 +719,7 @@ export default function ViajesPage() {
                         <div className="p-6 border-b border-cyan-400/10 flex justify-between items-start flex-shrink-0">
                             <div>
                                 <h2 className="text-2xl font-black text-cyan-300">{viajeSeleccionado.folio || `#${viajeSeleccionado.id}`}</h2>
-                                <p className="text-gray-400 text-sm mt-1">{viajeSeleccionado.cliente?.nombre || viajeSeleccionado.cliente?.name || viajeSeleccionado.clienteNombre || "Sin cliente"}</p>
+                                <p className="text-gray-400 text-sm mt-1">{etiquetaCliente(viajeSeleccionado.cliente) || "Sin cliente"}</p>
                             </div>
                             <button onClick={() => setShowPanelGastos(false)} className="text-gray-400 hover:text-white text-xl"><FaTimes /></button>
                         </div>
@@ -878,7 +890,7 @@ export default function ViajesPage() {
                                                         )}
                                                     </div>
                                                     {!trayectosSoloConsulta && (
-                                                        <button onClick={() => abrirAsignar(t)} disabled={loadingTrayectos} aria-label="Asignar operador y unidad"
+                                                        <button onClick={() => abrirAsignar(t.id)} disabled={loadingTrayectos} aria-label="Asignar operador y unidad"
                                                             className="p-2 rounded-lg bg-cyan-500/10 border border-cyan-400/20 text-cyan-300 hover:bg-cyan-500/20 transition-all disabled:opacity-40">
                                                             <FaEdit size={11} />
                                                         </button>
@@ -1078,7 +1090,7 @@ export default function ViajesPage() {
                                     <Field label="Cliente" span2>
                                         <select value={form.clienteId} onChange={set("clienteId")} className={selectCls}>
                                             <option value="">Seleccionar cliente...</option>
-                                            {clientes.map(c => <option key={c.id} value={c.id}>{c.nombre || c.name} -{c.company}</option>)}
+                                            {clientes.map(c => <option key={c.id} value={c.id}>{etiquetaCliente(c)}</option>)}
                                         </select>
                                     </Field>
                                     <Field label="Ruta" span2>

@@ -7,6 +7,7 @@ import { useSearchParams } from "react-router-dom";
 
 import { API_URL } from "../config/api";
 import { hoyMexico } from "../utils/fechas";
+import { etiquetaCliente } from "../utils/clientes";
 const API = API_URL;
 
 const emptyForm = {
@@ -659,7 +660,7 @@ export default function LiquidacionesPage() {
                                                 <option value="">Seleccionar viaje...</option>
                                                 {viajes.map(v => (
                                                     <option key={v.id} value={v.id}>
-                                                        #{v.id} -{v.clienteNombre || "Sin cliente"} | {v.origen || "?"} → {v.destino || "?"} | ${(v.cost || 0).toLocaleString()}
+                                                        #{v.id} -{etiquetaCliente(v.cliente) || "Sin cliente"} | {v.origen || "?"} → {v.destino || "?"} | ${(v.cost || 0).toLocaleString()}
                                                     </option>
                                                 ))}
                                             </select>

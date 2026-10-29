@@ -7,6 +7,7 @@ import { FaUserTie, FaPlus, FaTrash, FaEdit, FaTimes, FaCheck, FaBuilding, FaUse
 import { motion, AnimatePresence } from "framer-motion";
 
 import { API_URL } from "../config/api";
+import { etiquetaCliente, nombreCliente } from "../utils/clientes";
 const API = API_URL;
 
 const tipoColor = {
@@ -278,7 +279,8 @@ export default function ClientesPage() {
     };
 
     const filtrados = clientes.filter(c =>
-        c.nombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
+        etiquetaCliente(c).toLowerCase().includes(busqueda.toLowerCase()) ||
+        c.razonSocial?.toLowerCase().includes(busqueda.toLowerCase()) ||
         c.rfc?.toLowerCase().includes(busqueda.toLowerCase()) ||
         c.ciudad?.toLowerCase().includes(busqueda.toLowerCase())
     );
@@ -347,8 +349,8 @@ export default function ClientesPage() {
                                         className="border-b border-cyan-400/5 hover:bg-cyan-500/5 transition-all">
                                         <td className="py-4 pr-5 font-mono text-cyan-300 font-bold whitespace-nowrap">{c.numeroCliente || "-"}</td>
                                         <td className="py-4 pr-5 whitespace-nowrap">
-                                            <div className="font-bold text-white">{c.nombre}</div>
-                                            {c.razonSocial && <div className="text-xs text-gray-500">{c.razonSocial}</div>}
+                                            <div className="font-bold text-white">{nombreCliente(c) || "-"}</div>
+                                            {c.razonSocial && c.razonSocial.trim() !== nombreCliente(c) && <div className="text-xs text-gray-500">{c.razonSocial}</div>}
                                         </td>
                                         <td className="py-4 pr-5 text-cyan-300 font-mono text-sm whitespace-nowrap">{c.rfc || "-"}</td>
                                         <td className="py-4 pr-5">

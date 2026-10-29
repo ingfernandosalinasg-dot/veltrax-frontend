@@ -5,6 +5,7 @@ import { FaRoute, FaPlus, FaTrash, FaEdit, FaTimes, FaCheck, FaMapMarkedAlt, FaE
 import { motion, AnimatePresence } from "framer-motion";
 
 import { API_URL } from "../config/api";
+import { etiquetaCliente } from "../utils/clientes";
 const API = API_URL;
 
 const TABS = [
@@ -365,7 +366,7 @@ export default function RutasPage() {
     const filtradas = rutas.filter(r => {
         const origen = r.origenTexto || r.remitente?.ciudad || "";
         const destino = r.destinoTexto || r.destinatario?.ciudad || "";
-        const cliente = r.cliente?.nombre || r.cliente?.name || "";
+        const cliente = etiquetaCliente(r.cliente);
         const q = busqueda.toLowerCase();
         return origen.toLowerCase().includes(q) || destino.toLowerCase().includes(q) || cliente.toLowerCase().includes(q) || r.folioRuta?.toLowerCase().includes(q);
     });
@@ -432,7 +433,7 @@ export default function RutasPage() {
                                 {filtradas.map(r => (
                                     <tr key={r.id} className="border-b border-cyan-400/5 hover:bg-cyan-500/5 transition-all">
                                         <td className="py-4 pr-4 font-bold text-cyan-300 font-mono whitespace-nowrap">{r.folioRuta || "-"}</td>
-                                        <td className="py-4 pr-4 whitespace-nowrap">{r.cliente?.nombre || r.cliente?.name || "-"}</td>
+                                        <td className="py-4 pr-4 whitespace-nowrap">{etiquetaCliente(r.cliente) || "-"}</td>
                                         <td className="py-4 pr-4 text-gray-300 whitespace-nowrap">{r.origenTexto || r.remitente?.ciudad || "-"}</td>
                                         <td className="py-4 pr-4 text-gray-300 whitespace-nowrap">{r.destinoTexto || r.destinatario?.ciudad || "-"}</td>
                                         <td className="py-4 pr-4 text-sm whitespace-nowrap">
@@ -507,7 +508,7 @@ export default function RutasPage() {
                                         <Field label="Cliente" span2>
                                             <select value={form.clienteId} onChange={set("clienteId")} className={selectCls}>
                                                 <option value="">Seleccionar cliente...</option>
-                                                {clientes.map(c => <option key={c.id} value={c.id}>{c.numeroCliente ? `[${c.numeroCliente}] ` : ""}{c.nombre || c.name}</option>)}
+                                                {clientes.map(c => <option key={c.id} value={c.id}>{etiquetaCliente(c)}</option>)}
                                             </select>
                                         </Field>
                                         <div className="flex items-end pb-2.5">

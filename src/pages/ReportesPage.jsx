@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 
 import { API_URL } from "../config/api";
 import { hoyMexico } from "../utils/fechas";
+import { etiquetaCliente } from "../utils/clientes";
 const API = API_URL;
 
 const MODULOS = [
@@ -90,7 +91,7 @@ export default function ReportesPage() {
                 return `<tr>
                     <td>${i + 1}</td>
                     <td>#${item.id}</td>
-                    <td>${item.clienteNombre || "-"}</td>
+                    <td>${etiquetaCliente(item.cliente) || "-"}</td>
                     <td>${item.origen || "-"} →${item.destino || "-"}</td>
                     <td>${item.driverNombre || "-"}</td>
                     <td>${item.date || "-"}</td>
@@ -182,7 +183,7 @@ export default function ReportesPage() {
         let csv = "";
         if (moduloActivo.key === "orders") {
             csv = "ID,Cliente,Origen,Destino,Conductor,Vehículo,Fecha,Costo,Status\n";
-            csv += preview.map(v => `${v.id},"${v.clienteNombre||""}","${v.origen||""}","${v.destino||""}","${v.driverNombre||""}","${v.vehiclePlacas||""}","${v.date||""}",${v.cost||0},"${v.status||""}"`).join("\n");
+            csv += preview.map(v => `${v.id},"${etiquetaCliente(v.cliente)}","${v.origen||""}","${v.destino||""}","${v.driverNombre||""}","${v.vehiclePlacas||""}","${v.date||""}",${v.cost||0},"${v.status||""}"`).join("\n");
         } else if (moduloActivo.key === "cartas-porte") {
             csv = "Folio,Remitente,Destinatario,Origen,Destino,Conductor,Vehículo,Emisión,Status\n";
             csv += preview.map(c => `"${c.folio||""}","${c.remitenteNombre||""}","${c.destinatarioNombre||""}","${c.lugarCarga||""}","${c.lugarDescarga||""}","${c.conductorNombre||""}","${c.vehiculoPlacas||""}","${c.fechaEmision||""}","${c.status||""}"`).join("\n");
@@ -272,7 +273,7 @@ export default function ReportesPage() {
                                             onChange={e => setFiltros(f => ({ ...f, clienteId: e.target.value }))}
                                             className={selectCls}>
                                             <option value="">Todos</option>
-                                            {clientes.map(c => <option key={c.id} value={c.id}>{c.nombre || c.name}</option>)}
+                                            {clientes.map(c => <option key={c.id} value={c.id}>{etiquetaCliente(c)}</option>)}
                                         </select>
                                     </div>
                                 )}
@@ -343,7 +344,7 @@ export default function ReportesPage() {
                                                 <tr key={i} className="border-b border-cyan-400/5 hover:bg-cyan-500/5 transition-all">
                                                     {moduloActivo.key === "orders" && <>
                                                         <td className="py-3 pr-4 text-cyan-300 font-bold">#{item.id}</td>
-                                                        <td className="py-3 pr-4">{item.clienteNombre || "-"}</td>
+                                                        <td className="py-3 pr-4">{etiquetaCliente(item.cliente) || "-"}</td>
                                                         <td className="py-3 pr-4 text-gray-400 text-xs">{item.origen || "-"} →{item.destino || "-"}</td>
                                                         <td className="py-3 pr-4 text-gray-400">{item.driverNombre || "-"}</td>
                                                         <td className="py-3 pr-4 text-gray-400">{item.date || "-"}</td>

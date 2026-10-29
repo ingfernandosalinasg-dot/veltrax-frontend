@@ -8,6 +8,7 @@ import { FaSatellite, FaTruck, FaRoute, FaWifi, FaPlus, FaTimes, FaMapMarkerAlt 
 import { motion, AnimatePresence } from "framer-motion";
 
 import { API_URL } from "../config/api";
+import { etiquetaCliente } from "../utils/clientes";
 const API = API_URL;
 
 delete L.Icon.Default.prototype._getIconUrl;
@@ -173,7 +174,7 @@ export default function TrackingPage() {
                             <option value="">Seleccionar viaje...</option>
                             {viajes.map(v => (
                                 <option key={v.id} value={v.id}>
-                                    #{v.id} -{v.clienteNombre || "Sin cliente"} | {v.origen || "?"} →{v.destino || "?"}
+                                    #{v.id} -{etiquetaCliente(v.cliente) || "Sin cliente"} | {v.origen || "?"} →{v.destino || "?"}
                                 </option>
                             ))}
                         </select>
@@ -243,7 +244,7 @@ export default function TrackingPage() {
                         {viajeSeleccionado && (
                             <div className="mb-4 p-4 rounded-2xl bg-cyan-500/10 border border-cyan-400/20">
                                 <p className="text-cyan-300 font-bold text-sm">Viaje #{viajeSeleccionado.id}</p>
-                                <p className="text-gray-400 text-xs">{viajeSeleccionado.clienteNombre}</p>
+                                <p className="text-gray-400 text-xs">{etiquetaCliente(viajeSeleccionado.cliente)}</p>
                                 <p className="text-gray-300 text-xs mt-1">{viajeSeleccionado.origen} →{viajeSeleccionado.destino}</p>
                                 <p className="text-gray-500 text-xs mt-1">{viajeSeleccionado.driverNombre} | {viajeSeleccionado.vehiclePlacas}</p>
                             </div>
