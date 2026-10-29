@@ -18,3 +18,14 @@ export const hoyMexico = () => fechaMexico();
 
 // El mes en curso en la Ciudad de México, "AAAA-MM".
 export const mesMexico = () => fechaMexico().slice(0, 7);
+
+const formatoHora = new Intl.DateTimeFormat("en-US", {
+    timeZone: ZONA_NEGOCIO, hour: "2-digit", minute: "2-digit", hourCycle: "h23",
+});
+
+// "AAAA-MM-DDTHH:mm" de ese momento (por defecto, ahora) en la Ciudad de
+// México: el formato del campo de fecha y hora (datetime-local).
+export function ahoraMexico(momento = new Date()) {
+    const partes = Object.fromEntries(formatoHora.formatToParts(momento).map(p => [p.type, p.value]));
+    return `${fechaMexico(momento)}T${partes.hour}:${partes.minute}`;
+}

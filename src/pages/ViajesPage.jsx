@@ -3,13 +3,14 @@ import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import { FaRoute, FaPlus, FaTruck, FaCheckCircle, FaClock, FaTrash, FaTimes,
          FaFileAlt, FaMoneyBillWave, FaEdit, FaCamera, FaSignature,
-         FaHistory, FaArrowRight, FaChartLine, FaFileInvoiceDollar, FaHandHoldingUsd } from "react-icons/fa";
+         FaHistory, FaArrowRight, FaChartLine, FaFileInvoiceDollar, FaHandHoldingUsd, FaFlag } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 
 import { API_URL } from "../config/api";
-import { hoyMexico } from "../utils/fechas";
+import { hoyMexico, ahoraMexico } from "../utils/fechas";
 import { etiquetaCliente } from "../utils/clientes";
+import ChipEvento from "../components/ChipEvento";
 const API = API_URL;
 
 const normalizar = (s) => (s || "").toUpperCase().replace(/\s+/g, "_").replace(/\s/g, "_");
@@ -117,6 +118,11 @@ export default function ViajesPage() {
     const [errorAsignar,      setErrorAsignar]      = useState("");
     const [loadingTrayectos,  setLoadingTrayectos]  = useState(false);
     const [errorTrayectos,    setErrorTrayectos]    = useState("");
+    // VID-J5: historial de eventos del viaje (pestaña «Eventos») y su formulario.
+    const [eventosViaje,      setEventosViaje]      = useState(null);
+    const [loadingEventos,    setLoadingEventos]    = useState(false);
+    const [errorEventos,      setErrorEventos]      = useState("");
+    const [formEvento,        setFormEvento]        = useState({});
     // Error del alta de viaje, visible dentro de la ventana.
     const [errorAlta,         setErrorAlta]         = useState("");
 
@@ -306,6 +312,54 @@ export default function ViajesPage() {
         }
     };
 
+    // VID-J5: eventos del viaje. Consultar, registrar y quitar devuelven el mismo
+    // historial: los eventos, los del catálogo que se pueden registrar (vacío si
+    // no tiene ninguno activo) y si el viaje acepta cambios. Un rechazo muestra
+    // el mensaje del servidor. La fecha propuesta es la de ahora en México.
+    const eventoVacio = () => ({ clave: "", fecha: ahoraMexico(), trayectoId: "", comentario: "" });
+    const pedirEventos = async (url, opciones = {}) => {
+        setLoadingEventos(true);
+        setErrorEventos("");
+        try {
+            const res  = await fetch(url, { headers, ...opciones });
+            const data = await res.json().catch(() => null);
+            if (!res.ok) {
+                setErrorEventos(data?.error || (res.status === 403
+                    ? "No tienes permiso para esta acción o tu sesión expiró."
+                    : `No se pudieron cargar los eventos (error ${res.status}).`));
+                return null;
+            }
+            setEventosViaje(data);
+            return data;
+        } catch (e) {
+            console.error(e);
+            setErrorEventos("No se pudo conectar con el servidor. Intenta de nuevo.");
+            return null;
+        } finally {
+            setLoadingEventos(false);
+        }
+    };
+    const fetchEventos = (viajeId) => {
+        setEventosViaje(null);
+        setFormEvento(eventoVacio());
+        pedirEventos(`${API}/orders/${viajeId}/eventos`);
+    };
+    const setEv = (f) => (e) => setFormEvento(prev => ({ ...prev, [f]: e.target.value }));
+    const agregarEvento = async () => {
+        const data = await pedirEventos(`${API}/orders/${viajeSeleccionado.id}/eventos`, {
+            method: "POST",
+            body: JSON.stringify({
+                clave: formEvento.clave, fecha: formEvento.fecha, comentario: formEvento.comentario,
+                trayectoId: formEvento.trayectoId === "" ? null : Number(formEvento.trayectoId),
+            }),
+        });
+        if (data) setFormEvento(eventoVacio());
+    };
+    const quitarEvento = (eventoId) => {
+        if (!confirm("¿Quitar este evento del viaje? Quedará anotado en la bitácora.")) return;
+        pedirEventos(`${API}/orders/${viajeSeleccionado.id}/eventos/${eventoId}`, { method: "DELETE" });
+    };
+
     const cambiarStatus = async (viaje, nuevoStatus) => {
         if (nuevoStatus === "ENTREGADO") {
             setViajeEvidencia(viaje);
@@ -478,10 +532,13 @@ export default function ViajesPage() {
         setTabPanel(tab);
         setTrayectosViaje(null);
         setErrorTrayectos("");
+        setEventosViaje(null);
+        setErrorEventos("");
         fetchGastos(viaje.id);
         if (tab === "timeline")     fetchTimeline(viaje);
         if (tab === "rentabilidad") fetchRentabilidad(viaje.id);
         if (tab === "trayectos")    fetchTrayectos(viaje.id);
+        if (tab === "eventos")      { fetchEventos(viaje.id); fetchTrayectos(viaje.id); }
         setShowPanelGastos(true);
     };
 
@@ -490,6 +547,11 @@ export default function ViajesPage() {
         if (tab === "timeline" && timelineEventos.length === 0)     fetchTimeline(viajeSeleccionado);
         if (tab === "rentabilidad" && !rentabilidad)                fetchRentabilidad(viajeSeleccionado.id);
         if (tab === "trayectos")                                     fetchTrayectos(viajeSeleccionado.id);
+        // La pestaña «Eventos» usa los trayectos del viaje para elegir uno.
+        if (tab === "eventos") {
+            fetchEventos(viajeSeleccionado.id);
+            if (!trayectosViaje) fetchTrayectos(viajeSeleccionado.id);
+        }
     };
 
     const irAFacturar = () => {
@@ -725,12 +787,13 @@ export default function ViajesPage() {
                         </div>
 
                         {/* TABS */}
-                        <div className="flex gap-1 px-4 pt-4 pb-2 flex-shrink-0">
+                        <div className="flex flex-wrap gap-1 px-4 pt-4 pb-2 flex-shrink-0">
                             {[
                                 { id: "gastos",       label: "Gastos",       icon: <FaMoneyBillWave size={11} /> },
                                 { id: "timeline",     label: "Timeline",     icon: <FaHistory size={11} /> },
                                 { id: "rentabilidad", label: "Rentabilidad", icon: <FaChartLine size={11} /> },
                                 { id: "trayectos",    label: "Trayectos",    icon: <FaRoute size={11} /> },
+                                { id: "eventos",      label: "Eventos",      icon: <FaFlag size={11} /> },
                             ].map(t => (
                                 <button key={t.id} onClick={() => cambiarTabPanel(t.id)}
                                     className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all
@@ -925,6 +988,75 @@ export default function ViajesPage() {
                                                 </div>
                                             </div>
                                         )}
+                                    </>
+                                )}
+                            </div>
+                        )}
+
+                        {/* TAB: EVENTOS (VID-J5) */}
+                        {tabPanel === "eventos" && (
+                            <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
+                                {errorEventos && (
+                                    <div className="px-4 py-3 rounded-xl text-sm bg-red-500/10 border border-red-400/30 text-red-300">{errorEventos}</div>
+                                )}
+                                {loadingEventos && !eventosViaje ? (
+                                    <p className="text-center text-gray-500 py-10">Cargando eventos...</p>
+                                ) : eventosViaje && (
+                                    <>
+                                        {!eventosViaje.editable && (
+                                            <div className="px-4 py-3 rounded-xl text-sm bg-white/5 border border-white/10 text-gray-400">
+                                                Viaje {textoStatus(viajeSeleccionado.status).toLowerCase()}: sus eventos son solo de consulta.
+                                            </div>
+                                        )}
+                                        {eventosViaje.catalogo.length === 0 && (
+                                            <div className="px-4 py-3 rounded-xl text-sm bg-yellow-500/10 border border-yellow-400/30 text-yellow-300">
+                                                El catálogo «Eventos de viaje» está vacío o no tiene eventos activos. Los eventos se capturan en
+                                                Catálogos de tráfico, en la pestaña «Eventos de viaje», con su abreviación y su color.
+                                            </div>
+                                        )}
+                                        {eventosViaje.editable && eventosViaje.catalogo.length > 0 && (
+                                            <div className="rounded-2xl bg-white/5 border border-white/10 p-4 space-y-3">
+                                                <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest">Registrar evento</p>
+                                                <select value={formEvento.clave} onChange={setEv("clave")} className={selectCls}>
+                                                    <option value="">Seleccionar evento...</option>
+                                                    {eventosViaje.catalogo.map(c => <option key={c.clave} value={c.clave}>{c.abreviacion} · {c.descripcion}</option>)}
+                                                </select>
+                                                <input type="datetime-local" value={formEvento.fecha} onChange={setEv("fecha")} aria-label="Fecha y hora del evento" className={inputCls} />
+                                                <select value={formEvento.trayectoId} onChange={setEv("trayectoId")} className={selectCls}>
+                                                    <option value="">Sin trayecto</option>
+                                                    {(trayectosViaje?.trayectos || []).map(t => (
+                                                        <option key={t.id} value={t.id}>Trayecto {t.secuencia}: {t.origen || "?"} → {t.destino || "?"}</option>
+                                                    ))}
+                                                </select>
+                                                <textarea value={formEvento.comentario} onChange={setEv("comentario")} maxLength={500} rows={2}
+                                                    placeholder="Comentario (opcional)" className={inputCls} />
+                                                <button onClick={agregarEvento} disabled={loadingEventos || !formEvento.clave || !formEvento.fecha}
+                                                    className="w-full py-2 rounded-xl bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 text-sm font-bold hover:bg-cyan-500/30 transition-all disabled:opacity-40 flex items-center justify-center gap-2">
+                                                    <FaPlus size={10} /> Registrar evento
+                                                </button>
+                                            </div>
+                                        )}
+                                        <div className="space-y-2">
+                                            {eventosViaje.eventos.length === 0 ? (
+                                                <p className="text-center text-gray-500 py-6">Este viaje no tiene eventos</p>
+                                            ) : eventosViaje.eventos.map(e => (
+                                                <div key={e.id} className="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
+                                                    <ChipEvento abreviacion={e.abreviacion} color={e.color} />
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-white text-sm font-bold">{e.descripcion}</p>
+                                                        <p className="text-gray-400 text-xs">{e.fecha}{e.trayecto ? ` · Trayecto ${e.trayecto}` : ""}</p>
+                                                        {e.comentario && <p className="text-gray-300 text-xs mt-1 break-words">{e.comentario}</p>}
+                                                        <p className="text-gray-600 text-xs mt-1">Registró {e.registradoPor || "—"} el {e.registradoEn}</p>
+                                                    </div>
+                                                    {eventosViaje.editable && (
+                                                        <button onClick={() => quitarEvento(e.id)} disabled={loadingEventos} aria-label="Quitar evento"
+                                                            className="p-2 rounded-lg bg-red-500/10 border border-red-400/20 text-red-400 hover:bg-red-500/20 transition-all disabled:opacity-40">
+                                                            <FaTrash size={11} />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
                                     </>
                                 )}
                             </div>

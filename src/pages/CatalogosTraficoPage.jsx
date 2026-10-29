@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 import TablaCatalogo from "../components/TablaCatalogo";
+import ChipEvento from "../components/ChipEvento";
 import { CATALOGOS_TRAFICO } from "../constants/catalogosTrafico";
 import { FaTags, FaPlus, FaTrash, FaEdit, FaTimes, FaCheck } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
@@ -10,11 +11,14 @@ import { API_URL } from "../config/api";
 const API = API_URL;
 
 // Catálogos de tráfico (Fase 1): tipos y clasificaciones de viaje, grupos de
-// clientes y grupos de unidades. Todos los roles consultan; solo ADMIN ve los
+// clientes, grupos de unidades y eventos de viaje (VID-J5: con abreviación y
+// color). Todos los roles consultan; solo ADMIN ve los
 // controles de escritura. Ocultarlos no es la seguridad: SecurityConfig
 // rechaza en el backend cualquier escritura que no sea de ADMIN.
 
-const formVacio = { clave: "", descripcion: "", activo: true };
+// VID-J5: el color que propone el alta de un evento de viaje.
+const COLOR_INICIAL = "#06B6D4";
+const formVacio = { clave: "", descripcion: "", activo: true, abreviacion: "", color: COLOR_INICIAL };
 
 const inputCls  = "w-full bg-white/5 border border-cyan-400/10 rounded-xl px-5 py-3 text-white outline-none focus:border-cyan-400/40 transition-all";
 const selectCls = "w-full bg-[#020617] border border-cyan-400/10 rounded-xl px-5 py-3 text-white outline-none focus:border-cyan-400/40 transition-all";
@@ -50,6 +54,13 @@ const COLUMNAS = [
         valor: r => (r.activo ? "Activo" : "Inactivo"),
         render: r => <span className={`px-3 py-1 rounded-full border text-xs font-bold ${statusCls(r.activo)}`}>{r.activo ? "Activo" : "Inactivo"}</span>,
     },
+];
+
+// VID-J5: los eventos de viaje muestran además su abreviación, en su color.
+const COLUMNAS_EVENTOS = [
+    COLUMNAS[0],
+    { clave: "abreviacion", titulo: "Abreviación", render: r => <ChipEvento abreviacion={r.abreviacion} color={r.color} /> },
+    ...COLUMNAS.slice(1),
 ];
 
 function Field({ label, children }) {
@@ -114,7 +125,8 @@ export default function CatalogosTraficoPage() {
     const abrirNuevo = () => { setEditando(null); setForm(formVacio); setErrorForm(""); setShowModal(true); };
     const abrirEdicion = (r) => {
         setEditando(r.id);
-        setForm({ clave: r.clave ?? "", descripcion: r.descripcion ?? "", activo: r.activo !== false });
+        setForm({ clave: r.clave ?? "", descripcion: r.descripcion ?? "", activo: r.activo !== false,
+            abreviacion: r.abreviacion ?? "", color: r.color ?? COLOR_INICIAL });
         setErrorForm("");
         setShowModal(true);
     };
@@ -123,7 +135,11 @@ export default function CatalogosTraficoPage() {
         setGuardando(true);
         setErrorForm("");
         // En el alta no se envía activo: el backend siempre crea el registro activo.
-        const cuerpo = editando ? form : { clave: form.clave, descripcion: form.descripcion };
+        // La abreviación y el color solo van en los eventos de viaje (VID-J5).
+        const extra = catalogo?.abreviacionYColor ? { abreviacion: form.abreviacion, color: form.color } : {};
+        const cuerpo = editando
+            ? { clave: form.clave, descripcion: form.descripcion, activo: form.activo, ...extra }
+            : { clave: form.clave, descripcion: form.descripcion, ...extra };
         try {
             const url = editando ? `${API}/api/catalogos-trafico/${tipo}/${editando}` : `${API}/api/catalogos-trafico/${tipo}`;
             const res = await fetch(url, { method: editando ? "PUT" : "POST", headers: encabezados(), body: JSON.stringify(cuerpo) });
@@ -162,7 +178,7 @@ export default function CatalogosTraficoPage() {
                 <motion.div initial={{ opacity: 0, y: -30 }} animate={{ opacity: 1, y: 0 }} className="mb-12 flex justify-between items-center">
                     <div>
                         <h1 className="text-3xl md:text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">CATÁLOGOS DE TRÁFICO</h1>
-                        <p className="text-gray-400 mt-4 text-xl">Tipos y clasificaciones de viaje, grupos de clientes y de unidades</p>
+                        <p className="text-gray-400 mt-4 text-xl">Tipos y clasificaciones de viaje, grupos de clientes y de unidades, y eventos de viaje</p>
                     </div>
                     {esAdmin && (
                         <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={abrirNuevo}
@@ -197,7 +213,7 @@ export default function CatalogosTraficoPage() {
                     <h2 className="text-3xl font-black text-cyan-300 mb-8 flex items-center gap-3"><FaTags /> {catalogo?.nombre}</h2>
                     <TablaCatalogo
                         key={tipo}
-                        columnas={COLUMNAS}
+                        columnas={catalogo?.abreviacionYColor ? COLUMNAS_EVENTOS : COLUMNAS}
                         filas={registros}
                         esActivo={r => r.activo}
                         nombreArchivo={`catalogo_${tipo}`}
@@ -232,6 +248,21 @@ export default function CatalogosTraficoPage() {
                                     <Field label="Descripción *">
                                         <input value={form.descripcion} onChange={set("descripcion")} maxLength={120} className={inputCls} />
                                     </Field>
+                                    {catalogo?.abreviacionYColor && (
+                                        <div className="grid grid-cols-2 gap-5">
+                                            <Field label="Abreviación *">
+                                                <input value={form.abreviacion} onChange={set("abreviacion")} maxLength={10}
+                                                    placeholder="Por ejemplo LLC" className={inputCls} />
+                                            </Field>
+                                            <Field label="Color *">
+                                                <div className="flex items-center gap-3">
+                                                    <input type="color" value={form.color} onChange={set("color")} aria-label="Color del evento"
+                                                        className="h-12 w-16 rounded-xl bg-transparent border border-cyan-400/10 cursor-pointer" />
+                                                    <ChipEvento abreviacion={form.abreviacion || "ABC"} color={form.color} />
+                                                </div>
+                                            </Field>
+                                        </div>
+                                    )}
                                     {editando && (
                                         <Field label="Status">
                                             <select value={form.activo ? "true" : "false"}

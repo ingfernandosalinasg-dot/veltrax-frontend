@@ -5,4 +5,6 @@ export const CATALOGOS_TRAFICO = [
     { slug: "clasificaciones-viaje", nombre: "Clasificaciones de viaje" },
     { slug: "grupos-clientes",       nombre: "Grupos de clientes" },
     { slug: "grupos-unidades",       nombre: "Grupos de unidades" },
+    // VID-J5: los eventos de viaje llevan además abreviación y color.
+    { slug: "eventos-viaje",         nombre: "Eventos de viaje", abreviacionYColor: true },
 ];
