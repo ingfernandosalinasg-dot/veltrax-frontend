@@ -81,6 +81,13 @@ function domicilio(p) {
 // VID-J5: cada remolque del trayecto va cargado (C), vacío (V) o no se lleva.
 const OPCIONES_REMOLQUE = [["", "Sin remolque"], ["C", "Cargado"], ["V", "Vacío"]];
 
+// VID-J7: una demora en minutos, como «1 h 30 min», «45 min» o «2 h».
+const duracion = (min) => {
+    const h = Math.floor(min / 60), m = min % 60;
+    if (h === 0) return `${m} min`;
+    return m === 0 ? `${h} h` : `${h} h ${m} min`;
+};
+
 export default function ViajesPage() {
     const [viajes,         setViajes]         = useState([]);
     const [clientes,       setClientes]       = useState([]);
@@ -123,6 +130,11 @@ export default function ViajesPage() {
     const [loadingEventos,    setLoadingEventos]    = useState(false);
     const [errorEventos,      setErrorEventos]      = useState("");
     const [formEvento,        setFormEvento]        = useState({});
+    // VID-J7: la salida o la llegada que se está registrando ({ trayecto, cual }) y su ventana.
+    const [registrando,       setRegistrando]       = useState(null);
+    const [formMovimiento,    setFormMovimiento]    = useState({});
+    const [errorMovimiento,   setErrorMovimiento]   = useState("");
+    const [guardandoMovimiento, setGuardandoMovimiento] = useState(false);
     // Error del alta de viaje, visible dentro de la ventana.
     const [errorAlta,         setErrorAlta]         = useState("");
 
@@ -255,6 +267,18 @@ export default function ViajesPage() {
     // En un viaje facturado, cobrado o cancelado los trayectos son solo de
     // consulta (TEC-TRAYECTOS-CERRADOS): el resumen llega con editable en false.
     const trayectosSoloConsulta = trayectosViaje?.editable === false;
+    // VID-J7: el siguiente paso del viaje (la llegada del trayecto en camino o la
+    // salida del primero sin salida) y el último registro, el único que se quita.
+    const pasoTrayectos = (() => {
+        const lista = trayectosViaje?.trayectos || [];
+        const enCamino = lista.find(t => t.salida && !t.llegada);
+        if (enCamino) return { llegada: enCamino.id, quitar: { id: enCamino.id, cual: "salida" } };
+        const ultimoLlegado = [...lista].reverse().find(t => t.llegada);
+        return {
+            salida: lista.find(t => !t.salida)?.id,
+            quitar: ultimoLlegado ? { id: ultimoLlegado.id, cual: "llegada" } : null,
+        };
+    })();
     // VID-J3: la ruta elegida en «Nuevo Viaje», para mostrar su tipo de unidad.
     const rutaElegida = rutasFiltradas.find(r => String(r.id) === String(form.rutaId));
 
@@ -310,6 +334,56 @@ export default function ViajesPage() {
             console.error(e);
             setErrorAsignar("No se pudo conectar con el servidor. Intenta de nuevo.");
         }
+    };
+
+    // VID-J7: salida y llegada de cada trayecto, en orden. La ventana propone la
+    // hora de México y, en la salida, los remolques del trayecto. Un rechazo del
+    // servidor se muestra en la ventana; un aviso (un odómetro que conviene
+    // revisar) llega en el resumen y se ve en amarillo. Quitar solo se ofrece en
+    // el último registro del viaje.
+    const abrirMovimiento = (t, cual) => {
+        setFormMovimiento({
+            fecha: ahoraMexico(), odometro: "", odometroRemolque: "", motivoDemora: "",
+            remolque1: t.remolque1 ?? "", remolque2: t.remolque2 ?? "",
+        });
+        setErrorMovimiento("");
+        setRegistrando({ trayecto: t, cual });
+    };
+    const setM = (f) => (e) => setFormMovimiento(prev => ({ ...prev, [f]: e.target.value }));
+    const guardarMovimiento = async () => {
+        const { trayecto, cual } = registrando;
+        const texto = (v) => (v === "" || v == null ? null : String(v));
+        const body = {
+            fecha: formMovimiento.fecha, odometro: texto(formMovimiento.odometro),
+            odometroRemolque: texto(formMovimiento.odometroRemolque), motivoDemora: texto(formMovimiento.motivoDemora),
+            ...(cual === "salida" ? { remolque1: texto(formMovimiento.remolque1), remolque2: texto(formMovimiento.remolque2) } : {}),
+        };
+        setGuardandoMovimiento(true);
+        setErrorMovimiento("");
+        try {
+            const res  = await fetch(`${API}/orders/${viajeSeleccionado.id}/trayectos/${trayecto.id}/${cual}`,
+                { method: "POST", headers, body: JSON.stringify(body) });
+            const data = await res.json().catch(() => null);
+            if (!res.ok) {
+                setErrorMovimiento(data?.error || (res.status === 403
+                    ? "No tienes permiso para esta acción o tu sesión expiró."
+                    : `No se pudo guardar (error ${res.status}).`));
+                return;
+            }
+            setTrayectosViaje(data);
+            setRegistrando(null);
+            fetchAll();
+        } catch (e) {
+            console.error(e);
+            setErrorMovimiento("No se pudo conectar con el servidor. Intenta de nuevo.");
+        } finally {
+            setGuardandoMovimiento(false);
+        }
+    };
+    const quitarMovimiento = async (t, cual) => {
+        if (!confirm(`¿Quitar la ${cual} del trayecto ${t.secuencia}? Quedará anotado en la bitácora.`)) return;
+        const data = await pedirTrayectos(`${API}/orders/${viajeSeleccionado.id}/trayectos/${t.id}/${cual}`, { method: "DELETE" });
+        if (data) fetchAll();
     };
 
     // VID-J5: eventos del viaje. Consultar, registrar y quitar devuelven el mismo
@@ -910,6 +984,11 @@ export default function ViajesPage() {
                                         {trayectosViaje.aviso && (
                                             <div className="px-4 py-3 rounded-xl text-sm bg-yellow-500/10 border border-yellow-400/30 text-yellow-300">{trayectosViaje.aviso}</div>
                                         )}
+                                        {trayectosViaje.faltaEntrega && (
+                                            <div className="px-4 py-3 rounded-xl text-sm bg-cyan-500/10 border border-cyan-400/30 text-cyan-300">
+                                                Llegó el último trayecto: registra la entrega del viaje, con su evidencia.
+                                            </div>
+                                        )}
                                         {trayectosSoloConsulta && (
                                             <div className="px-4 py-3 rounded-xl text-sm bg-white/5 border border-white/10 text-gray-400">
                                                 Viaje {textoStatus(viajeSeleccionado.status).toLowerCase()}: sus trayectos son solo de consulta.
@@ -951,6 +1030,38 @@ export default function ViajesPage() {
                                                         {(t.cargaPlaneada || t.descargaPlaneada) && (
                                                             <p className="text-gray-500 text-xs">Carga {t.cargaPlaneada || "—"} · Descarga {t.descargaPlaneada || "—"}</p>
                                                         )}
+                                                        {t.salida && (
+                                                            <p className="text-gray-300 text-xs">
+                                                                Salida {t.salida.fecha} · {t.salida.odometro} km{t.salida.demoraMinutos ? ` · demora ${duracion(t.salida.demoraMinutos)}` : ""}
+                                                            </p>
+                                                        )}
+                                                        {t.llegada && (
+                                                            <p className="text-gray-300 text-xs">
+                                                                Llegada {t.llegada.fecha} · {t.llegada.odometro} km{t.kmReales != null ? ` · ${t.kmReales} km reales` : ""}{t.llegada.demoraMinutos ? ` · demora ${duracion(t.llegada.demoraMinutos)}` : ""}
+                                                            </p>
+                                                        )}
+                                                        {!trayectosSoloConsulta && (pasoTrayectos.salida === t.id || pasoTrayectos.llegada === t.id || pasoTrayectos.quitar?.id === t.id) && (
+                                                            <div className="flex flex-wrap gap-2 mt-2">
+                                                                {pasoTrayectos.salida === t.id && (
+                                                                    <button onClick={() => abrirMovimiento(t, "salida")} disabled={loadingTrayectos}
+                                                                        className="px-3 py-1 rounded-lg bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 text-xs font-bold hover:bg-cyan-500/20 transition-all disabled:opacity-40">
+                                                                        Registrar salida
+                                                                    </button>
+                                                                )}
+                                                                {pasoTrayectos.llegada === t.id && (
+                                                                    <button onClick={() => abrirMovimiento(t, "llegada")} disabled={loadingTrayectos}
+                                                                        className="px-3 py-1 rounded-lg bg-green-500/10 border border-green-400/30 text-green-300 text-xs font-bold hover:bg-green-500/20 transition-all disabled:opacity-40">
+                                                                        Registrar llegada
+                                                                    </button>
+                                                                )}
+                                                                {pasoTrayectos.quitar?.id === t.id && (
+                                                                    <button onClick={() => quitarMovimiento(t, pasoTrayectos.quitar.cual)} disabled={loadingTrayectos}
+                                                                        className="px-3 py-1 rounded-lg bg-red-500/10 border border-red-400/20 text-red-400 text-xs font-bold hover:bg-red-500/20 transition-all disabled:opacity-40">
+                                                                        Quitar {pasoTrayectos.quitar.cual}
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                        )}
                                                     </div>
                                                     {!trayectosSoloConsulta && (
                                                         <button onClick={() => abrirAsignar(t.id)} disabled={loadingTrayectos} aria-label="Asignar operador y unidad"
@@ -958,7 +1069,7 @@ export default function ViajesPage() {
                                                             <FaEdit size={11} />
                                                         </button>
                                                     )}
-                                                    {!trayectosSoloConsulta && (
+                                                    {!trayectosSoloConsulta && !t.salida && (
                                                         <button onClick={() => quitarTrayecto(t.id)} disabled={loadingTrayectos} aria-label="Quitar trayecto"
                                                             className="p-2 rounded-lg bg-red-500/10 border border-red-400/20 text-red-400 hover:bg-red-500/20 transition-all disabled:opacity-40">
                                                             <FaTrash size={11} />
@@ -1040,15 +1151,15 @@ export default function ViajesPage() {
                                             {eventosViaje.eventos.length === 0 ? (
                                                 <p className="text-center text-gray-500 py-6">Este viaje no tiene eventos</p>
                                             ) : eventosViaje.eventos.map(e => (
-                                                <div key={e.id} className="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
+                                                <div key={e.tipo === "EVENTO" ? e.id : `${e.tipo}-${e.trayectoId}`} className="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
                                                     <ChipEvento abreviacion={e.abreviacion} color={e.color} />
                                                     <div className="flex-1 min-w-0">
                                                         <p className="text-white text-sm font-bold">{e.descripcion}</p>
                                                         <p className="text-gray-400 text-xs">{e.fecha}{e.trayecto ? ` · Trayecto ${e.trayecto}` : ""}</p>
                                                         {e.comentario && <p className="text-gray-300 text-xs mt-1 break-words">{e.comentario}</p>}
-                                                        <p className="text-gray-600 text-xs mt-1">Registró {e.registradoPor || "—"} el {e.registradoEn}</p>
+                                                        {e.tipo === "EVENTO" && <p className="text-gray-600 text-xs mt-1">Registró {e.registradoPor || "—"} el {e.registradoEn}</p>}
                                                     </div>
-                                                    {eventosViaje.editable && (
+                                                    {eventosViaje.editable && e.tipo === "EVENTO" && (
                                                         <button onClick={() => quitarEvento(e.id)} disabled={loadingEventos} aria-label="Quitar evento"
                                                             className="p-2 rounded-lg bg-red-500/10 border border-red-400/20 text-red-400 hover:bg-red-500/20 transition-all disabled:opacity-40">
                                                             <FaTrash size={11} />
@@ -1287,6 +1398,73 @@ export default function ViajesPage() {
 
             {/* MODAL GASTO */}
             <AnimatePresence>
+                {/* VID-J7: salida o llegada de un trayecto */}
+                {registrando && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[60] p-6">
+                        <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
+                            className="bg-[#020617] border border-cyan-400/20 rounded-3xl w-full max-w-lg flex flex-col max-h-[90vh]">
+                            <div className="flex justify-between items-center p-6 pb-0 flex-shrink-0">
+                                <div>
+                                    <h2 className="text-2xl font-black text-cyan-300">
+                                        {registrando.cual === "salida" ? "Salida" : "Llegada"} del trayecto {registrando.trayecto.secuencia}
+                                    </h2>
+                                    <p className="text-gray-400 text-sm">{registrando.trayecto.origen || "?"} → {registrando.trayecto.destino || "?"}</p>
+                                </div>
+                                <button onClick={() => setRegistrando(null)} className="text-gray-400 hover:text-white text-xl"><FaTimes /></button>
+                            </div>
+                            <div className="px-6 py-5 grid grid-cols-2 gap-4 overflow-y-auto">
+                                <Field label="Fecha y hora *" span2>
+                                    <input type="datetime-local" value={formMovimiento.fecha} onChange={setM("fecha")} className={inputCls} />
+                                </Field>
+                                {(registrando.cual === "salida" ? registrando.trayecto.cargaPlaneada : registrando.trayecto.descargaPlaneada) && (
+                                    <p className="col-span-2 text-gray-500 text-xs -mt-2">
+                                        {registrando.cual === "salida" ? "Carga" : "Descarga"} planeada: {registrando.cual === "salida" ? registrando.trayecto.cargaPlaneada : registrando.trayecto.descargaPlaneada}. Si la pasa, escribe el motivo de la demora.
+                                    </p>
+                                )}
+                                {registrando.cual === "llegada" && registrando.trayecto.salida && (
+                                    <p className="col-span-2 text-gray-500 text-xs -mt-2">
+                                        Salida: {registrando.trayecto.salida.fecha} · {registrando.trayecto.salida.odometro} km
+                                    </p>
+                                )}
+                                <Field label="Odómetro del camión (km) *">
+                                    <input type="number" min="0" step="any" value={formMovimiento.odometro} onChange={setM("odometro")} className={inputCls} />
+                                </Field>
+                                <Field label="Odómetro del remolque (km)">
+                                    <input type="number" min="0" step="any" value={formMovimiento.odometroRemolque} onChange={setM("odometroRemolque")} className={inputCls} />
+                                </Field>
+                                {registrando.cual === "salida" && (
+                                    <>
+                                        <Field label="Remolque 1">
+                                            <select value={formMovimiento.remolque1} onChange={setM("remolque1")} className={selectCls}>
+                                                {OPCIONES_REMOLQUE.map(([v, t]) => <option key={v} value={v}>{t}</option>)}
+                                            </select>
+                                        </Field>
+                                        <Field label="Remolque 2">
+                                            <select value={formMovimiento.remolque2} onChange={setM("remolque2")} className={selectCls}>
+                                                {OPCIONES_REMOLQUE.map(([v, t]) => <option key={v} value={v}>{t}</option>)}
+                                            </select>
+                                        </Field>
+                                    </>
+                                )}
+                                <Field label="Motivo de la demora" span2>
+                                    <textarea value={formMovimiento.motivoDemora} onChange={setM("motivoDemora")} maxLength={500} rows={2}
+                                        placeholder="Obligatorio si pasa de la fecha planeada" className={inputCls} />
+                                </Field>
+                            </div>
+                            {errorMovimiento && (
+                                <div className="mx-6 px-4 py-3 rounded-xl text-sm bg-red-500/10 border border-red-400/30 text-red-300 flex-shrink-0">{errorMovimiento}</div>
+                            )}
+                            <div className="flex gap-4 p-6 flex-shrink-0">
+                                <button onClick={() => setRegistrando(null)} className="flex-1 py-3 rounded-2xl border border-white/10 text-gray-400 hover:bg-white/5 transition-all font-bold">Cancelar</button>
+                                <button onClick={guardarMovimiento} disabled={guardandoMovimiento || !formMovimiento.fecha || formMovimiento.odometro === ""}
+                                    className="flex-1 py-3 rounded-2xl bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 font-bold hover:bg-cyan-500/30 transition-all disabled:opacity-40">
+                                    {guardandoMovimiento ? "Guardando..." : "Guardar"}
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
                 {/* VID-J5: operador, unidad, remolques, km, horas y fechas planeadas de un trayecto */}
                 {asignando && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
