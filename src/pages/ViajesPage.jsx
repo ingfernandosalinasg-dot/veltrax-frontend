@@ -339,8 +339,8 @@ export default function ViajesPage() {
     // VID-J7: salida y llegada de cada trayecto, en orden. La ventana propone la
     // hora de México y, en la salida, los remolques del trayecto. Un rechazo del
     // servidor se muestra en la ventana; un aviso (un odómetro que conviene
-    // revisar) llega en el resumen y se ve en amarillo. Quitar solo se ofrece en
-    // el último registro del viaje.
+    // revisar) se ve en amarillo en la tarjeta del trayecto. Quitar solo se
+    // ofrece en el último registro del viaje.
     const abrirMovimiento = (t, cual) => {
         setFormMovimiento({
             fecha: ahoraMexico(), odometro: "", odometroRemolque: "", motivoDemora: "",
@@ -1034,6 +1034,9 @@ export default function ViajesPage() {
                                                             <p className="text-gray-300 text-xs">
                                                                 Salida {t.salida.fecha} · {t.salida.odometro} km{t.salida.demoraMinutos ? ` · demora ${duracion(t.salida.demoraMinutos)}` : ""}
                                                             </p>
+                                                        )}
+                                                        {t.avisoOdometro && (
+                                                            <p className="mt-1 px-2 py-1 rounded-lg text-xs bg-yellow-500/10 border border-yellow-400/30 text-yellow-300">{t.avisoOdometro}</p>
                                                         )}
                                                         {t.llegada && (
                                                             <p className="text-gray-300 text-xs">
