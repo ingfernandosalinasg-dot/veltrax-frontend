@@ -337,7 +337,10 @@ export default function ViajesPage() {
     };
 
     // VID-J7: salida y llegada de cada trayecto, en orden. La ventana propone la
-    // hora de México y, en la salida, los remolques del trayecto. Un rechazo del
+    // hora de México y, en la salida, los remolques del trayecto. El odómetro del
+    // remolque es opcional y abre vacío; cada odómetro lleva su propio nombre y
+    // sin autocompletado, porque el navegador llenaba el del remolque con el del
+    // camión. Un rechazo del
     // servidor se muestra en la ventana; un aviso (un odómetro que conviene
     // revisar) se ve en amarillo en la tarjeta del trayecto. Quitar solo se
     // ofrece en el último registro del viaje.
@@ -1032,7 +1035,7 @@ export default function ViajesPage() {
                                                         )}
                                                         {t.salida && (
                                                             <p className="text-gray-300 text-xs">
-                                                                Salida {t.salida.fecha} · {t.salida.odometro} km{t.salida.demoraMinutos ? ` · demora ${duracion(t.salida.demoraMinutos)}` : ""}
+                                                                Salida {t.salida.fecha} · {t.salida.odometro} km{t.salida.odometroRemolque != null ? ` · remolque ${t.salida.odometroRemolque} km` : ""}{t.salida.demoraMinutos ? ` · demora ${duracion(t.salida.demoraMinutos)}` : ""}
                                                             </p>
                                                         )}
                                                         {t.avisoOdometro && (
@@ -1040,7 +1043,7 @@ export default function ViajesPage() {
                                                         )}
                                                         {t.llegada && (
                                                             <p className="text-gray-300 text-xs">
-                                                                Llegada {t.llegada.fecha} · {t.llegada.odometro} km{t.kmReales != null ? ` · ${t.kmReales} km reales` : ""}{t.llegada.demoraMinutos ? ` · demora ${duracion(t.llegada.demoraMinutos)}` : ""}
+                                                                Llegada {t.llegada.fecha} · {t.llegada.odometro} km{t.llegada.odometroRemolque != null ? ` · remolque ${t.llegada.odometroRemolque} km` : ""}{t.kmReales != null ? ` · ${t.kmReales} km reales` : ""}{t.llegada.demoraMinutos ? ` · demora ${duracion(t.llegada.demoraMinutos)}` : ""}
                                                             </p>
                                                         )}
                                                         {!trayectosSoloConsulta && (pasoTrayectos.salida === t.id || pasoTrayectos.llegada === t.id || pasoTrayectos.quitar?.id === t.id) && (
@@ -1431,10 +1434,12 @@ export default function ViajesPage() {
                                     </p>
                                 )}
                                 <Field label="Odómetro del camión (km) *">
-                                    <input type="number" min="0" step="any" value={formMovimiento.odometro} onChange={setM("odometro")} className={inputCls} />
+                                    <input type="number" name="odometroCamion" autoComplete="off" min="0" step="any"
+                                        value={formMovimiento.odometro} onChange={setM("odometro")} className={inputCls} />
                                 </Field>
-                                <Field label="Odómetro del remolque (km)">
-                                    <input type="number" min="0" step="any" value={formMovimiento.odometroRemolque} onChange={setM("odometroRemolque")} className={inputCls} />
+                                <Field label="Odómetro del remolque (km, opcional)">
+                                    <input type="number" name="odometroRemolque" autoComplete="off" min="0" step="any" placeholder="Opcional"
+                                        value={formMovimiento.odometroRemolque} onChange={setM("odometroRemolque")} className={inputCls} />
                                 </Field>
                                 {registrando.cual === "salida" && (
                                     <>
