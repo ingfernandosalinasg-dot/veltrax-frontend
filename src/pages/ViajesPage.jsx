@@ -32,6 +32,9 @@ const ETAPAS = [
     { clave: "CANCELADO",   descripcion: "Cancelado",   color: "#F87171" },
 ];
 
+// TEC-EDITAR-VIAJE: en un viaje facturado, cobrado o cancelado solo se editan las notas.
+const CERRADOS = ["FACTURADO", "COBRADO", "CANCELADO"];
+
 // Mensaje de una evidencia rechazada (SEG-AO-F4-F): el del servidor, que viene en
 // {"error": ...}, o uno con el código. El viaje no se marca como entregado.
 async function mensajeEvidencia(res) {
@@ -149,6 +152,11 @@ export default function ViajesPage() {
     const [guardandoMovimiento, setGuardandoMovimiento] = useState(false);
     // Error del alta de viaje, visible dentro de la ventana.
     const [errorAlta,         setErrorAlta]         = useState("");
+    // TEC-EDITAR-VIAJE: el viaje de la ventana «Editar» y sus datos.
+    const [editandoViaje,     setEditandoViaje]     = useState(null);
+    const [formEditar,        setFormEditar]        = useState({});
+    const [errorEditar,       setErrorEditar]       = useState("");
+    const [guardandoEdicion,  setGuardandoEdicion]  = useState(false);
 
     const [showEvidencia,     setShowEvidencia]     = useState(false);
     const [viajeEvidencia,    setViajeEvidencia]    = useState(null);
@@ -634,6 +642,55 @@ export default function ViajesPage() {
         fetchAll();
     };
 
+    // TEC-EDITAR-VIAJE: «Editar» abre la ventana con los datos actuales del viaje.
+    // Siempre se envían la fecha, la hora, el costo y las notas (lo que no se envía
+    // se guardaría vacío); el conductor y el vehículo, solo si cambian, y el
+    // servidor los pone en los trayectos que no han salido. En un viaje cerrado
+    // solo cambian las notas. Un rechazo se muestra en la ventana; los avisos, en
+    // amarillo.
+    const edicionCerrada = editandoViaje != null && CERRADOS.includes(normalizar(editandoViaje.status));
+    const abrirEditar = (v) => {
+        setFormEditar({
+            date: v.date || "", horaSalida: v.horaSalida || "", cost: v.cost ?? "", notas: v.notas || "",
+            driverId: v.driver?.id ?? "", vehicleId: v.vehicle?.id ?? "",
+        });
+        setErrorEditar("");
+        setEditandoViaje(v);
+    };
+    const setE = (f) => (e) => setFormEditar(prev => ({ ...prev, [f]: e.target.value }));
+    const guardarEdicion = async () => {
+        const v  = editandoViaje;
+        const id = (x) => (x === "" || x == null ? null : Number(x));
+        const conductor = id(formEditar.driverId), vehiculo = id(formEditar.vehicleId);
+        const body = {
+            date: formEditar.date || null, horaSalida: formEditar.horaSalida || null,
+            cost: formEditar.cost === "" ? null : Number(formEditar.cost), notas: formEditar.notas || null,
+            driverId:  conductor !== (v.driver?.id ?? null) ? conductor : null,
+            vehicleId: vehiculo !== (v.vehicle?.id ?? null) ? vehiculo : null,
+        };
+        setGuardandoEdicion(true);
+        setErrorEditar("");
+        try {
+            const res  = await fetch(`${API}/orders/${v.id}`, { method: "PUT", headers, body: JSON.stringify(body) });
+            const data = await res.json().catch(() => null);
+            if (!res.ok) {
+                setErrorEditar(data?.error || (res.status === 403
+                    ? "No tienes permiso para esta acción o tu sesión expiró."
+                    : `No se pudo guardar (error ${res.status}).`));
+                return;
+            }
+            setEditandoViaje(null);
+            fetchAll();
+            if (data?.avisos?.length) showMsgFn(true, `Viaje actualizado. ${data.avisos.join(". ")}.`, true);
+            else showMsgFn(true, "Viaje actualizado");
+        } catch (e) {
+            console.error(e);
+            setErrorEditar("No se pudo conectar con el servidor. Intenta de nuevo.");
+        } finally {
+            setGuardandoEdicion(false);
+        }
+    };
+
     const abrirPanelGastos = (viaje, tab = "gastos") => {
         setViajeSeleccionado(viaje);
         setTabPanel(tab);
@@ -900,6 +957,11 @@ export default function ViajesPage() {
                                                             <FaFileAlt size={12} />
                                                         </button>
                                                     )}
+                                                    <button onClick={() => abrirEditar(v)}
+                                                        className="p-2 rounded-xl bg-yellow-500/10 border border-yellow-400/20 text-yellow-300 hover:bg-yellow-500/20 transition-all"
+                                                        title="Editar">
+                                                        <FaEdit size={12} />
+                                                    </button>
                                                     <button onClick={() => handleDelete(v.id)}
                                                         className="p-2 rounded-xl bg-red-500/10 border border-red-400/20 text-red-400 hover:bg-red-500/20 transition-all">
                                                         <FaTrash size={12} />
@@ -1538,6 +1600,73 @@ export default function ViajesPage() {
                                 <button onClick={guardarMovimiento} disabled={guardandoMovimiento || !formMovimiento.fecha || formMovimiento.odometro === ""}
                                     className="flex-1 py-3 rounded-2xl bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 font-bold hover:bg-cyan-500/30 transition-all disabled:opacity-40">
                                     {guardandoMovimiento ? "Guardando..." : "Guardar"}
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+                {/* TEC-EDITAR-VIAJE: fecha, hora, costo, notas y conductor o vehículo del viaje */}
+                {editandoViaje && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[60] p-6">
+                        <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
+                            className="bg-[#020617] border border-cyan-400/20 rounded-3xl w-full max-w-lg flex flex-col max-h-[90vh]">
+                            <div className="flex justify-between items-center p-6 pb-0 flex-shrink-0">
+                                <div>
+                                    <h2 className="text-2xl font-black text-cyan-300">Editar {editandoViaje.folio || `#${editandoViaje.id}`}</h2>
+                                    <p className="text-gray-400 text-sm">{etiquetaCliente(editandoViaje.cliente) || "Sin cliente"} · {textoStatus(editandoViaje.status)}</p>
+                                </div>
+                                <button onClick={() => setEditandoViaje(null)} className="text-gray-400 hover:text-white text-xl"><FaTimes /></button>
+                            </div>
+                            <div className="px-6 py-5 grid grid-cols-2 gap-4 overflow-y-auto">
+                                {edicionCerrada && (
+                                    <p className="col-span-2 px-4 py-3 rounded-xl text-sm bg-yellow-500/10 border border-yellow-400/30 text-yellow-300">
+                                        El viaje está {textoStatus(editandoViaje.status).toLowerCase()}: solo se pueden cambiar sus notas.
+                                    </p>
+                                )}
+                                <Field label="Fecha de salida">
+                                    <input type="date" value={formEditar.date} onChange={setE("date")} disabled={edicionCerrada}
+                                        className={`${inputCls} disabled:opacity-50`} />
+                                </Field>
+                                <Field label="Hora de salida">
+                                    <input type="time" value={formEditar.horaSalida} onChange={setE("horaSalida")} disabled={edicionCerrada}
+                                        className={`${inputCls} disabled:opacity-50`} />
+                                </Field>
+                                <Field label="Costo" span2>
+                                    <input type="number" min="0" step="any" value={formEditar.cost} onChange={setE("cost")} disabled={edicionCerrada}
+                                        className={`${inputCls} disabled:opacity-50`} />
+                                </Field>
+                                <Field label="Conductor">
+                                    <select value={formEditar.driverId} onChange={setE("driverId")} disabled={edicionCerrada}
+                                        className={`${selectCls} disabled:opacity-50`}>
+                                        <option value="" disabled>Sin conductor</option>
+                                        {drivers.map(d => <option key={d.id} value={d.id}>{d.name} {d.apellidos || ""}{d.status ? ` (${d.status})` : ""}</option>)}
+                                    </select>
+                                </Field>
+                                <Field label="Vehículo">
+                                    <select value={formEditar.vehicleId} onChange={setE("vehicleId")} disabled={edicionCerrada}
+                                        className={`${selectCls} disabled:opacity-50`}>
+                                        <option value="" disabled>Sin vehículo</option>
+                                        {vehicles.map(v => <option key={v.id} value={v.id}>{v.codigo ? `[${v.codigo}] ` : ""}{v.plate} -{v.brand} {v.model}{v.status ? ` (${v.status})` : ""}</option>)}
+                                    </select>
+                                </Field>
+                                {!edicionCerrada && (
+                                    <p className="col-span-2 text-gray-500 text-xs -mt-2">
+                                        El conductor y el vehículo cambian en los trayectos que no han salido; los que ya salieron conservan los suyos.
+                                    </p>
+                                )}
+                                <Field label="Notas" span2>
+                                    <textarea value={formEditar.notas} onChange={setE("notas")} rows={2} placeholder="Observaciones..." className={inputCls} />
+                                </Field>
+                            </div>
+                            {errorEditar && (
+                                <div className="mx-6 px-4 py-3 rounded-xl text-sm bg-red-500/10 border border-red-400/30 text-red-300 flex-shrink-0">{errorEditar}</div>
+                            )}
+                            <div className="flex gap-4 p-6 flex-shrink-0">
+                                <button onClick={() => setEditandoViaje(null)} className="flex-1 py-3 rounded-2xl border border-white/10 text-gray-400 hover:bg-white/5 transition-all font-bold">Cancelar</button>
+                                <button onClick={guardarEdicion} disabled={guardandoEdicion}
+                                    className="flex-1 py-3 rounded-2xl bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 font-bold hover:bg-cyan-500/30 transition-all disabled:opacity-40">
+                                    {guardandoEdicion ? "Guardando..." : "Guardar"}
                                 </button>
                             </div>
                         </motion.div>
