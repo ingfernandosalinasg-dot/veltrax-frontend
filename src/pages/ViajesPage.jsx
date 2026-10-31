@@ -22,6 +22,16 @@ const normalizar = (s) => (s || "").toUpperCase().replace(/\s+/g, "_").replace(/
 const SIN_COLOR = "text-gray-300 bg-white/5 border-white/10";
 const estiloStatus = (e) => e ? { color: e.color, backgroundColor: `${e.color}1a`, borderColor: `${e.color}4d` } : undefined;
 
+// Etapa del viaje (VID-J11): la deduce el backend de sus trayectos
+// (GET /orders/etapas) y no se guarda. Van en el orden del filtro de la lista.
+const ETAPAS = [
+    { clave: "POR_ASIGNAR", descripcion: "Por asignar", color: "#F59E0B" },
+    { clave: "SIN_SALIDA",  descripcion: "Sin salida",  color: "#A78BFA" },
+    { clave: "EN_RUTA",     descripcion: "En ruta",     color: "#22D3EE" },
+    { clave: "TERMINADO",   descripcion: "Terminado",   color: "#34D399" },
+    { clave: "CANCELADO",   descripcion: "Cancelado",   color: "#F87171" },
+];
+
 // Mensaje de una evidencia rechazada (SEG-AO-F4-F): el del servidor, que viene en
 // {"error": ...}, o uno con el código. El viaje no se marca como entregado.
 async function mensajeEvidencia(res) {
@@ -96,6 +106,8 @@ export default function ViajesPage() {
     const [drivers,        setDrivers]        = useState([]);
     const [vehicles,       setVehicles]       = useState([]);
     const [estatus,        setEstatus]        = useState([]);
+    const [etapas,         setEtapas]         = useState({}); // VID-J11: etapa y último evento, por id de viaje
+    const [filtroEtapa,    setFiltroEtapa]    = useState("");
     const [showModal,      setShowModal]      = useState(false);
     const [form,           setForm]           = useState(emptyForm);
     const [loading,        setLoading]        = useState(false);
@@ -161,7 +173,18 @@ export default function ViajesPage() {
     const siguienteStatus = (actual) => estatusDe(actual)?.siguientes?.[0] ?? null;
     const textoStatus     = (s) => estatusDe(s)?.descripcion || s || "-";
 
+    // VID-J11: la etapa y el último evento de cada viaje, por id. Si no cargan,
+    // la lista se muestra igual, con esas columnas vacías.
+    const fetchEtapas = async () => {
+        try {
+            const res  = await fetch(`${API}/orders/etapas`, { headers });
+            const data = res.ok ? await res.json() : [];
+            setEtapas(Object.fromEntries((Array.isArray(data) ? data : []).map(e => [e.viajeId, e])));
+        } catch (e) { console.error(e); }
+    };
+
     const fetchAll = async () => {
+        fetchEtapas();
         try {
             // Si la lista de estatus no carga, los viajes se muestran igual, con sus claves.
             const [v, c, r, d, vh, es] = await Promise.all([
@@ -258,11 +281,16 @@ export default function ViajesPage() {
         }
     };
     const fetchTrayectos  = (viajeId) => { setTrayectosViaje(null); pedirTrayectos(`${API}/orders/${viajeId}/trayectos`); };
-    const agregarTrayecto = (indiceRuta) => pedirTrayectos(`${API}/orders/${viajeSeleccionado.id}/trayectos`,
-        { method: "POST", body: JSON.stringify({ indiceRuta }) });
-    const quitarTrayecto  = (trayectoId) => {
+    // VID-J11: agregar o quitar un trayecto cambia la etapa del viaje en la lista.
+    const agregarTrayecto = async (indiceRuta) => {
+        const data = await pedirTrayectos(`${API}/orders/${viajeSeleccionado.id}/trayectos`,
+            { method: "POST", body: JSON.stringify({ indiceRuta }) });
+        if (data) fetchEtapas();
+    };
+    const quitarTrayecto  = async (trayectoId) => {
         if (!confirm("¿Quitar este trayecto del viaje? La ruta no cambia.")) return;
-        pedirTrayectos(`${API}/orders/${viajeSeleccionado.id}/trayectos/${trayectoId}`, { method: "DELETE" });
+        const data = await pedirTrayectos(`${API}/orders/${viajeSeleccionado.id}/trayectos/${trayectoId}`, { method: "DELETE" });
+        if (data) fetchEtapas();
     };
     // En un viaje facturado, cobrado o cancelado los trayectos son solo de
     // consulta (TEC-TRAYECTOS-CERRADOS): el resumen llega con editable en false.
@@ -393,6 +421,7 @@ export default function ViajesPage() {
     // historial: los eventos, los del catálogo que se pueden registrar (vacío si
     // no tiene ninguno activo) y si el viaje acepta cambios. Un rechazo muestra
     // el mensaje del servidor. La fecha propuesta es la de ahora en México.
+    // VID-J11: registrar o quitar uno pone al día el último evento de la lista.
     const eventoVacio = () => ({ clave: "", fecha: ahoraMexico(), trayectoId: "", comentario: "" });
     const pedirEventos = async (url, opciones = {}) => {
         setLoadingEventos(true);
@@ -430,11 +459,12 @@ export default function ViajesPage() {
                 trayectoId: formEvento.trayectoId === "" ? null : Number(formEvento.trayectoId),
             }),
         });
-        if (data) setFormEvento(eventoVacio());
+        if (data) { setFormEvento(eventoVacio()); fetchEtapas(); }
     };
-    const quitarEvento = (eventoId) => {
+    const quitarEvento = async (eventoId) => {
         if (!confirm("¿Quitar este evento del viaje? Quedará anotado en la bitácora.")) return;
-        pedirEventos(`${API}/orders/${viajeSeleccionado.id}/eventos/${eventoId}`, { method: "DELETE" });
+        const data = await pedirEventos(`${API}/orders/${viajeSeleccionado.id}/eventos/${eventoId}`, { method: "DELETE" });
+        if (data) fetchEtapas();
     };
 
     const cambiarStatus = async (viaje, nuevoStatus) => {
@@ -715,6 +745,11 @@ export default function ViajesPage() {
     const completado = viajes.filter(v => ["ENTREGADO","COBRADO","FACTURADO"].includes(normalizar(v.status))).length;
     const pendiente  = viajes.filter(v => normalizar(v.status) === "PENDIENTE").length;
 
+    // VID-J11: la lista, filtrada por etapa ("" = todas).
+    const etapaDe        = (v) => ETAPAS.find(e => e.clave === etapas[v.id]?.etapa);
+    const cuantosEn      = (clave) => viajes.filter(v => etapas[v.id]?.etapa === clave).length;
+    const viajesVisibles = filtroEtapa ? viajes.filter(v => etapas[v.id]?.etapa === filtroEtapa) : viajes;
+
     const totalGastos    = gastos.filter(g => g.categoria === "Gasto").reduce((s, g) => s + (g.monto || 0), 0);
     const totalAnticipos = gastos.filter(g => g.categoria === "Anticipo").reduce((s, g) => s + (g.monto || 0), 0);
 
@@ -764,20 +799,36 @@ export default function ViajesPage() {
                 <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
                     className="rounded-3xl bg-white/5 border border-cyan-400/10 backdrop-blur-xl p-8">
                     <h2 className="text-3xl font-black text-cyan-300 mb-8 flex items-center gap-3"><FaRoute /> Viajes Registrados</h2>
+                    {/* VID-J11: filtro por etapa, con cuántos viajes hay en cada una */}
+                    <div className="flex flex-wrap gap-2 mb-6">
+                        {[{ clave: "", descripcion: "Todos" }, ...ETAPAS].map(e => (
+                            <button key={e.clave || "TODOS"} onClick={() => setFiltroEtapa(e.clave)}
+                                className={`px-3 py-1 rounded-full border text-xs font-bold transition-all
+                                    ${e.color ? "" : "text-cyan-300 bg-cyan-500/10 border-cyan-400/30"}
+                                    ${filtroEtapa === e.clave ? "ring-2 ring-white/40" : "opacity-60 hover:opacity-100"}`}
+                                style={e.color ? estiloStatus(e) : undefined}>
+                                {e.descripcion} ({e.clave ? cuantosEn(e.clave) : viajes.length})
+                            </button>
+                        ))}
+                    </div>
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="text-gray-400 border-b border-cyan-400/10 text-sm">
-                                    {["Folio","Cliente","Origen","Destino","Conductor","Fecha","Costo","Estado","Avanzar","Acciones"]
+                                    {["Folio","Cliente","Origen","Destino","Conductor","Fecha","Costo","Estado","Etapa","Último evento","Avanzar","Acciones"]
                                         .map(h => <th key={h} className="pb-4 pr-4">{h}</th>)}
                                 </tr>
                             </thead>
                             <tbody>
-                                {viajes.length === 0 && (
-                                    <tr><td colSpan={10} className="py-10 text-center text-gray-500">No hay viajes registrados</td></tr>
+                                {viajesVisibles.length === 0 && (
+                                    <tr><td colSpan={12} className="py-10 text-center text-gray-500">
+                                        {viajes.length === 0 ? "No hay viajes registrados" : "Ningún viaje en esta etapa"}
+                                    </td></tr>
                                 )}
-                                {viajes.map((v, i) => {
+                                {viajesVisibles.map((v, i) => {
                                     const siguiente = siguienteStatus(v.status);
+                                    const etapa     = etapaDe(v);
+                                    const ultimo    = etapas[v.id]?.ultimoEvento;
                                     return (
                                         <motion.tr key={v.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }}
                                             transition={{ delay: i * 0.05 }}
@@ -798,6 +849,21 @@ export default function ViajesPage() {
                                                     style={estiloStatus(estatusDe(v.status))}>
                                                     {textoStatus(v.status)}
                                                 </span>
+                                            </td>
+                                            <td className="py-4 pr-4">
+                                                {etapa ? (
+                                                    <span className="px-3 py-1 rounded-full border text-xs font-bold whitespace-nowrap" style={estiloStatus(etapa)}>
+                                                        {etapa.descripcion}
+                                                    </span>
+                                                ) : <span className="text-gray-500">-</span>}
+                                            </td>
+                                            <td className="py-4 pr-4">
+                                                {ultimo ? (
+                                                    <div className="flex items-center gap-2" title={ultimo.descripcion}>
+                                                        <ChipEvento abreviacion={ultimo.abreviacion} color={ultimo.color} />
+                                                        <span className="text-gray-400 text-xs whitespace-nowrap">{ultimo.fecha}</span>
+                                                    </div>
+                                                ) : <span className="text-gray-500">-</span>}
                                             </td>
                                             <td className="py-4 pr-4">
                                                 {siguiente && (
