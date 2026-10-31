@@ -157,6 +157,7 @@ export default function ViajesPage() {
     const [formEditar,        setFormEditar]        = useState({});
     const [errorEditar,       setErrorEditar]       = useState("");
     const [guardandoEdicion,  setGuardandoEdicion]  = useState(false);
+    const [avisosEdicion,     setAvisosEdicion]     = useState(null); // avisos del servidor al guardar
 
     const [showEvidencia,     setShowEvidencia]     = useState(false);
     const [viajeEvidencia,    setViajeEvidencia]    = useState(null);
@@ -220,16 +221,16 @@ export default function ViajesPage() {
         } catch (e) { console.error(e); }
     };
 
+    // Timeline: los registros de la bitácora de este viaje (módulo VIAJE), todos y
+    // no solo los más recientes de toda la bitácora, del más antiguo al más
+    // reciente; dos del mismo segundo, en el orden en que se guardaron (id).
     const fetchTimeline = async (viaje) => {
         setLoadingTimeline(true);
         try {
-            const res  = await fetch(`${API}/api/bitacora`, { headers });
-            const data = await res.json();
-            const todos = Array.isArray(data) ? data : [];
-            const folio = viaje.folio;
-            const eventos = todos
-                .filter(e => e.modulo === "VIAJE" && (e.folioReferencia === folio || e.referenciaId === viaje.id))
-                .sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora));
+            const res  = await fetch(`${API}/api/bitacora/referencia/VIAJE/${viaje.id}`, { headers });
+            const data = res.ok ? await res.json() : [];
+            const eventos = (Array.isArray(data) ? data : [])
+                .sort((a, b) => (a.fecha + a.hora).localeCompare(b.fecha + b.hora) || (a.id ?? 0) - (b.id ?? 0));
             setTimelineEventos(eventos);
         } catch (e) { console.error(e); setTimelineEventos([]); }
         setLoadingTimeline(false);
@@ -646,17 +647,22 @@ export default function ViajesPage() {
     // Siempre se envían la fecha, la hora, el costo y las notas (lo que no se envía
     // se guardaría vacío); el conductor y el vehículo, solo si cambian, y el
     // servidor los pone en los trayectos que no han salido. En un viaje cerrado
-    // solo cambian las notas. Un rechazo se muestra en la ventana; los avisos, en
-    // amarillo.
-    const edicionCerrada = editandoViaje != null && CERRADOS.includes(normalizar(editandoViaje.status));
+    // solo cambian las notas. Un rechazo se muestra en la ventana. Si el servidor
+    // devuelve avisos, la ventana sigue abierta con ellos en amarillo y solo
+    // «Cerrar»: en el mensaje de arriba de la página no se veían con la lista
+    // desplazada.
+    const edicionCerrada  = editandoViaje != null && CERRADOS.includes(normalizar(editandoViaje.status));
+    const edicionGuardada = avisosEdicion != null;
     const abrirEditar = (v) => {
         setFormEditar({
             date: v.date || "", horaSalida: v.horaSalida || "", cost: v.cost ?? "", notas: v.notas || "",
             driverId: v.driver?.id ?? "", vehicleId: v.vehicle?.id ?? "",
         });
         setErrorEditar("");
+        setAvisosEdicion(null);
         setEditandoViaje(v);
     };
+    const cerrarEdicion = () => { setEditandoViaje(null); setAvisosEdicion(null); };
     const setE = (f) => (e) => setFormEditar(prev => ({ ...prev, [f]: e.target.value }));
     const guardarEdicion = async () => {
         const v  = editandoViaje;
@@ -679,10 +685,13 @@ export default function ViajesPage() {
                     : `No se pudo guardar (error ${res.status}).`));
                 return;
             }
-            setEditandoViaje(null);
             fetchAll();
-            if (data?.avisos?.length) showMsgFn(true, `Viaje actualizado. ${data.avisos.join(". ")}.`, true);
-            else showMsgFn(true, "Viaje actualizado");
+            if (data?.avisos?.length) {
+                setAvisosEdicion(data.avisos);
+            } else {
+                cerrarEdicion();
+                showMsgFn(true, "Viaje actualizado");
+            }
         } catch (e) {
             console.error(e);
             setErrorEditar("No se pudo conectar con el servidor. Intenta de nuevo.");
@@ -1616,7 +1625,7 @@ export default function ViajesPage() {
                                     <h2 className="text-2xl font-black text-cyan-300">Editar {editandoViaje.folio || `#${editandoViaje.id}`}</h2>
                                     <p className="text-gray-400 text-sm">{etiquetaCliente(editandoViaje.cliente) || "Sin cliente"} · {textoStatus(editandoViaje.status)}</p>
                                 </div>
-                                <button onClick={() => setEditandoViaje(null)} className="text-gray-400 hover:text-white text-xl"><FaTimes /></button>
+                                <button onClick={cerrarEdicion} className="text-gray-400 hover:text-white text-xl"><FaTimes /></button>
                             </div>
                             <div className="px-6 py-5 grid grid-cols-2 gap-4 overflow-y-auto">
                                 {edicionCerrada && (
@@ -1625,26 +1634,26 @@ export default function ViajesPage() {
                                     </p>
                                 )}
                                 <Field label="Fecha de salida">
-                                    <input type="date" value={formEditar.date} onChange={setE("date")} disabled={edicionCerrada}
+                                    <input type="date" value={formEditar.date} onChange={setE("date")} disabled={edicionCerrada || edicionGuardada}
                                         className={`${inputCls} disabled:opacity-50`} />
                                 </Field>
                                 <Field label="Hora de salida">
-                                    <input type="time" value={formEditar.horaSalida} onChange={setE("horaSalida")} disabled={edicionCerrada}
+                                    <input type="time" value={formEditar.horaSalida} onChange={setE("horaSalida")} disabled={edicionCerrada || edicionGuardada}
                                         className={`${inputCls} disabled:opacity-50`} />
                                 </Field>
                                 <Field label="Costo" span2>
-                                    <input type="number" min="0" step="any" value={formEditar.cost} onChange={setE("cost")} disabled={edicionCerrada}
+                                    <input type="number" min="0" step="any" value={formEditar.cost} onChange={setE("cost")} disabled={edicionCerrada || edicionGuardada}
                                         className={`${inputCls} disabled:opacity-50`} />
                                 </Field>
                                 <Field label="Conductor">
-                                    <select value={formEditar.driverId} onChange={setE("driverId")} disabled={edicionCerrada}
+                                    <select value={formEditar.driverId} onChange={setE("driverId")} disabled={edicionCerrada || edicionGuardada}
                                         className={`${selectCls} disabled:opacity-50`}>
                                         <option value="" disabled>Sin conductor</option>
                                         {drivers.map(d => <option key={d.id} value={d.id}>{d.name} {d.apellidos || ""}{d.status ? ` (${d.status})` : ""}</option>)}
                                     </select>
                                 </Field>
                                 <Field label="Vehículo">
-                                    <select value={formEditar.vehicleId} onChange={setE("vehicleId")} disabled={edicionCerrada}
+                                    <select value={formEditar.vehicleId} onChange={setE("vehicleId")} disabled={edicionCerrada || edicionGuardada}
                                         className={`${selectCls} disabled:opacity-50`}>
                                         <option value="" disabled>Sin vehículo</option>
                                         {vehicles.map(v => <option key={v.id} value={v.id}>{v.codigo ? `[${v.codigo}] ` : ""}{v.plate} -{v.brand} {v.model}{v.status ? ` (${v.status})` : ""}</option>)}
@@ -1656,18 +1665,33 @@ export default function ViajesPage() {
                                     </p>
                                 )}
                                 <Field label="Notas" span2>
-                                    <textarea value={formEditar.notas} onChange={setE("notas")} rows={2} placeholder="Observaciones..." className={inputCls} />
+                                    <textarea value={formEditar.notas} onChange={setE("notas")} rows={2} placeholder="Observaciones..." disabled={edicionGuardada}
+                                        className={`${inputCls} disabled:opacity-50`} />
                                 </Field>
                             </div>
                             {errorEditar && (
                                 <div className="mx-6 px-4 py-3 rounded-xl text-sm bg-red-500/10 border border-red-400/30 text-red-300 flex-shrink-0">{errorEditar}</div>
                             )}
+                            {edicionGuardada && (
+                                <div className="mx-6 px-4 py-3 rounded-xl text-sm bg-yellow-500/10 border border-yellow-400/30 text-yellow-300 flex-shrink-0">
+                                    Guardado. {avisosEdicion.join(". ")}.
+                                </div>
+                            )}
                             <div className="flex gap-4 p-6 flex-shrink-0">
-                                <button onClick={() => setEditandoViaje(null)} className="flex-1 py-3 rounded-2xl border border-white/10 text-gray-400 hover:bg-white/5 transition-all font-bold">Cancelar</button>
-                                <button onClick={guardarEdicion} disabled={guardandoEdicion}
-                                    className="flex-1 py-3 rounded-2xl bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 font-bold hover:bg-cyan-500/30 transition-all disabled:opacity-40">
-                                    {guardandoEdicion ? "Guardando..." : "Guardar"}
-                                </button>
+                                {edicionGuardada ? (
+                                    <button onClick={cerrarEdicion}
+                                        className="flex-1 py-3 rounded-2xl bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 font-bold hover:bg-cyan-500/30 transition-all">
+                                        Cerrar
+                                    </button>
+                                ) : (
+                                    <>
+                                        <button onClick={cerrarEdicion} className="flex-1 py-3 rounded-2xl border border-white/10 text-gray-400 hover:bg-white/5 transition-all font-bold">Cancelar</button>
+                                        <button onClick={guardarEdicion} disabled={guardandoEdicion}
+                                            className="flex-1 py-3 rounded-2xl bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 font-bold hover:bg-cyan-500/30 transition-all disabled:opacity-40">
+                                            {guardandoEdicion ? "Guardando..." : "Guardar"}
+                                        </button>
+                                    </>
+                                )}
                             </div>
                         </motion.div>
                     </motion.div>
