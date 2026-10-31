@@ -33,6 +33,7 @@ import ReportesFallaPage from "./pages/ReportesFallaPage";
 import OrdenesServicioPage from "./pages/OrdenesServicioPage";
 import ServiciosCompletadosPage from "./pages/ServiciosCompletadosPage";
 import MantenimientosPage from "./pages/MantenimientosPage";
+import NoEncontradaPage from "./pages/NoEncontradaPage";
 
 export default function App() {
   return (
@@ -71,6 +72,8 @@ export default function App() {
         <Route path="/ordenes-servicio"      element={<ProtectedRoute><OrdenesServicioPage /></ProtectedRoute>} />
         <Route path="/servicios-completados" element={<ProtectedRoute><ServiciosCompletadosPage /></ProtectedRoute>} />
         <Route path="/mantenimientos"        element={<ProtectedRoute><MantenimientosPage /></ProtectedRoute>} />
+        {/* Cualquier otra dirección: «Página no encontrada», con enlace al inicio */}
+        <Route path="*"                     element={<ProtectedRoute><NoEncontradaPage /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   );
