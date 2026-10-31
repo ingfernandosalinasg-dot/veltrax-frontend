@@ -1041,6 +1041,10 @@ export default function ViajesPage() {
                                                         {t.avisoOdometro && (
                                                             <p className="mt-1 px-2 py-1 rounded-lg text-xs bg-yellow-500/10 border border-yellow-400/30 text-yellow-300">{t.avisoOdometro}</p>
                                                         )}
+                                                        {/* VID-H4: la unidad ya está en otro viaje abierto, o en mantenimiento o fuera de servicio */}
+                                                        {t.avisoUnidad && (
+                                                            <p className="mt-1 px-2 py-1 rounded-lg text-xs bg-yellow-500/10 border border-yellow-400/30 text-yellow-300">{t.avisoUnidad}</p>
+                                                        )}
                                                         {t.llegada && (
                                                             <p className="text-gray-300 text-xs">
                                                                 Llegada {t.llegada.fecha} · {t.llegada.odometro} km{t.llegada.odometroRemolque != null ? ` · remolque ${t.llegada.odometroRemolque} km` : ""}{t.kmReales != null ? ` · ${t.kmReales} km reales` : ""}{t.llegada.demoraMinutos ? ` · demora ${duracion(t.llegada.demoraMinutos)}` : ""}
@@ -1367,7 +1371,7 @@ export default function ViajesPage() {
                                     <Field label="Vehículo">
                                         <select value={form.vehicleId} onChange={set("vehicleId")} className={selectCls}>
                                             <option value="">Seleccionar vehículo...</option>
-                                            {vehicles.map(v => <option key={v.id} value={v.id}>{v.codigo ? `[${v.codigo}] ` : ""}{v.plate} -{v.brand} {v.model}</option>)}
+                                            {vehicles.map(v => <option key={v.id} value={v.id}>{v.codigo ? `[${v.codigo}] ` : ""}{v.plate} -{v.brand} {v.model}{v.status ? ` (${v.status})` : ""}</option>)}
                                         </select>
                                     </Field>
                                     <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-2">Detalles</p>
@@ -1502,7 +1506,7 @@ export default function ViajesPage() {
                                 <Field label="Unidad" span2>
                                     <select value={formAsignar.unidadId} onChange={setA("unidadId")} className={selectCls}>
                                         <option value="">Sin unidad</option>
-                                        {vehicles.map(v => <option key={v.id} value={v.id}>{v.codigo ? `[${v.codigo}] ` : ""}{v.plate} -{v.brand} {v.model}</option>)}
+                                        {vehicles.map(v => <option key={v.id} value={v.id}>{v.codigo ? `[${v.codigo}] ` : ""}{v.plate} -{v.brand} {v.model}{v.status ? ` (${v.status})` : ""}</option>)}
                                     </select>
                                 </Field>
                                 <Field label="Remolque 1">
