@@ -2,7 +2,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import LoginPage from "./pages/LoginPage";
 import DashboardPage from "./pages/DashboardPage";
 import VehiclesPage from "./pages/VehiclesPage";
-import OrdersPage from "./pages/OrdersPage";
 import TrackingPage from "./pages/TrackingPage";
 import ViajesPage from "./pages/ViajesPage";
 import CartaPortePage from "./pages/CartaPortePage";
@@ -43,7 +42,6 @@ export default function App() {
         <Route path="/dashboard"          element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
         <Route path="/viajes"             element={<ProtectedRoute><ViajesPage /></ProtectedRoute>} />
         <Route path="/vehicles"           element={<ProtectedRoute><VehiclesPage /></ProtectedRoute>} />
-        <Route path="/orders"             element={<ProtectedRoute><OrdersPage /></ProtectedRoute>} />
         <Route path="/tracking"           element={<ProtectedRoute><TrackingPage /></ProtectedRoute>} />
         <Route path="/cartas-porte"       element={<ProtectedRoute><CartaPortePage /></ProtectedRoute>} />
         <Route path="/clientes"           element={<ProtectedRoute><ClientesPage /></ProtectedRoute>} />

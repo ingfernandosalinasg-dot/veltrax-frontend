@@ -1,5 +1,5 @@
 import {
-    FaTruck, FaClipboardList, FaUserTie, FaChartBar,
+    FaTruck, FaUserTie, FaChartBar,
     FaMapMarkedAlt, FaSignOutAlt, FaRoute, FaFileAlt,
     FaAddressBook, FaMapMarkerAlt, FaUsers, FaMoneyBillWave,
     FaFileDownload, FaBoxOpen, FaShoppingCart, FaTags
@@ -71,9 +71,6 @@ function Sidebar() {
         { name: "Catálogos SAT",   path: "/catalogos-sat",   icon: <FaTags /> },
         { name: "Empresa",         path: "/empresa",         icon: <FaBuilding /> },
         { name: "Bitácora",        path: "/bitacora",        icon: <FaHistory /> },
-        // Oculto en el menú (Fase 0, D4): OrdersPage llama a /pedidos, que no
-        // existe en el backend. La página y su ruta /orders siguen en App.jsx.
-        { name: "Órdenes",         path: "/orders",          icon: <FaClipboardList />, oculto: true },
     ];
 
     const logout = () => {
