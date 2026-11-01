@@ -252,7 +252,7 @@ export default function LiquidacionesPage() {
     const [gastosPorViaje, setGastosPorViaje] = useState([]);
     const [periodoPreview, setPeriodoPreview] = useState(null); // métricas + bonos de umbral para modo período
     const [formError,     setFormError]      = useState("");
-    const [sinViaje,      setSinViaje]       = useState({ driverId: "", lista: [] }); // VID-K1
+    const [pendientes,    setPendientes]     = useState({ driverId: "", sinViaje: [], porAutorizar: [] }); // VID-K1
 
     // ── Pago al operador ──
     const [showPagoModal,     setShowPagoModal]     = useState(false);
@@ -337,19 +337,24 @@ export default function LiquidacionesPage() {
         else { setPrestamos([]); }
     }, [form.driverId]);
 
-    // VID-K1: los anticipos autorizados del operador que no están en ningún viaje:
-    // no se descuentan hasta ligarlos, y el formulario lo avisa.
+    // VID-K1: los anticipos del operador que todavía no se descuentan: los
+    // autorizados que no están en ningún viaje, hasta ligarlos, y los por autorizar
+    // ya ligados a sus viajes, hasta autorizarlos. El formulario los avisa.
     useEffect(() => {
         if (!form.driverId) return;
         let vigente = true;
         const sesion = localStorage.getItem("token");
-        fetch(`${API}/liquidaciones/driver/${form.driverId}/anticipos-sin-viaje`, { headers: sesion ? { Authorization: `Bearer ${sesion}` } : {} })
+        const lista = (cuales) => fetch(`${API}/liquidaciones/driver/${form.driverId}/${cuales}`, { headers: sesion ? { Authorization: `Bearer ${sesion}` } : {} })
             .then(res => (res.ok ? res.json() : []))
             .catch(() => [])
-            .then(data => { if (vigente) setSinViaje({ driverId: form.driverId, lista: Array.isArray(data) ? data : [] }); });
+            .then(data => (Array.isArray(data) ? data : []));
+        Promise.all([lista("anticipos-sin-viaje"), lista("anticipos-por-autorizar")]).then(([sinViaje, porAutorizar]) => {
+            if (vigente) setPendientes({ driverId: form.driverId, sinViaje, porAutorizar });
+        });
         return () => { vigente = false; };
     }, [form.driverId]);
-    const anticiposSinViaje = sinViaje.driverId === form.driverId ? sinViaje.lista : [];
+    const anticiposSinViaje     = pendientes.driverId === form.driverId ? pendientes.sinViaje : [];
+    const anticiposPorAutorizar = pendientes.driverId === form.driverId ? pendientes.porAutorizar : [];
 
     useEffect(() => {
         if (form.modo === "PERIODO" && form.driverId && form.periodoInicio && form.periodoFin) {
@@ -709,6 +714,15 @@ export default function LiquidacionesPage() {
                                             <p className="font-bold">Este operador tiene anticipos autorizados sin viaje. No se descuentan hasta ligarlos a un viaje en Anticipos:</p>
                                             <ul className="mt-1 list-disc pl-5">
                                                 {anticiposSinViaje.map(a => <li key={a.id}>{a.folio}: ${(a.monto || 0).toLocaleString()}</li>)}
+                                            </ul>
+                                        </div>
+                                    )}
+                                    {/* VID-K1: anticipos por autorizar ya ligados a viajes del operador: tampoco se descuentan */}
+                                    {anticiposPorAutorizar.length > 0 && (
+                                        <div className="col-span-1 sm:col-span-2 px-4 py-3 rounded-xl text-sm bg-yellow-500/10 border border-yellow-400/30 text-yellow-300">
+                                            <p className="font-bold">Hay anticipos por autorizar en viajes de este operador. No se descuentan hasta autorizarlos en Anticipos:</p>
+                                            <ul className="mt-1 list-disc pl-5">
+                                                {anticiposPorAutorizar.map(a => <li key={a.id}>{a.folio}: ${(a.monto || 0).toLocaleString()} · {a.viaje}</li>)}
                                             </ul>
                                         </div>
                                     )}
