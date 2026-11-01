@@ -13,6 +13,7 @@ import RemitentesPage from "./pages/RemitentesPage";
 import DestinatariosPage from "./pages/DestinatariosPage";
 import RutasPage from "./pages/RutasPage";
 import LiquidacionesPage from "./pages/LiquidacionesPage";
+import AnticiposPage from "./pages/AnticiposPage";
 import ReportesPage from "./pages/ReportesPage";
 import FacturasPage from "./pages/FacturasPage";
 import EmpresaPage from "./pages/EmpresaPage";
@@ -52,6 +53,7 @@ export default function App() {
         <Route path="/destinatarios"      element={<ProtectedRoute><DestinatariosPage /></ProtectedRoute>} />
         <Route path="/rutas"              element={<ProtectedRoute><RutasPage /></ProtectedRoute>} />
         <Route path="/liquidaciones"      element={<ProtectedRoute><LiquidacionesPage /></ProtectedRoute>} />
+        <Route path="/anticipos"          element={<ProtectedRoute><AnticiposPage /></ProtectedRoute>} />
         <Route path="/reportes"           element={<ProtectedRoute><ReportesPage /></ProtectedRoute>} />
         <Route path="/facturas"           element={<ProtectedRoute><FacturasPage /></ProtectedRoute>} />
         <Route path="/empresa"            element={<ProtectedRoute><EmpresaPage /></ProtectedRoute>} />

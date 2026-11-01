@@ -11,6 +11,7 @@ import { API_URL } from "../config/api";
 import { hoyMexico, ahoraMexico } from "../utils/fechas";
 import { etiquetaCliente } from "../utils/clientes";
 import ChipEvento from "../components/ChipEvento";
+import ChipEstatusAnticipo from "../components/ChipEstatusAnticipo";
 const API = API_URL;
 
 const normalizar = (s) => (s || "").toUpperCase().replace(/\s+/g, "_").replace(/\s/g, "_");
@@ -124,6 +125,8 @@ export default function ViajesPage() {
     const [editandoGasto,     setEditandoGasto]      = useState(null);
     const [gastoForm,         setGastoForm]          = useState(emptyGasto);
     const [loadingGasto,      setLoadingGasto]       = useState(false);
+    const [errorGasto,        setErrorGasto]         = useState("");
+    const [avisoGasto,        setAvisoGasto]         = useState(""); // VID-K1: aviso al registrar un anticipo
     const [ticketFile,        setTicketFile]         = useState(null);
     const [gastoActivo,       setGastoActivo]        = useState(null); // gasto completo que se está editando (para saber si ya tiene ticket)
 
@@ -745,7 +748,10 @@ export default function ViajesPage() {
         setEditandoGasto(null);
         setGastoActivo(null);
         setTicketFile(null);
-        setGastoForm({ ...emptyGasto, fecha: hoyMexico() });
+        setErrorGasto("");
+        setAvisoGasto("");
+        // VID-K1: un anticipo propone el operador del viaje.
+        setGastoForm({ ...emptyGasto, fecha: hoyMexico(), operadorId: viajeSeleccionado?.driver?.id ?? "" });
         setShowGastoModal(true);
     };
 
@@ -753,13 +759,51 @@ export default function ViajesPage() {
         setEditandoGasto(g.id);
         setGastoActivo(g);
         setTicketFile(null);
+        setErrorGasto("");
+        setAvisoGasto("");
         setGastoForm({ ...emptyGasto, ...g });
         setShowGastoModal(true);
     };
 
+    // VID-K1: un anticipo nuevo se registra en /anticipos: nace por autorizar, con
+    // operador y folio, y se maneja en la pantalla Anticipos. Los anticipos de antes
+    // y los gastos siguen aquí. Un rechazo se muestra en la ventana; si el servidor
+    // devuelve un aviso, la ventana sigue abierta con él en amarillo.
+    const esAnticipoNuevo = !editandoGasto && gastoForm.tipo === "Anticipo operador";
+    const rechazoGasto = (res, data) => data?.error || (res.status === 403
+        ? "No tienes permiso para esta acción o tu sesión expiró."
+        : `No se pudo guardar (error ${res.status}).`);
+    const registrarAnticipo = async () => {
+        const res = await fetch(`${API}/anticipos`, {
+            method: "POST", headers,
+            body: JSON.stringify({
+                operadorId: gastoForm.operadorId === "" ? null : Number(gastoForm.operadorId),
+                monto: gastoForm.monto, fecha: gastoForm.fecha, concepto: gastoForm.descripcion,
+                notas: gastoForm.notas, viajeId: viajeSeleccionado.id,
+            }),
+        });
+        const data = await res.json().catch(() => null);
+        if (!res.ok) {
+            setErrorGasto(rechazoGasto(res, data));
+            return;
+        }
+        fetchGastos(viajeSeleccionado.id);
+        if (data?.aviso) {
+            setAvisoGasto(data.aviso);
+            return;
+        }
+        setShowGastoModal(false);
+        showMsgFn(true, `Anticipo ${data?.anticipo?.folio} registrado: queda por autorizar.`);
+    };
+
     const handleGuardarGasto = async () => {
         setLoadingGasto(true);
+        setErrorGasto("");
         try {
+            if (esAnticipoNuevo) {
+                await registrarAnticipo();
+                return;
+            }
             const body = {
                 ...gastoForm,
                 orderId:   viajeSeleccionado.id,
@@ -769,7 +813,11 @@ export default function ViajesPage() {
             const url    = editandoGasto ? `${API}/gastos-viaje/${editandoGasto}` : `${API}/gastos-viaje`;
             const method = editandoGasto ? "PUT" : "POST";
             const res    = await fetch(url, { method, headers, body: JSON.stringify(body) });
-            const saved  = await res.json();
+            const saved  = await res.json().catch(() => null);
+            if (!res.ok) {
+                setErrorGasto(rechazoGasto(res, saved));
+                return;
+            }
 
             // Si se eligió una foto de ticket, la subimos aparte (multipart).
             // Esto marca el gasto como "comprobado" en el backend, lo que hace
@@ -787,8 +835,12 @@ export default function ViajesPage() {
             setShowGastoModal(false);
             setTicketFile(null);
             fetchGastos(viajeSeleccionado.id);
-        } catch (e) { console.error(e); }
-        setLoadingGasto(false);
+        } catch (e) {
+            console.error(e);
+            setErrorGasto("No se pudo conectar con el servidor. Intenta de nuevo.");
+        } finally {
+            setLoadingGasto(false);
+        }
     };
 
     const handleQuitarTicket = async () => {
@@ -817,7 +869,7 @@ export default function ViajesPage() {
     const viajesVisibles = filtroEtapa ? viajes.filter(v => etapas[v.id]?.etapa === filtroEtapa) : viajes;
 
     const totalGastos    = gastos.filter(g => g.categoria === "Gasto").reduce((s, g) => s + (g.monto || 0), 0);
-    const totalAnticipos = gastos.filter(g => g.categoria === "Anticipo").reduce((s, g) => s + (g.monto || 0), 0);
+    const totalAnticipos = gastos.filter(g => g.categoria === "Anticipo" && g.estatusAnticipo !== "CANCELADO").reduce((s, g) => s + (g.monto || 0), 0);
 
     const fmt = (n) => `$${Number(n || 0).toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
 
@@ -1051,6 +1103,8 @@ export default function ViajesPage() {
                                                             {g.categoria}
                                                         </span>
                                                         <span className="text-white font-bold text-sm">{g.tipo}</span>
+                                                        {g.folio && <span className="text-yellow-300 text-xs font-bold whitespace-nowrap">{g.folio}</span>}
+                                                        {g.folio && <ChipEstatusAnticipo clave={g.estatusAnticipo} />}
                                                         {g.categoria !== "Anticipo" && (
                                                             g.comprobado ? (
                                                                 <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-green-500/20 text-green-300">🧾 Comprobado</span>
@@ -1060,14 +1114,24 @@ export default function ViajesPage() {
                                                         )}
                                                     </div>
                                                     {g.descripcion && <p className="text-gray-400 text-xs mb-1">{g.descripcion}</p>}
+                                                    {g.folio && <p className="text-gray-400 text-xs mb-1">Operador: {g.operador}{g.trayecto ? ` · trayecto ${g.trayecto}` : ""}</p>}
                                                     <div className="flex items-center gap-3">
-                                                        <p className="text-green-300 font-black">${(g.monto || 0).toLocaleString()}</p>
+                                                        <p className={`font-black ${g.estatusAnticipo === "CANCELADO" ? "text-gray-500 line-through" : "text-green-300"}`}>${(g.monto || 0).toLocaleString()}</p>
                                                         <p className="text-gray-500 text-xs">{g.fecha}</p>
                                                     </div>
                                                 </div>
                                                 <div className="flex gap-2 ml-3">
-                                                    <button onClick={() => openEditarGasto(g)} className="p-2 rounded-lg bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20 transition-all"><FaEdit /></button>
-                                                    <button onClick={() => handleEliminarGasto(g.id)} className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all"><FaTrash /></button>
+                                                    {g.folio ? (
+                                                        <button onClick={() => navigate("/anticipos")}
+                                                            className="px-2 py-1 rounded-lg bg-yellow-500/10 text-yellow-300 text-xs font-bold hover:bg-yellow-500/20 transition-all whitespace-nowrap">
+                                                            Ver en Anticipos
+                                                        </button>
+                                                    ) : (
+                                                        <>
+                                                            <button onClick={() => openEditarGasto(g)} className="p-2 rounded-lg bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20 transition-all"><FaEdit /></button>
+                                                            <button onClick={() => handleEliminarGasto(g.id)} className="p-2 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 transition-all"><FaTrash /></button>
+                                                        </>
+                                                    )}
                                                 </div>
                                             </div>
                                         </motion.div>
@@ -1780,13 +1844,23 @@ export default function ViajesPage() {
                                         {TIPOS.map(t => <option key={t}>{t}</option>)}
                                     </select>
                                 </div>
-                                <div>
-                                    <label className="text-gray-400 text-sm mb-2 block">Categoría</label>
-                                    <select value={gastoForm.categoria} onChange={setG("categoria")} className={selectCls}>
-                                        <option>Anticipo</option>
-                                        <option>Gasto</option>
-                                    </select>
-                                </div>
+                                {esAnticipoNuevo ? (
+                                    <div>
+                                        <label className="text-gray-400 text-sm mb-2 block">Operador *</label>
+                                        <select value={gastoForm.operadorId ?? ""} onChange={setG("operadorId")} className={selectCls}>
+                                            <option value="">Seleccionar operador...</option>
+                                            {drivers.map(d => <option key={d.id} value={d.id}>{d.name} {d.apellidos || ""}</option>)}
+                                        </select>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        <label className="text-gray-400 text-sm mb-2 block">Categoría</label>
+                                        <select value={gastoForm.categoria} onChange={setG("categoria")} className={selectCls}>
+                                            <option>Anticipo</option>
+                                            <option>Gasto</option>
+                                        </select>
+                                    </div>
+                                )}
                                 <div>
                                     <label className="text-gray-400 text-sm mb-2 block">Descripción</label>
                                     <input value={gastoForm.descripcion} onChange={setG("descripcion")} placeholder="Detalle..." className={inputCls} />
@@ -1801,53 +1875,78 @@ export default function ViajesPage() {
                                         <input type="date" value={gastoForm.fecha} onChange={setG("fecha")} className={inputCls} />
                                     </div>
                                 </div>
-                                <div>
-                                    <label className="text-gray-400 text-sm mb-2 block">Status</label>
-                                    <select value={gastoForm.status} onChange={setG("status")} className={selectCls}>
-                                        <option>Pendiente</option>
-                                        <option>Pagado</option>
-                                    </select>
-                                </div>
+                                {!esAnticipoNuevo && (
+                                    <div>
+                                        <label className="text-gray-400 text-sm mb-2 block">Status</label>
+                                        <select value={gastoForm.status} onChange={setG("status")} className={selectCls}>
+                                            <option>Pendiente</option>
+                                            <option>Pagado</option>
+                                        </select>
+                                    </div>
+                                )}
                                 <div>
                                     <label className="text-gray-400 text-sm mb-2 block">Notas</label>
                                     <input value={gastoForm.notas} onChange={setG("notas")} placeholder="Observaciones..." className={inputCls} />
                                 </div>
 
-                                {/* Ticket comprobatorio: con foto, la empresa absorbe el gasto y no se le cobra al operador */}
-                                <div className="rounded-2xl border border-cyan-400/10 bg-white/5 p-4">
-                                    <label className="text-gray-400 text-sm mb-2 block flex items-center gap-2">
-                                        🧾 Ticket / comprobante
-                                    </label>
-                                    {gastoActivo?.comprobado ? (
-                                        <div className="flex items-center justify-between">
-                                            <span className="px-3 py-1.5 rounded-full text-xs font-bold bg-green-500/20 text-green-300">
-                                                 tiene ticket -no se cobra al operador
-                                            </span>
-                                            <button onClick={handleQuitarTicket} type="button"
-                                                className="text-xs text-red-400 hover:text-red-300 font-bold">
-                                                Quitar ticket
-                                            </button>
+                                {esAnticipoNuevo ? (
+                                    <p className="text-gray-500 text-xs">
+                                        El anticipo queda por autorizar. Se autoriza, se cancela y se liga a un trayecto en la pantalla Anticipos.
+                                    </p>
+                                ) : (
+                                    <>
+                                        {/* Ticket comprobatorio: con foto, la empresa absorbe el gasto y no se le cobra al operador */}
+                                        <div className="rounded-2xl border border-cyan-400/10 bg-white/5 p-4">
+                                            <label className="text-gray-400 text-sm mb-2 block flex items-center gap-2">
+                                                🧾 Ticket / comprobante
+                                            </label>
+                                            {gastoActivo?.comprobado ? (
+                                                <div className="flex items-center justify-between">
+                                                    <span className="px-3 py-1.5 rounded-full text-xs font-bold bg-green-500/20 text-green-300">
+                                                         tiene ticket -no se cobra al operador
+                                                    </span>
+                                                    <button onClick={handleQuitarTicket} type="button"
+                                                        className="text-xs text-red-400 hover:text-red-300 font-bold">
+                                                        Quitar ticket
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <>
+                                                    <input type="file" accept="image/*,application/pdf"
+                                                        onChange={e => setTicketFile(e.target.files[0] || null)}
+                                                        className="text-gray-400 text-sm bg-[#020617] border border-cyan-400/10 rounded-xl px-4 py-3 w-full" />
+                                                    <p className="text-gray-500 text-xs mt-2">
+                                                        Sin ticket, este gasto se descuenta del pago del operador. Con ticket, lo absorbe la empresa.
+                                                    </p>
+                                                </>
+                                            )}
                                         </div>
-                                    ) : (
-                                        <>
-                                            <input type="file" accept="image/*,application/pdf"
-                                                onChange={e => setTicketFile(e.target.files[0] || null)}
-                                                className="text-gray-400 text-sm bg-[#020617] border border-cyan-400/10 rounded-xl px-4 py-3 w-full" />
-                                            <p className="text-gray-500 text-xs mt-2">
-                                                Sin ticket, este gasto se descuenta del pago del operador. Con ticket, lo absorbe la empresa.
-                                            </p>
-                                        </>
-                                    )}
-                                </div>
+                                    </>
+                                )}
                             </div>
+                            {errorGasto && (
+                                <div className="mx-6 mb-4 px-4 py-3 rounded-xl text-sm bg-red-500/10 border border-red-400/30 text-red-300 flex-shrink-0">{errorGasto}</div>
+                            )}
+                            {avisoGasto && (
+                                <div className="mx-6 mb-4 px-4 py-3 rounded-xl text-sm bg-yellow-500/10 border border-yellow-400/30 text-yellow-300 flex-shrink-0">Guardado. {avisoGasto}</div>
+                            )}
                             <div className="flex gap-4 p-6 pt-0">
-                                <button onClick={() => setShowGastoModal(false)}
-                                    className="flex-1 py-3 rounded-2xl border border-white/10 text-gray-400 hover:bg-white/5 transition-all font-bold">Cancelar</button>
-                                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                                    onClick={handleGuardarGasto} disabled={loadingGasto}
-                                    className="flex-1 py-3 rounded-2xl bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 font-bold hover:bg-cyan-500/30 transition-all">
-                                    {loadingGasto ? "Guardando..." : editandoGasto ? "Actualizar" : "Guardar"}
-                                </motion.button>
+                                {avisoGasto ? (
+                                    <button onClick={() => setShowGastoModal(false)}
+                                        className="flex-1 py-3 rounded-2xl bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 font-bold hover:bg-cyan-500/30 transition-all">
+                                        Cerrar
+                                    </button>
+                                ) : (
+                                    <>
+                                        <button onClick={() => setShowGastoModal(false)}
+                                            className="flex-1 py-3 rounded-2xl border border-white/10 text-gray-400 hover:bg-white/5 transition-all font-bold">Cancelar</button>
+                                        <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                                            onClick={handleGuardarGasto} disabled={loadingGasto}
+                                            className="flex-1 py-3 rounded-2xl bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 font-bold hover:bg-cyan-500/30 transition-all">
+                                            {loadingGasto ? "Guardando..." : editandoGasto ? "Actualizar" : "Guardar"}
+                                        </motion.button>
+                                    </>
+                                )}
                             </div>
                         </motion.div>
                     </motion.div>

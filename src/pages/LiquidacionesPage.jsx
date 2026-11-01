@@ -10,6 +10,11 @@ import { hoyMexico } from "../utils/fechas";
 import { etiquetaCliente } from "../utils/clientes";
 const API = API_URL;
 
+// VID-K1: un anticipo por autorizar o cancelado no entra en la liquidación (el
+// backend no lo descuenta); los autorizados y los de antes de VID-K1, sin estatus, sí.
+const entraEnLiquidacion = (g) =>
+    g.categoria !== "Anticipo" || !g.estatusAnticipo || g.estatusAnticipo === "AUTORIZADO";
+
 const emptyForm = {
     modo: "VIAJE", // VIAJE | PERIODO
     orderId: "", driverId: "", esquemaPago: "VIAJE_FIJO",
@@ -247,6 +252,7 @@ export default function LiquidacionesPage() {
     const [gastosPorViaje, setGastosPorViaje] = useState([]);
     const [periodoPreview, setPeriodoPreview] = useState(null); // métricas + bonos de umbral para modo período
     const [formError,     setFormError]      = useState("");
+    const [sinViaje,      setSinViaje]       = useState({ driverId: "", lista: [] }); // VID-K1
 
     // ── Pago al operador ──
     const [showPagoModal,     setShowPagoModal]     = useState(false);
@@ -274,7 +280,7 @@ export default function LiquidacionesPage() {
         try {
             const res  = await fetch(`${API}/gastos-viaje/viaje/${orderId}`, { headers });
             const data = await res.json();
-            setGastosPorViaje(Array.isArray(data) ? data : []);
+            setGastosPorViaje(Array.isArray(data) ? data.filter(entraEnLiquidacion) : []);
         } catch (e) { console.error(e); }
     };
 
@@ -330,6 +336,20 @@ export default function LiquidacionesPage() {
         if (form.driverId) fetchPrestamosActivos(form.driverId);
         else { setPrestamos([]); }
     }, [form.driverId]);
+
+    // VID-K1: los anticipos autorizados del operador que no están en ningún viaje:
+    // no se descuentan hasta ligarlos, y el formulario lo avisa.
+    useEffect(() => {
+        if (!form.driverId) return;
+        let vigente = true;
+        const sesion = localStorage.getItem("token");
+        fetch(`${API}/liquidaciones/driver/${form.driverId}/anticipos-sin-viaje`, { headers: sesion ? { Authorization: `Bearer ${sesion}` } : {} })
+            .then(res => (res.ok ? res.json() : []))
+            .catch(() => [])
+            .then(data => { if (vigente) setSinViaje({ driverId: form.driverId, lista: Array.isArray(data) ? data : [] }); });
+        return () => { vigente = false; };
+    }, [form.driverId]);
+    const anticiposSinViaje = sinViaje.driverId === form.driverId ? sinViaje.lista : [];
 
     useEffect(() => {
         if (form.modo === "PERIODO" && form.driverId && form.periodoInicio && form.periodoFin) {
@@ -465,7 +485,7 @@ export default function LiquidacionesPage() {
         if (liq.modo !== "PERIODO" && liq.orderId) {
             const res  = await fetch(`${API}/gastos-viaje/viaje/${liq.orderId}`, { headers });
             const data = await res.json();
-            gastos = Array.isArray(data) ? data : [];
+            gastos = Array.isArray(data) ? data.filter(entraEnLiquidacion) : [];
         }
         generarPDFLiquidacion(liq, gastos);
     };
@@ -682,6 +702,16 @@ export default function LiquidacionesPage() {
                                             {drivers.map(d => <option key={d.id} value={d.id}>{d.name} {d.apellidos || ""}</option>)}
                                         </select>
                                     </Field>
+
+                                    {/* VID-K1: anticipos autorizados sin viaje: todavía no se descuentan */}
+                                    {anticiposSinViaje.length > 0 && (
+                                        <div className="col-span-1 sm:col-span-2 px-4 py-3 rounded-xl text-sm bg-yellow-500/10 border border-yellow-400/30 text-yellow-300">
+                                            <p className="font-bold">Este operador tiene anticipos autorizados sin viaje. No se descuentan hasta ligarlos a un viaje en Anticipos:</p>
+                                            <ul className="mt-1 list-disc pl-5">
+                                                {anticiposSinViaje.map(a => <li key={a.id}>{a.folio}: ${(a.monto || 0).toLocaleString()}</li>)}
+                                            </ul>
+                                        </div>
+                                    )}
 
                                     {form.modo === "PERIODO" && periodoPreview && (
                                         <div className="col-span-1 sm:col-span-2 grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-xl bg-purple-500/5 border border-purple-400/20">

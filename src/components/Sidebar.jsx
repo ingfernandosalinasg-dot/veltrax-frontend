@@ -11,7 +11,7 @@ import { FaBox } from "react-icons/fa";
 import { FaHistory } from "react-icons/fa";
 import { FaGavel } from "react-icons/fa";
 import { FaUserShield, FaShieldAlt } from "react-icons/fa";
-import { FaHandHoldingUsd, FaTrophy } from "react-icons/fa";
+import { FaHandHoldingUsd, FaTrophy, FaCoins } from "react-icons/fa";
 import { FaPills } from "react-icons/fa";
 import { FaExclamationTriangle, FaTools, FaClipboardCheck, FaWrench, FaBars, FaTimes } from "react-icons/fa";
 import { useState, useEffect } from "react";
@@ -30,6 +30,7 @@ function Sidebar() {
         { name: "Dashboard",      path: "/dashboard",       icon: <FaChartBar /> },
         { name: "Viajes",         path: "/viajes",         icon: <FaRoute /> },
         { name: "Liquidaciones",  path: "/liquidaciones",  icon: <FaMoneyBillWave /> },
+        { name: "Anticipos",      path: "/anticipos",      icon: <FaCoins /> },
         { name: "Préstamos",      path: "/prestamos",      icon: <FaHandHoldingUsd /> },
         { name: "Umbrales",       path: "/umbrales",       icon: <FaTrophy /> },
         { name: "Cartas Porte",   path: "/cartas-porte",   icon: <FaFileAlt /> },
