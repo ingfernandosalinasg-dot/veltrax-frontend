@@ -53,8 +53,14 @@ const emptyForm = {
 
 const emptyGasto = {
     tipo: "Anticipo operador", categoria: "Anticipo",
-    descripcion: "", monto: "", fecha: "", status: "Pendiente", notas: ""
+    descripcion: "", monto: "", fecha: "", status: "Pendiente", notas: "",
+    // VID-K3: operador, trayecto, a crédito, proveedor, comprobante fiscal, desglose, litros y odómetro.
+    operadorId: "", trayectoId: "", aCredito: false, proveedorId: "", uuidFiscal: "",
+    subtotal: "", iva: "", ieps: "", isr: "", retencionIva: "", litros: "", odometro: "",
 };
+
+// VID-K3: los datos de un gasto para su ventana, sin los vacíos del servidor.
+const sinVacios = (o) => Object.fromEntries(Object.entries(o).filter(([, v]) => v !== null && v !== undefined));
 
 const TIPOS = ["Anticipo operador", "Casetas", "Gasolina", "Comida", "Mecánico", "Hospedaje", "Otro"];
 
@@ -129,6 +135,12 @@ export default function ViajesPage() {
     const [avisoGasto,        setAvisoGasto]         = useState(""); // VID-K1: aviso al registrar un anticipo
     const [ticketFile,        setTicketFile]         = useState(null);
     const [gastoActivo,       setGastoActivo]        = useState(null); // gasto completo que se está editando (para saber si ya tiene ticket)
+    // VID-K3: los proveedores de la ventana, el XML elegido (se sube al guardar) y su lectura.
+    const [proveedores,       setProveedores]        = useState([]);
+    const [xmlFile,           setXmlFile]            = useState(null);
+    const [avisoXml,          setAvisoXml]           = useState("");
+    const [leyendoXml,        setLeyendoXml]         = useState(false);
+    const [errorComprobante,  setErrorComprobante]   = useState(""); // «Ver ticket» y «Descargar XML» en la lista
 
     const [timelineEventos,   setTimelineEventos]   = useState([]);
     const [loadingTimeline,   setLoadingTimeline]   = useState(false);
@@ -710,6 +722,7 @@ export default function ViajesPage() {
         setErrorTrayectos("");
         setEventosViaje(null);
         setErrorEventos("");
+        setErrorComprobante("");
         fetchGastos(viaje.id);
         if (tab === "timeline")     fetchTimeline(viaje);
         if (tab === "rentabilidad") fetchRentabilidad(viaje.id);
@@ -744,25 +757,36 @@ export default function ViajesPage() {
         navigate(`/liquidaciones?orderId=${viajeSeleccionado.id}&driverId=${driverId}`);
     };
 
+    // VID-K3: la ventana elige trayecto y proveedor. Sin permiso para ver Proveedores,
+    // la lista queda vacía y el gasto se registra igual.
+    const abrirVentanaGasto = async () => {
+        setTicketFile(null);
+        setXmlFile(null);
+        setAvisoXml("");
+        setErrorGasto("");
+        setAvisoGasto("");
+        setShowGastoModal(true);
+        if (!trayectosViaje) fetchTrayectos(viajeSeleccionado.id);
+        try {
+            const res  = await fetch(`${API}/proveedores`, { headers });
+            const data = res.ok ? await res.json() : [];
+            setProveedores(Array.isArray(data) ? data : []);
+        } catch (e) { console.error(e); setProveedores([]); }
+    };
+
     const openNuevoGasto = () => {
         setEditandoGasto(null);
         setGastoActivo(null);
-        setTicketFile(null);
-        setErrorGasto("");
-        setAvisoGasto("");
-        // VID-K1: un anticipo propone el operador del viaje.
+        // VID-K1 y VID-K3: un anticipo o un gasto proponen el operador del viaje.
         setGastoForm({ ...emptyGasto, fecha: hoyMexico(), operadorId: viajeSeleccionado?.driver?.id ?? "" });
-        setShowGastoModal(true);
+        abrirVentanaGasto();
     };
 
     const openEditarGasto = (g) => {
         setEditandoGasto(g.id);
         setGastoActivo(g);
-        setTicketFile(null);
-        setErrorGasto("");
-        setAvisoGasto("");
-        setGastoForm({ ...emptyGasto, ...g });
-        setShowGastoModal(true);
+        setGastoForm({ ...emptyGasto, ...sinVacios(g) });
+        abrirVentanaGasto();
     };
 
     // VID-K1: un anticipo nuevo se registra en /anticipos: nace por autorizar, con
@@ -770,6 +794,8 @@ export default function ViajesPage() {
     // y los gastos siguen aquí. Un rechazo se muestra en la ventana; si el servidor
     // devuelve un aviso, la ventana sigue abierta con él en amarillo.
     const esAnticipoNuevo = !editandoGasto && gastoForm.tipo === "Anticipo operador";
+    const esGastoVentana  = gastoForm.tipo !== "Anticipo operador"; // VID-K3: solo los gastos llevan estos datos
+    const sesion = token ? { Authorization: `Bearer ${token}` } : {};
     const rechazoGasto = (res, data) => data?.error || (res.status === 403
         ? "No tienes permiso para esta acción o tu sesión expiró."
         : `No se pudo guardar (error ${res.status}).`);
@@ -819,22 +845,40 @@ export default function ViajesPage() {
                 return;
             }
 
-            // Si se eligió una foto de ticket, la subimos aparte (multipart).
-            // Esto marca el gasto como "comprobado" en el backend, lo que hace
-            // que NO se le cobre al operador en su liquidación.
-            if (ticketFile && saved?.id) {
+            // Si se eligió una foto de ticket o un XML, se suben aparte (multipart). Esto
+            // marca el gasto como "comprobado" en el backend, lo que hace que NO se le
+            // cobre al operador en su liquidación. VID-K3: si uno falla, el gasto ya se
+            // guardó: la ventana sigue abierta con el motivo, para corregir y reintentar.
+            let actual = saved;
+            const avisos = saved?.aviso ? [saved.aviso] : [];
+            const porSubir = [["ticket", ticketFile, setTicketFile], ["xml", esGastoVentana ? xmlFile : null, setXmlFile]];
+            for (const [cual, archivo, limpiar] of porSubir) {
+                if (!archivo || !actual?.id) continue;
                 const fd = new FormData();
-                fd.append("ticket", ticketFile);
-                await fetch(`${API}/gastos-viaje/${saved.id}/ticket`, {
-                    method: "POST",
-                    headers: token ? { Authorization: `Bearer ${token}` } : {},
-                    body: fd
-                });
+                fd.append(cual, archivo);
+                const resArchivo = await fetch(`${API}/gastos-viaje/${actual.id}/${cual}`, { method: "POST", headers: sesion, body: fd });
+                const dataArchivo = await resArchivo.json().catch(() => null);
+                if (!resArchivo.ok) {
+                    fetchGastos(viajeSeleccionado.id);
+                    setEditandoGasto(actual.id);
+                    setGastoActivo(actual);
+                    setErrorGasto(`El gasto se guardó, pero el ${cual === "xml" ? "XML" : "ticket"} no: ${rechazoGasto(resArchivo, dataArchivo)}`);
+                    return;
+                }
+                actual = dataArchivo;
+                limpiar(null);
+                if (dataArchivo?.aviso) avisos.push(dataArchivo.aviso);
             }
 
-            setShowGastoModal(false);
-            setTicketFile(null);
             fetchGastos(viajeSeleccionado.id);
+            // Con avisos, la ventana sigue abierta con ellos en amarillo.
+            if (avisos.length > 0) {
+                setEditandoGasto(actual.id);
+                setGastoActivo(actual);
+                setAvisoGasto(avisos.join(" "));
+                return;
+            }
+            setShowGastoModal(false);
         } catch (e) {
             console.error(e);
             setErrorGasto("No se pudo conectar con el servidor. Intenta de nuevo.");
@@ -843,14 +887,107 @@ export default function ViajesPage() {
         }
     };
 
-    const handleQuitarTicket = async () => {
-        if (!gastoActivo?.id) return;
-        if (!confirm("¿Quitar el ticket de este gasto? Volverá a descontarse del operador.")) return;
+    // VID-K3: quitar un comprobante deja el gasto comprobado si todavía tiene el otro.
+    const quitarComprobante = async (cual) => {
         try {
-            await fetch(`${API}/gastos-viaje/${gastoActivo.id}/ticket`, { method: "DELETE", headers });
-            setGastoActivo(prev => prev ? { ...prev, comprobado: false, ticketPath: null } : prev);
+            const res  = await fetch(`${API}/gastos-viaje/${gastoActivo.id}/${cual}`, { method: "DELETE", headers });
+            const data = await res.json().catch(() => null);
+            if (!res.ok) {
+                setErrorGasto(rechazoGasto(res, data));
+                return;
+            }
+            setGastoActivo(data);
+            if (cual === "xml") setGastoForm(prev => ({ ...prev, uuidFiscal: "" }));
             fetchGastos(viajeSeleccionado.id);
-        } catch (e) { console.error(e); }
+        } catch (e) {
+            console.error(e);
+            setErrorGasto("No se pudo conectar con el servidor. Intenta de nuevo.");
+        }
+    };
+
+    const handleQuitarTicket = () => {
+        if (!gastoActivo?.id) return;
+        const seDescuenta = !gastoActivo.tieneXml && !gastoForm.aCredito;
+        if (!confirm(`¿Quitar el ticket de este gasto?${seDescuenta ? " Volverá a descontarse del operador." : ""}`)) return;
+        quitarComprobante("ticket");
+    };
+
+    const handleQuitarXml = () => {
+        if (!gastoActivo?.id) return;
+        const seDescuenta = !gastoActivo.ticketPath && !gastoForm.aCredito;
+        if (!confirm(`¿Quitar el XML de este gasto? También se quita su folio fiscal.${seDescuenta ? " Volverá a descontarse del operador." : ""}`)) return;
+        quitarComprobante("xml");
+    };
+
+    // VID-K3: lee el CFDI sin guardar nada y llena la ventana; el archivo se sube al
+    // guardar. Si el servidor lo rechaza, el motivo se ve en la ventana y no se llena nada.
+    const elegirXml = async (archivo) => {
+        setXmlFile(null);
+        setAvisoXml("");
+        setErrorGasto("");
+        if (!archivo) return;
+        setLeyendoXml(true);
+        try {
+            const fd = new FormData();
+            fd.append("xml", archivo);
+            const deGasto = editandoGasto ? `?gastoId=${editandoGasto}` : "";
+            const res  = await fetch(`${API}/gastos-viaje/xml/leer${deGasto}`, { method: "POST", headers: sesion, body: fd });
+            const data = await res.json().catch(() => null);
+            if (!res.ok) {
+                setErrorGasto(rechazoGasto(res, data));
+                return;
+            }
+            setXmlFile(archivo);
+            setAvisoXml(data.aviso || "");
+            setGastoForm(prev => ({
+                ...prev,
+                uuidFiscal: data.uuid, fecha: data.fecha || prev.fecha, monto: data.total, subtotal: data.subtotal,
+                iva: data.iva, ieps: data.ieps, isr: data.isr, retencionIva: data.retencionIva,
+                proveedorId: data.proveedorId ?? prev.proveedorId,
+            }));
+        } catch (e) {
+            console.error(e);
+            setErrorGasto("No se pudo conectar con el servidor. Intenta de nuevo.");
+        } finally {
+            setLeyendoXml(false);
+        }
+    };
+
+    // VID-K3: al elegir un trayecto se propone su operador.
+    const elegirTrayectoGasto = (e) => {
+        const t = (trayectosViaje?.trayectos || []).find(x => String(x.id) === e.target.value);
+        setGastoForm(prev => ({ ...prev, trayectoId: e.target.value, operadorId: t?.operadorId ?? prev.operadorId }));
+    };
+
+    // VID-K3: «Ver ticket» lo abre en otra pestaña y «Descargar XML» lo baja, con la
+    // sesión, porque los archivos no son públicos. La pestaña se abre antes de esperar
+    // al servidor, para que el navegador no la bloquee. alFallar muestra el motivo.
+    const abrirComprobante = async (gasto, cual, alFallar) => {
+        alFallar("");
+        const pestana = cual === "ticket" ? window.open("", "_blank") : null;
+        try {
+            const res = await fetch(`${API}/gastos-viaje/${gasto.id}/${cual}`, { headers: sesion });
+            if (!res.ok) {
+                pestana?.close();
+                const data = await res.json().catch(() => null);
+                alFallar(data?.error || `No se pudo abrir (error ${res.status}).`);
+                return;
+            }
+            const url = URL.createObjectURL(await res.blob());
+            if (pestana) {
+                pestana.location.href = url;
+            } else {
+                const link = document.createElement("a");
+                link.href = url;
+                link.download = cual === "xml" ? `gasto_${gasto.id}.xml` : `ticket_${gasto.id}`;
+                link.click();
+            }
+            setTimeout(() => URL.revokeObjectURL(url), 60000);
+        } catch (e) {
+            console.error(e);
+            pestana?.close();
+            alFallar("No se pudo conectar con el servidor. Intenta de nuevo.");
+        }
     };
 
     const handleEliminarGasto = async (id) => {
@@ -872,6 +1009,21 @@ export default function ViajesPage() {
     const totalAnticipos = gastos.filter(g => g.categoria === "Anticipo" && g.estatusAnticipo !== "CANCELADO").reduce((s, g) => s + (g.monto || 0), 0);
 
     const fmt = (n) => `$${Number(n || 0).toLocaleString("es-MX", { minimumFractionDigits: 2 })}`;
+
+    // VID-K3: los proveedores activos, y el que el gasto ya tiene aunque no lo esté.
+    const proveedoresVentana = proveedores.filter(p =>
+        !p.status || p.status === "Activo" || String(p.id) === String(gastoForm.proveedorId));
+    const proveedorFuera = gastoForm.proveedorId !== "" && !proveedoresVentana.some(p => String(p.id) === String(gastoForm.proveedorId));
+    // Lo mismo que revisa el servidor al guardar: si no cuadra, solo avisa.
+    const sumaDesglose = gastoForm.subtotal === "" ? null
+        : Number(gastoForm.subtotal) + Number(gastoForm.iva || 0) + Number(gastoForm.ieps || 0)
+            - Number(gastoForm.isr || 0) - Number(gastoForm.retencionIva || 0);
+    const conXml = Boolean(xmlFile || gastoActivo?.tieneXml);
+    const textoTicket = gastoForm.aCredito
+        ? "A crédito: no se descuenta del pago del operador, con o sin ticket."
+        : gastoActivo?.tieneXml
+            ? "Con su XML ya está comprobado: el ticket es opcional."
+            : "Sin ticket ni XML, este gasto se descuenta del pago del operador. Con alguno de los dos, lo absorbe la empresa.";
 
     return (
         <div className="flex min-h-screen bg-[#020617] text-white overflow-hidden">
@@ -1088,6 +1240,9 @@ export default function ViajesPage() {
                                         <FaPlus /> Agregar Anticipo / Gasto
                                     </button>
                                 </div>
+                                {errorComprobante && (
+                                    <div className="mx-4 mb-3 px-4 py-3 rounded-xl text-sm bg-red-500/10 border border-red-400/30 text-red-300 flex-shrink-0">{errorComprobante}</div>
+                                )}
                                 <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-3">
                                     {gastos.length === 0 && (
                                         <p className="text-center text-gray-500 py-10">No hay anticipos ni gastos registrados</p>
@@ -1112,13 +1267,28 @@ export default function ViajesPage() {
                                                                 <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-red-500/20 text-red-300">Sin comprobar</span>
                                                             )
                                                         )}
+                                                        {g.aCredito && <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-purple-500/20 text-purple-300">A crédito</span>}
                                                     </div>
                                                     {g.descripcion && <p className="text-gray-400 text-xs mb-1">{g.descripcion}</p>}
-                                                    {g.folio && <p className="text-gray-400 text-xs mb-1">Operador: {g.operador}{g.trayecto ? ` · trayecto ${g.trayecto}` : ""}</p>}
+                                                    {g.operador && <p className="text-gray-400 text-xs mb-1">Operador: {g.operador}{g.trayecto ? ` · trayecto ${g.trayecto}` : ""}</p>}
+                                                    {g.proveedor && <p className="text-gray-400 text-xs mb-1">Proveedor: {g.proveedor}</p>}
+                                                    {g.uuidFiscal && <p className="text-gray-400 text-xs mb-1 break-all">Folio fiscal: {g.uuidFiscal}</p>}
                                                     <div className="flex items-center gap-3">
                                                         <p className={`font-black ${g.estatusAnticipo === "CANCELADO" ? "text-gray-500 line-through" : "text-green-300"}`}>${(g.monto || 0).toLocaleString()}</p>
                                                         <p className="text-gray-500 text-xs">{g.fecha}</p>
                                                     </div>
+                                                    {(g.ticketPath || g.tieneXml) && (
+                                                        <div className="flex gap-3 mt-2">
+                                                            {g.ticketPath && (
+                                                                <button onClick={() => abrirComprobante(g, "ticket", setErrorComprobante)} type="button"
+                                                                    className="text-xs text-cyan-300 hover:text-cyan-200 font-bold">Ver ticket</button>
+                                                            )}
+                                                            {g.tieneXml && (
+                                                                <button onClick={() => abrirComprobante(g, "xml", setErrorComprobante)} type="button"
+                                                                    className="text-xs text-cyan-300 hover:text-cyan-200 font-bold">Descargar XML</button>
+                                                            )}
+                                                        </div>
+                                                    )}
                                                 </div>
                                                 <div className="flex gap-2 ml-3">
                                                     {g.folio ? (
@@ -1832,12 +2002,12 @@ export default function ViajesPage() {
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                         className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[60] p-6">
                         <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
-                            className="bg-[#020617] border border-cyan-400/20 rounded-3xl w-full max-w-md flex flex-col">
+                            className="bg-[#020617] border border-cyan-400/20 rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col">
                             <div className="flex justify-between items-center p-6 pb-0 flex-shrink-0">
                                 <h2 className="text-2xl font-black text-cyan-300">{editandoGasto ? "Editar" : "Nuevo"} Anticipo / Gasto</h2>
                                 <button onClick={() => setShowGastoModal(false)} className="text-gray-400 hover:text-white text-xl"><FaTimes /></button>
                             </div>
-                            <div className="px-6 py-5 space-y-4">
+                            <div className="px-6 py-5 space-y-4 overflow-y-auto">
                                 <div>
                                     <label className="text-gray-400 text-sm mb-2 block">Tipo</label>
                                     <select value={gastoForm.tipo} onChange={setG("tipo")} className={selectCls}>
@@ -1875,6 +2045,61 @@ export default function ViajesPage() {
                                         <input type="date" value={gastoForm.fecha} onChange={setG("fecha")} className={inputCls} />
                                     </div>
                                 </div>
+                                {/* VID-K3: operador, trayecto, a crédito, proveedor y, en gasolina, litros y odómetro */}
+                                {esGastoVentana && (
+                                    <>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="text-gray-400 text-sm mb-2 block">Trayecto (opcional)</label>
+                                                <select value={gastoForm.trayectoId} onChange={elegirTrayectoGasto} className={selectCls}>
+                                                    <option value="">Sin trayecto</option>
+                                                    {(trayectosViaje?.trayectos || []).map(t => (
+                                                        <option key={t.id} value={t.id}>{t.secuencia}: {t.origen || "?"} → {t.destino || "?"}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <div>
+                                                <label className="text-gray-400 text-sm mb-2 block">Operador{gastoForm.aCredito ? " (opcional)" : " *"}</label>
+                                                <select value={gastoForm.operadorId} onChange={setG("operadorId")} className={selectCls}>
+                                                    <option value="">Seleccionar operador...</option>
+                                                    {drivers.map(d => <option key={d.id} value={d.id}>{d.name} {d.apellidos || ""}</option>)}
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <label className="flex items-start gap-3 rounded-2xl border border-cyan-400/10 bg-white/5 p-4 cursor-pointer">
+                                            <input type="checkbox" checked={Boolean(gastoForm.aCredito)} className="mt-1"
+                                                onChange={e => setGastoForm(prev => ({ ...prev, aCredito: e.target.checked }))} />
+                                            <span className="text-sm text-gray-300">
+                                                <span className="font-bold">Gasto a crédito</span>
+                                                <span className="block text-gray-500 text-xs">No se descuenta del pago del operador ni entra en su comprobación.</span>
+                                            </span>
+                                        </label>
+                                        <div>
+                                            <label className="text-gray-400 text-sm mb-2 block">Proveedor (opcional)</label>
+                                            <select value={gastoForm.proveedorId} onChange={setG("proveedorId")} className={selectCls}>
+                                                <option value="">Sin proveedor</option>
+                                                {proveedorFuera && (
+                                                    <option value={gastoForm.proveedorId}>{gastoActivo?.proveedor || `Proveedor #${gastoForm.proveedorId}`}</option>
+                                                )}
+                                                {proveedoresVentana.map(p => (
+                                                    <option key={p.id} value={p.id}>{p.nombre}{p.status && p.status !== "Activo" ? ` (${p.status})` : ""}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        {gastoForm.tipo === "Gasolina" && (
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="text-gray-400 text-sm mb-2 block">Litros (opcional)</label>
+                                                    <input type="number" min="0" step="any" value={gastoForm.litros} onChange={setG("litros")} placeholder="0" className={inputCls} />
+                                                </div>
+                                                <div>
+                                                    <label className="text-gray-400 text-sm mb-2 block">Odómetro (km, opcional)</label>
+                                                    <input type="number" min="0" step="any" value={gastoForm.odometro} onChange={setG("odometro")} placeholder="0" className={inputCls} />
+                                                </div>
+                                            </div>
+                                        )}
+                                    </>
+                                )}
                                 {!esAnticipoNuevo && (
                                     <div>
                                         <label className="text-gray-400 text-sm mb-2 block">Status</label>
@@ -1895,20 +2120,69 @@ export default function ViajesPage() {
                                     </p>
                                 ) : (
                                     <>
+                                        {/* VID-K3: comprobante fiscal, opcional: el XML llena estos datos y marca el gasto como comprobado */}
+                                        {esGastoVentana && (
+                                            <div className="rounded-2xl border border-cyan-400/10 bg-white/5 p-4 space-y-4">
+                                                <label className="text-gray-400 text-sm block">Comprobante fiscal (opcional)</label>
+                                                {gastoActivo?.tieneXml ? (
+                                                    <div className="flex items-center justify-between gap-3 flex-wrap">
+                                                        <span className="px-3 py-1.5 rounded-full text-xs font-bold bg-green-500/20 text-green-300">tiene XML</span>
+                                                        <span className="flex gap-4">
+                                                            <button onClick={() => abrirComprobante(gastoActivo, "xml", setErrorGasto)} type="button"
+                                                                className="text-xs text-cyan-300 hover:text-cyan-200 font-bold">Descargar XML</button>
+                                                            <button onClick={handleQuitarXml} type="button"
+                                                                className="text-xs text-red-400 hover:text-red-300 font-bold">Quitar XML</button>
+                                                        </span>
+                                                    </div>
+                                                ) : (
+                                                    <div>
+                                                        <input type="file" accept=".xml,text/xml,application/xml"
+                                                            onChange={e => { const archivo = e.target.files[0] || null; e.target.value = ""; elegirXml(archivo); }}
+                                                            className="text-gray-400 text-sm bg-[#020617] border border-cyan-400/10 rounded-xl px-4 py-3 w-full" />
+                                                        {leyendoXml && <p className="text-gray-500 text-xs mt-2">Leyendo el XML...</p>}
+                                                        {xmlFile && <p className="text-green-300 text-xs mt-2">XML leído: {xmlFile.name}. Se sube al guardar.</p>}
+                                                        {avisoXml && <p className="text-yellow-300 text-xs mt-2">{avisoXml}</p>}
+                                                    </div>
+                                                )}
+                                                <div>
+                                                    <label className="text-gray-400 text-sm mb-2 block">Folio fiscal (UUID)</label>
+                                                    <input value={gastoForm.uuidFiscal} onChange={setG("uuidFiscal")} readOnly={conXml}
+                                                        placeholder="Sin XML, solo como dato: no comprueba el gasto"
+                                                        className={`${inputCls} ${conXml ? "opacity-60" : ""}`} />
+                                                </div>
+                                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                                    {[["subtotal", "Subtotal"], ["iva", "IVA"], ["ieps", "IEPS"], ["isr", "ISR"], ["retencionIva", "Retención de IVA"]].map(([campo, etiqueta]) => (
+                                                        <div key={campo}>
+                                                            <label className="text-gray-400 text-sm mb-2 block">{etiqueta}</label>
+                                                            <input type="number" min="0" step="any" value={gastoForm[campo]} onChange={setG(campo)} placeholder="0.00" className={inputCls} />
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                {sumaDesglose !== null && (
+                                                    <p className="text-gray-500 text-xs">El desglose suma {fmt(sumaDesglose)}; el monto es el total del gasto.</p>
+                                                )}
+                                            </div>
+                                        )}
                                         {/* Ticket comprobatorio: con foto, la empresa absorbe el gasto y no se le cobra al operador */}
                                         <div className="rounded-2xl border border-cyan-400/10 bg-white/5 p-4">
                                             <label className="text-gray-400 text-sm mb-2 block flex items-center gap-2">
                                                 🧾 Ticket / comprobante
                                             </label>
-                                            {gastoActivo?.comprobado ? (
-                                                <div className="flex items-center justify-between">
+                                            {gastoActivo?.ticketPath ? (
+                                                <div className="flex items-center justify-between gap-3 flex-wrap">
                                                     <span className="px-3 py-1.5 rounded-full text-xs font-bold bg-green-500/20 text-green-300">
                                                          tiene ticket -no se cobra al operador
                                                     </span>
-                                                    <button onClick={handleQuitarTicket} type="button"
-                                                        className="text-xs text-red-400 hover:text-red-300 font-bold">
-                                                        Quitar ticket
-                                                    </button>
+                                                    <span className="flex gap-4">
+                                                        <button onClick={() => abrirComprobante(gastoActivo, "ticket", setErrorGasto)} type="button"
+                                                            className="text-xs text-cyan-300 hover:text-cyan-200 font-bold">
+                                                            Ver ticket
+                                                        </button>
+                                                        <button onClick={handleQuitarTicket} type="button"
+                                                            className="text-xs text-red-400 hover:text-red-300 font-bold">
+                                                            Quitar ticket
+                                                        </button>
+                                                    </span>
                                                 </div>
                                             ) : (
                                                 <>
@@ -1916,7 +2190,7 @@ export default function ViajesPage() {
                                                         onChange={e => setTicketFile(e.target.files[0] || null)}
                                                         className="text-gray-400 text-sm bg-[#020617] border border-cyan-400/10 rounded-xl px-4 py-3 w-full" />
                                                     <p className="text-gray-500 text-xs mt-2">
-                                                        Sin ticket, este gasto se descuenta del pago del operador. Con ticket, lo absorbe la empresa.
+                                                        {textoTicket}
                                                     </p>
                                                 </>
                                             )}
@@ -1930,7 +2204,7 @@ export default function ViajesPage() {
                             {avisoGasto && (
                                 <div className="mx-6 mb-4 px-4 py-3 rounded-xl text-sm bg-yellow-500/10 border border-yellow-400/30 text-yellow-300 flex-shrink-0">Guardado. {avisoGasto}</div>
                             )}
-                            <div className="flex gap-4 p-6 pt-0">
+                            <div className="flex gap-4 p-6 pt-0 flex-shrink-0">
                                 {avisoGasto ? (
                                     <button onClick={() => setShowGastoModal(false)}
                                         className="flex-1 py-3 rounded-2xl bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 font-bold hover:bg-cyan-500/30 transition-all">

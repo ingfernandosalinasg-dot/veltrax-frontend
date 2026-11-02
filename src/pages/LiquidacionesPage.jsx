@@ -15,6 +15,10 @@ const API = API_URL;
 const entraEnLiquidacion = (g) =>
     g.categoria !== "Anticipo" || !g.estatusAnticipo || g.estatusAnticipo === "AUTORIZADO";
 
+// Regla del backend: los anticipos se descuentan; los gastos, si no tienen comprobante,
+// salvo los a crédito (VID-K3, DEC-1024-GASTO-CREDITO).
+const seDeduceGasto = (g) => g.categoria === "Anticipo" || (!g.comprobado && !g.aCredito);
+
 const emptyForm = {
     modo: "VIAJE", // VIAJE | PERIODO
     orderId: "", driverId: "", esquemaPago: "VIAJE_FIJO",
@@ -101,7 +105,6 @@ function ModuloShowcase() {
 // ── Fin sección showcase ──
 
 function generarPDFLiquidacion(liq, gastos) {
-    const seDeduceGasto = (g) => g.categoria === "Anticipo" || !g.comprobado;
     const gastosCobrados   = gastos.filter(seDeduceGasto);
     const gastosAbsorbidos = gastos.filter(g => !seDeduceGasto(g));
 
@@ -196,7 +199,7 @@ function generarPDFLiquidacion(liq, gastos) {
         <tbody>${filaGastos}</tbody></table>
     </div>` : ""}
     ${gastosAbsorbidos.length > 0 ? `
-    <div class="sec" style="margin-bottom:18px; border-color:#16a34a"><h3 style="color:#16a34a">棣冃?Gastos Comprobados (Absorbidos por la Empresa -NO se descuentan)</h3>
+    <div class="sec" style="margin-bottom:18px; border-color:#16a34a"><h3 style="color:#16a34a">棣冃?Gastos Comprobados o a Crédito (Absorbidos por la Empresa -NO se descuentan)</h3>
         <table><thead><tr><th>#</th><th>Tipo</th><th>Descripción</th><th>Fecha</th><th>Monto</th></tr></thead>
         <tbody>${filaAbsorbidos}</tbody></table>
     </div>` : ""}
@@ -528,7 +531,6 @@ export default function LiquidacionesPage() {
     // Regla: Anticipos siempre se descuentan (ya se entreg鐠?el efectivo).
     // Gastos con ticket comprobado NO se descuentan (la empresa los absorbe).
     // Gastos sin ticket S閼?se descuentan (se le cobran al operador).
-    const seDeduceGasto = (g) => g.categoria === "Anticipo" || !g.comprobado;
     const previewDeduccionesGastos = form.modo === "PERIODO" ? 0 :
         gastosPorViaje.reduce((s, g) => s + (seDeduceGasto(g) ? (g.monto || 0) : 0), 0);
     const totalAbsorbidoEmpresa = form.modo === "PERIODO" ? 0 :
@@ -886,6 +888,7 @@ export default function LiquidacionesPage() {
                                                                     ? <span className="px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-300 text-[10px] font-bold">棣冃?comprobado</span>
                                                                     : <span className="px-1.5 py-0.5 rounded-full bg-red-500/20 text-red-300 text-[10px] font-bold">sin comprobar</span>
                                                             )}
+                                                            {g.aCredito && <span className="px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 text-[10px] font-bold">a crédito</span>}
                                                         </span>
                                                         <span className={deduce ? "text-red-300" : "text-green-300"}>
                                                             {deduce ? `-$${(g.monto || 0).toLocaleString()}` : "absorbido por empresa"}
@@ -895,7 +898,7 @@ export default function LiquidacionesPage() {
                                             })}
                                             {totalAbsorbidoEmpresa > 0 && (
                                                 <p className="text-green-400 text-xs pt-1">
-                                                    La empresa absorbe ${totalAbsorbidoEmpresa.toLocaleString()} en gastos comprobados.
+                                                    La empresa absorbe ${totalAbsorbidoEmpresa.toLocaleString()} en gastos comprobados o a crédito.
                                                 </p>
                                             )}
                                         </div>
