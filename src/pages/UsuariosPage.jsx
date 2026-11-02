@@ -68,7 +68,7 @@ export default function UsuariosPage() {
 
     const handleDelete = async (u) => {
         if (u.email === myEmail) { showMsg(false, "No puedes eliminar tu propio usuario"); return; }
-        if (!confirm("Eliminar al usuario "+u.name+"?")) return;
+        if (!confirm("¿Eliminar al usuario "+u.name+"?")) return;
         await fetch(API+"/api/usuarios/"+u.id, { method:"DELETE", headers });
         fetchAll();
     };

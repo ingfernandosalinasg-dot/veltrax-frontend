@@ -179,13 +179,13 @@ export default function FacturasPage() {
     };
 
     const eliminar = async (id) => {
-        if (!confirm("Eliminar factura?")) return;
+        if (!confirm("¿Eliminar factura?")) return;
         await fetch(API+"/api/facturas/"+id, { method: "DELETE", headers });
         fetchAll();
     };
 
     const timbrar = async (id, folio) => {
-        if (!confirm("Timbrar la factura "+folio+" ante el SAT?")) return;
+        if (!confirm("¿Timbrar la factura "+folio+" ante el SAT?")) return;
         try {
             const res  = await fetch(API+"/api/facturas/"+id+"/timbrar", { method: "POST", headers });
             const data = await res.json();
@@ -199,7 +199,7 @@ export default function FacturasPage() {
     };
 
     const cancelarFactura = async (id, folio) => {
-        if (!confirm("Cancelar la factura "+folio+" ante el SAT? Esta accion no se puede deshacer.")) return;
+        if (!confirm("¿Cancelar la factura "+folio+" ante el SAT? Esta acción no se puede deshacer.")) return;
         try {
             const res  = await fetch(API+"/api/facturas/"+id+"/cancelar", { method: "DELETE", headers });
             const data = await res.json();
@@ -328,9 +328,9 @@ export default function FacturasPage() {
                             <div className="flex justify-between items-center p-8 pb-0 flex-shrink-0">
                                 <div>
                                     <h2 className="text-3xl font-black text-cyan-300">
-                                        {step===1 ? "Nueva Factura -Elige el tipo" : (TIPOS_FACTURA.find(t=>t.id===tipoFactura)?.icon+" "+TIPOS_FACTURA.find(t=>t.id===tipoFactura)?.label)}
+                                        {step===1 ? "Nueva Factura - Elige el tipo" : (TIPOS_FACTURA.find(t=>t.id===tipoFactura)?.icon+" "+TIPOS_FACTURA.find(t=>t.id===tipoFactura)?.label)}
                                     </h2>
-                                    {step===2 && <button onClick={() => setStep(1)} className="text-gray-500 text-sm mt-1 hover:text-gray-300">→Cambiar tipo</button>}
+                                    {step===2 && <button onClick={() => setStep(1)} className="text-gray-500 text-sm mt-1 hover:text-gray-300">← Cambiar tipo</button>}
                                 </div>
                                 <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-white text-2xl"><FaTimes /></button>
                             </div>
@@ -361,7 +361,7 @@ export default function FacturasPage() {
                                                 <h3 className="text-cyan-400 font-bold mb-3 text-sm uppercase tracking-widest">Viaje a Facturar</h3>
                                                 <select value={form.orderId} onChange={onOrderChange} className={selectCls}>
                                                     <option value="">Seleccionar viaje...</option>
-                                                    {orders.map(o => <option key={o.id} value={o.id}>{o.folio||"#"+o.id} -{etiquetaCliente(o.cliente)} {o.cost?"($"+o.cost.toLocaleString()+")":""}</option>)}
+                                                    {orders.map(o => <option key={o.id} value={o.id}>{o.folio||"#"+o.id} - {etiquetaCliente(o.cliente)} {o.cost?"($"+o.cost.toLocaleString()+")":""}</option>)}
                                                 </select>
                                             </div>
                                         )}
@@ -371,7 +371,7 @@ export default function FacturasPage() {
                                                 <select value={form.facturaRelacionadaId} onChange={setF("facturaRelacionadaId")} className={selectCls}>
                                                     <option value="">Seleccionar factura...</option>
                                                     {facturas.filter(f=>f.tipoFactura!=="NOTA_CARGO"&&f.tipoFactura!=="NOTA_CREDITO").map(f => (
-                                                        <option key={f.id} value={f.id}>{f.serie}{f.folio} -{etiquetaCliente(f.cliente)||f.receptorRazonSocial} -${f.total?.toLocaleString()}</option>
+                                                        <option key={f.id} value={f.id}>{f.serie}{f.folio} - {etiquetaCliente(f.cliente)||f.receptorRazonSocial} - ${f.total?.toLocaleString()}</option>
                                                     ))}
                                                 </select>
                                             </div>
@@ -397,7 +397,7 @@ export default function FacturasPage() {
                                             <h3 className="text-cyan-400 font-bold mb-3 text-sm uppercase tracking-widest">Receptor</h3>
                                             {tipoFactura==="GLOBAL" ? (
                                                 <div className="p-4 rounded-2xl bg-purple-500/10 border border-purple-400/20 text-purple-300 text-sm">
-                                                    RFC: <strong>XAXX010101000 -PUBLICO EN GENERAL</strong>
+                                                    RFC: <strong>XAXX010101000 - PUBLICO EN GENERAL</strong>
                                                     <div className="mt-3 grid grid-cols-2 gap-4">
                                                         <div><label className="text-gray-400 text-xs mb-1 block">Regimen Fiscal</label><input value={form.receptorRegimenFiscal} onChange={setF("receptorRegimenFiscal")} className={inputCls} placeholder="616" /></div>
                                                         <div><label className="text-gray-400 text-xs mb-1 block">Codigo Postal</label><input value={form.receptorCodigoPostal} onChange={setF("receptorCodigoPostal")} className={inputCls} placeholder="64000" /></div>

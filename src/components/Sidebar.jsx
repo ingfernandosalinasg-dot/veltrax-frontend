@@ -162,7 +162,7 @@ function Sidebar() {
                 <div className="mb-1">
                     <div className="flex items-center gap-2 px-2 mb-2 mt-2">
                         <div className="h-px flex-1 bg-cyan-400/20" />
-                        <p className="text-cyan-400 text-xs font-black uppercase tracking-widest">? Transporte</p>
+                        <p className="text-cyan-400 text-xs font-black uppercase tracking-widest flex items-center gap-1.5 whitespace-nowrap"><FaTruck /> Transporte</p>
                         <div className="h-px flex-1 bg-cyan-400/20" />
                     </div>
                     <div className="space-y-1">
@@ -182,7 +182,7 @@ function Sidebar() {
                 <div className="mb-1">
                     <div className="flex items-center gap-2 px-2 mb-2 mt-4">
                         <div className="h-px flex-1 bg-orange-400/20" />
-                        <p className="text-orange-400 text-xs font-black uppercase tracking-widest">? Mantenimiento</p>
+                        <p className="text-orange-400 text-xs font-black uppercase tracking-widest flex items-center gap-1.5 whitespace-nowrap"><FaWrench /> Mantenimiento</p>
                         <div className="h-px flex-1 bg-orange-400/20" />
                     </div>
                     <div className="space-y-1">
@@ -194,7 +194,7 @@ function Sidebar() {
                 <div className="mb-1">
                     <div className="flex items-center gap-2 px-2 mb-2 mt-4">
                         <div className="h-px flex-1 bg-purple-400/20" />
-                        <p className="text-purple-400 text-xs font-black uppercase tracking-widest">? Bienes y Servicios</p>
+                        <p className="text-purple-400 text-xs font-black uppercase tracking-widest flex items-center gap-1.5 whitespace-nowrap"><FaBoxOpen /> Bienes y Servicios</p>
                         <div className="h-px flex-1 bg-purple-400/20" />
                     </div>
                     <div className="space-y-1">
@@ -210,7 +210,7 @@ function Sidebar() {
                     </div>
                 </div>
 
-                {/* ADMINISTRACI?N */}
+                {/* ADMINISTRACIÓN */}
                 {isAdmin && (
                     <div className="mb-1">
                         <SectionTitle label="Administración" color="text-yellow-500/70" />

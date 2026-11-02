@@ -229,12 +229,12 @@ export default function CajasPage() {
                                         <div>
                                             <h3 className="text-xl font-black text-white">{cliente}</h3>
                                             <p className="text-gray-400 text-sm mt-1">
-                                                Desde: {data.fechaMasAntigua} -<span className={color.text}>{dias} días en cliente</span>
+                                                Desde: {data.fechaMasAntigua} - <span className={color.text}>{dias} días en cliente</span>
                                             </p>
                                         </div>
                                         <div className="text-right">
                                             <span className={`px-4 py-2 rounded-full border text-xs font-black ${color.bg} ${color.border} ${color.text}`}>
-                                                {color.label} -{dias} días
+                                                {color.label} - {dias} días
                                             </span>
                                             <p className="text-yellow-300 font-bold mt-2 text-sm">
                                                 Valor retenido: ${valor.toLocaleString("es-MX", { minimumFractionDigits: 0 })}
@@ -322,7 +322,7 @@ export default function CajasPage() {
                                                     m.status === "DEVUELTA" ? "text-green-300 bg-green-500/10 border-green-400/30" :
                                                     m.status === "PERDIDA"  ? "text-red-300 bg-red-500/10 border-red-400/30" :
                                                     `${color.text} ${color.bg} ${color.border}`}`}>
-                                                    {m.status === "PENDIENTE" ? `${dias}d -${color.label}` : m.status}
+                                                    {m.status === "PENDIENTE" ? `${dias}d - ${color.label}` : m.status}
                                                 </span>
                                             </td>
                                             <td className="py-3">
@@ -364,8 +364,8 @@ export default function CajasPage() {
                                     <div>
                                         <label className="text-gray-400 text-xs mb-1 block">Tipo de Movimiento</label>
                                         <select value={form.tipoMovimiento} onChange={setF("tipoMovimiento")} className={selectCls}>
-                                            <option value="SALIDA">SALIDA -Entrega a cliente</option>
-                                            <option value="ENTRADA">ENTRADA -Devolución de cliente</option>
+                                            <option value="SALIDA">SALIDA - Entrega a cliente</option>
+                                            <option value="ENTRADA">ENTRADA - Devolución de cliente</option>
                                             <option value="TRASPASO">TRASPASO</option>
                                         </select>
                                     </div>
@@ -373,7 +373,7 @@ export default function CajasPage() {
                                         <label className="text-gray-400 text-xs mb-1 block">Tipo de Caja</label>
                                         <select value={form.tipoCajaId} onChange={setF("tipoCajaId")} className={selectCls}>
                                             <option value="">Seleccionar...</option>
-                                            {tiposCaja.map(t => <option key={t.id} value={t.id}>{t.nombre} -${t.valorUnitario}</option>)}
+                                            {tiposCaja.map(t => <option key={t.id} value={t.id}>{t.nombre} - ${t.valorUnitario}</option>)}
                                         </select>
                                     </div>
                                     <div>
@@ -396,14 +396,14 @@ export default function CajasPage() {
                                         <input type="date" value={form.fechaCompromisoDevolucion} onChange={setF("fechaCompromisoDevolucion")} className={inputCls} />
                                     </div>
                                     <div>
-                                        <label className="text-gray-400 text-xs mb-1 block">Viaje (Order) -Opcional</label>
+                                        <label className="text-gray-400 text-xs mb-1 block">Viaje (Order) - Opcional</label>
                                         <select value={form.orderId} onChange={setF("orderId")} className={selectCls}>
                                             <option value="">Sin viaje</option>
-                                            {orders.map(o => <option key={o.id} value={o.id}>#{o.id} -{etiquetaCliente(o.cliente)}</option>)}
+                                            {orders.map(o => <option key={o.id} value={o.id}>#{o.id} - {etiquetaCliente(o.cliente)}</option>)}
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="text-gray-400 text-xs mb-1 block">Operador -Opcional</label>
+                                        <label className="text-gray-400 text-xs mb-1 block">Operador - Opcional</label>
                                         <select value={form.driverId} onChange={setF("driverId")} className={selectCls}>
                                             <option value="">Sin operador</option>
                                             {drivers.map(d => <option key={d.id} value={d.id}>{d.name} {d.apellidos || ""}</option>)}
@@ -477,7 +477,7 @@ export default function CajasPage() {
                                     <div key={t.id} className="flex justify-between items-center py-3 border-b border-white/5">
                                         <div>
                                             <p className="text-white font-bold">{t.nombre}</p>
-                                            <p className="text-gray-400 text-xs">{t.descripcion} -${t.valorUnitario} c/u</p>
+                                            <p className="text-gray-400 text-xs">{t.descripcion} - ${t.valorUnitario} c/u</p>
                                         </div>
                                         <button onClick={() => deleteTipo(t.id)}
                                             className="p-2 rounded-xl bg-red-500/10 border border-red-400/20 text-red-400 hover:bg-red-500/20 transition-all">

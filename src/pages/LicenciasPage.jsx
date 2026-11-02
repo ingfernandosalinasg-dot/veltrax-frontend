@@ -126,7 +126,7 @@ export default function LicenciasPage() {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm("Eliminar este cliente?")) return;
+        if (!confirm("¿Eliminar este cliente?")) return;
         await fetch(API+"/api/tenants/"+id, { method:"DELETE", headers });
         fetchAll();
     };
@@ -167,7 +167,7 @@ export default function LicenciasPage() {
     };
 
     const eliminarUsuario = async (id) => {
-        if (!confirm("Eliminar usuario?")) return;
+        if (!confirm("¿Eliminar usuario?")) return;
         await fetch(API+"/api/usuarios/"+id, { method:"DELETE", headers });
         fetchUsuarios(tenantSel.id);
     };
@@ -252,8 +252,8 @@ export default function LicenciasPage() {
                         <div className="p-6 border-b border-cyan-400/10 flex justify-between items-start flex-shrink-0">
                             <div>
                                 <h2 className="text-xl font-black text-cyan-300">{tenantSel.nombre}</h2>
-                                <p className="text-gray-400 text-sm mt-1">{tenantSel.plan} ? {tenantSel.status}</p>
-                                <p className="text-green-300 font-bold mt-1">{fmt(tenantSel.precioMensual)}/mes ? {tenantSel.maxUsuarios||1} licencia(s)</p>
+                                <p className="text-gray-400 text-sm mt-1">{tenantSel.plan} · {tenantSel.status}</p>
+                                <p className="text-green-300 font-bold mt-1">{fmt(tenantSel.precioMensual)}/mes · {tenantSel.maxUsuarios||1} licencia(s)</p>
                             </div>
                             <button onClick={() => setShowPanel(false)} className="text-gray-400 hover:text-white text-xl"><FaTimes /></button>
                         </div>
@@ -285,7 +285,7 @@ export default function LicenciasPage() {
                                     {pagos.map((p,i) => (
                                         <motion.div key={p.id} initial={{ opacity:0 }} animate={{ opacity:1 }} transition={{ delay:i*0.05 }} className="p-4 rounded-2xl bg-white/5 border border-cyan-400/10">
                                             <div className="flex justify-between items-center">
-                                                <div><p className="text-cyan-300 font-bold text-xs">{p.folio}</p><p className="text-green-300 font-black text-lg">{fmt(p.monto)}</p><p className="text-gray-500 text-xs mt-1">{p.fecha} ? {p.metodoPago}</p></div>
+                                                <div><p className="text-cyan-300 font-bold text-xs">{p.folio}</p><p className="text-green-300 font-black text-lg">{fmt(p.monto)}</p><p className="text-gray-500 text-xs mt-1">{p.fecha} · {p.metodoPago}</p></div>
                                                 <div className="text-right"><span className="px-2 py-0.5 rounded-full bg-green-500/10 border border-green-400/20 text-green-300 text-xs font-bold">{p.status}</span><p className="text-gray-500 text-xs mt-1">{p.periodo}</p></div>
                                             </div>
                                         </motion.div>
@@ -298,7 +298,7 @@ export default function LicenciasPage() {
                             <>
                                 <div className="px-6 py-4 border-b border-cyan-400/10 flex-shrink-0">
                                     <div className="flex justify-between items-center mb-3">
-                                        <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest">Licencias ? {usuarios.length} / {tenantSel.maxUsuarios||1}</p>
+                                        <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest">Licencias · {usuarios.length} / {tenantSel.maxUsuarios||1}</p>
                                         {usuarios.length < (tenantSel.maxUsuarios||1) && (
                                             <button onClick={() => { setUserForm({ ...emptyUserForm }); setShowUserModal(true); }} className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-cyan-500/10 border border-cyan-400/20 text-cyan-300 text-xs font-bold hover:bg-cyan-500/20 transition-all">
                                                 <FaPlus size={10}/> Agregar
@@ -439,7 +439,7 @@ export default function LicenciasPage() {
                                 </div>
                                 <div><label className="text-gray-400 text-sm mb-2 block">Plan</label>
                                     <select value={form.plan} onChange={e => onPlanChange(e.target.value)} className={selectCls}>
-                                        {planes.map(p => <option key={p.id} value={p.id}>{p.nombre} ? /usuario/mes</option>)}
+                                        {planes.map(p => <option key={p.id} value={p.id}>{p.nombre} · {fmt(p.precioPorUsuario)}/usuario/mes</option>)}
                                     </select>
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">

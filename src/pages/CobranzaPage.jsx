@@ -298,7 +298,7 @@ export default function CobranzaPage() {
                             <div className="flex justify-between items-center p-8 pb-4">
                                 <div>
                                     <h2 className="text-2xl font-black text-cyan-300">Registrar Pago</h2>
-                                    <p className="text-gray-400 text-sm mt-1">{facturaActiva.folio} -{facturaActiva.clienteNombre}</p>
+                                    <p className="text-gray-400 text-sm mt-1">{facturaActiva.folio} - {facturaActiva.clienteNombre}</p>
                                 </div>
                                 <button onClick={() => setShowPagoModal(false)} className="text-gray-400 hover:text-white text-2xl"><FaTimes /></button>
                             </div>
@@ -339,14 +339,14 @@ export default function CobranzaPage() {
                                         <Field label="Forma de Pago (SAT)" span2>
                                             <select value={formPago.formaPago} onChange={setP("formaPago")} className={selectCls}>
                                                 {FORMAS_PAGO_SAT.map(f => (
-                                                    <option key={f.clave} value={f.clave}>{f.clave} -{f.desc}</option>
+                                                    <option key={f.clave} value={f.clave}>{f.clave} - {f.desc}</option>
                                                 ))}
                                             </select>
                                         </Field>
                                         <Field label="Método de Pago (SAT)" span2>
                                             <select value={formPago.metodoPago} onChange={setP("metodoPago")} className={selectCls}>
                                                 {METODOS_PAGO_SAT.map(m => (
-                                                    <option key={m.clave} value={m.clave}>{m.clave} -{m.desc}</option>
+                                                    <option key={m.clave} value={m.clave}>{m.clave} - {m.desc}</option>
                                                 ))}
                                             </select>
                                         </Field>
@@ -385,7 +385,7 @@ export default function CobranzaPage() {
                             <div className="flex justify-between items-center p-8 pb-4">
                                 <div>
                                     <h2 className="text-2xl font-black text-cyan-300 flex items-center gap-3"><FaHistory /> Historial de Pagos</h2>
-                                    <p className="text-gray-400 text-sm mt-1">{facturaActiva.folio} -{facturaActiva.clienteNombre}</p>
+                                    <p className="text-gray-400 text-sm mt-1">{facturaActiva.folio} - {facturaActiva.clienteNombre}</p>
                                 </div>
                                 <button onClick={() => setShowPagosModal(false)} className="text-gray-400 hover:text-white text-2xl"><FaTimes /></button>
                             </div>

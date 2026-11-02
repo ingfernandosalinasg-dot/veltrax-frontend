@@ -110,7 +110,7 @@ export default function TrackingPage() {
                 body: JSON.stringify({
                     ...form,
                     vehicleId:   Number(form.vehicleId),
-                    vehicleName: vehiculo ? `${vehiculo.plate} -${vehiculo.brand}` : "",
+                    vehicleName: vehiculo ? `${vehiculo.plate} - ${vehiculo.brand}` : "",
                     latitude:    Number(form.latitude),
                     longitude:   Number(form.longitude),
                     speed:       Number(form.speed),
@@ -174,7 +174,7 @@ export default function TrackingPage() {
                             <option value="">Seleccionar viaje...</option>
                             {viajes.map(v => (
                                 <option key={v.id} value={v.id}>
-                                    #{v.id} -{etiquetaCliente(v.cliente) || "Sin cliente"} | {v.origen || "?"} →{v.destino || "?"}
+                                    #{v.id} - {etiquetaCliente(v.cliente) || "Sin cliente"} | {v.origen || "?"} → {v.destino || "?"}
                                 </option>
                             ))}
                         </select>
@@ -245,7 +245,7 @@ export default function TrackingPage() {
                             <div className="mb-4 p-4 rounded-2xl bg-cyan-500/10 border border-cyan-400/20">
                                 <p className="text-cyan-300 font-bold text-sm">Viaje #{viajeSeleccionado.id}</p>
                                 <p className="text-gray-400 text-xs">{etiquetaCliente(viajeSeleccionado.cliente)}</p>
-                                <p className="text-gray-300 text-xs mt-1">{viajeSeleccionado.origen} →{viajeSeleccionado.destino}</p>
+                                <p className="text-gray-300 text-xs mt-1">{viajeSeleccionado.origen} → {viajeSeleccionado.destino}</p>
                                 <p className="text-gray-500 text-xs mt-1">{viajeSeleccionado.driverNombre} | {viajeSeleccionado.vehiclePlacas}</p>
                             </div>
                         )}
@@ -295,7 +295,7 @@ export default function TrackingPage() {
                                     <select value={form.vehicleId} onChange={e => setForm({ ...form, vehicleId: e.target.value })}
                                         className="w-full bg-[#020617] border border-cyan-400/10 rounded-xl px-5 py-3 text-white outline-none">
                                         <option value="">Seleccionar vehículo...</option>
-                                        {vehicles.map(v => <option key={v.id} value={v.id}>{v.plate} -{v.brand} {v.model}</option>)}
+                                        {vehicles.map(v => <option key={v.id} value={v.id}>{v.plate} - {v.brand} {v.model}</option>)}
                                     </select>
                                 </div>
                                 {[

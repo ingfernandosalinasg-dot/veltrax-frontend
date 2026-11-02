@@ -100,7 +100,7 @@ export default function OrdenesCompraPage() {
         if (!form.proveedorId)  return "Selecciona un proveedor";
         const cant = Number(form.cantidad);
         if (!cant || cant <= 0) return "Ingresa una cantidad válida";
-        if (saldoDisp && cant > saldoDisp.disponible) return `⛔Excede el saldo disponible (${fnum(saldoDisp.disponible)} ${saldoDisp.partida?.unidad || ""})`;
+        if (saldoDisp && cant > saldoDisp.disponible) return `⛔ Excede el saldo disponible (${fnum(saldoDisp.disponible)} ${saldoDisp.partida?.unidad || ""})`;
         if (!form.precioUnitario || Number(form.precioUnitario) <= 0) return "Ingresa el precio unitario";
         return null;
     };
@@ -223,7 +223,7 @@ export default function OrdenesCompraPage() {
                     <select value={filtroLic} onChange={e => setFiltroLic(e.target.value)}
                         className="bg-[#020617] border border-cyan-400/10 rounded-xl px-4 py-2 text-white outline-none text-sm">
                         <option value="">Todas las licitaciones</option>
-                        {licitaciones.map(l => <option key={l.id} value={l.id}>{l.folio} -{l.titulo}</option>)}
+                        {licitaciones.map(l => <option key={l.id} value={l.id}>{l.folio} - {l.titulo}</option>)}
                     </select>
                     <span className="text-gray-500 text-sm self-center">{filtradas.length} OC · {fmxn(totalActivo)}</span>
                 </div>
@@ -278,7 +278,7 @@ export default function OrdenesCompraPage() {
                                             {siguiente && oc.status !== "CANCELADA" && (
                                                 <button onClick={() => avanzarStatus(oc)}
                                                     className="px-3 py-1 rounded-lg bg-cyan-500/10 border border-cyan-400/20 text-cyan-300 text-xs font-bold hover:bg-cyan-500/20 transition-all whitespace-nowrap">
-                                                    →{siguiente}
+                                                    → {siguiente}
                                                 </button>
                                             )}
                                         </td>
@@ -337,7 +337,7 @@ export default function OrdenesCompraPage() {
                                     <label className="text-gray-400 text-xs mb-1 block">Licitación (GANADA) *</label>
                                     <select value={form.licitacionId} onChange={setF("licitacionId")} className={selectCls}>
                                         <option value="">-Seleccionar licitación </option>
-                                        {licitaciones.map(l => <option key={l.id} value={l.id}>{l.folio} -{l.titulo}</option>)}
+                                        {licitaciones.map(l => <option key={l.id} value={l.id}>{l.folio} - {l.titulo}</option>)}
                                     </select>
                                 </div>
 
@@ -462,7 +462,7 @@ export default function OrdenesCompraPage() {
                                     return sig && ocDetalle.status !== "CANCELADA" ? (
                                         <button onClick={() => { avanzarStatus(ocDetalle); setOcDetalle(prev => ({ ...prev, status: sig })); }}
                                             className="flex-1 py-3 rounded-2xl bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 font-bold hover:bg-cyan-500/30">
-                                            →Marcar como {sig}
+                                            → Marcar como {sig}
                                         </button>
                                     ) : null;
                                 })()}

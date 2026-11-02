@@ -64,7 +64,7 @@ export default function CatalogoArticulosPage() {
     };
 
     const handleDelete = async (id) => {
-        if (!confirm("Eliminar este articulo?")) return;
+        if (!confirm("¿Eliminar este artículo?")) return;
         await fetch(API+"/articulos/"+id, { method:"DELETE", headers });
         fetchAll();
     };

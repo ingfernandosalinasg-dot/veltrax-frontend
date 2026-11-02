@@ -77,7 +77,7 @@ function ModuloShowcase() {
                 Calcula percepciones, deducciones, anticipos y préstamos al cierre de cada período automáticamente.
             </p>
 
-            <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-4">Qu閼?puedes hacer</p>
+            <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-4">Qué puedes hacer</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-8">
                 {featuresModulo.map((f) => (
                     <div key={f} className="flex items-center gap-3">
@@ -129,8 +129,8 @@ function generarPDFLiquidacion(liq, gastos) {
         </tr>`).join("");
 
     const esquemaTexto = {
-        POR_KM:      `${liq.kmRecorridos} km 閼?$${liq.tarifaKm}/km`,
-        POR_MILLA:   `${liq.millasRecorridas} millas 閼?$${liq.tarifaMilla}/milla`,
+        POR_KM:      `${liq.kmRecorridos} km × $${liq.tarifaKm}/km`,
+        POR_MILLA:   `${liq.millasRecorridas} millas × $${liq.tarifaMilla}/milla`,
         PORCENTAJE:  `${liq.porcentajeFlete}% del flete ($${liq.ordenCosto?.toLocaleString()})`,
         VIAJE_FIJO:  `Viaje fijo acordado`,
     }[liq.esquemaPago] || "-";
@@ -171,7 +171,7 @@ function generarPDFLiquidacion(liq, gastos) {
             <div style="margin-top:6px"><span class="badge">${liq.status}</span></div>
         </div>
     </div>
-    <div class="titulo">Liquidación de Operador${esPeriodo ? " -Por Período" : ""}</div>
+    <div class="titulo">Liquidación de Operador${esPeriodo ? " - Por Período" : ""}</div>
     <div class="grid2">
         <div class="sec"><h3>Operador</h3>
             <div class="campo"><label>Nombre</label><span>${liq.driverNombre || "-"}</span></div>
@@ -199,7 +199,7 @@ function generarPDFLiquidacion(liq, gastos) {
         <tbody>${filaGastos}</tbody></table>
     </div>` : ""}
     ${gastosAbsorbidos.length > 0 ? `
-    <div class="sec" style="margin-bottom:18px; border-color:#16a34a"><h3 style="color:#16a34a">棣冃?Gastos Comprobados o a Crédito (Absorbidos por la Empresa -NO se descuentan)</h3>
+    <div class="sec" style="margin-bottom:18px; border-color:#16a34a"><h3 style="color:#16a34a">🧾 Gastos Comprobados o a Crédito (Absorbidos por la Empresa - NO se descuentan)</h3>
         <table><thead><tr><th>#</th><th>Tipo</th><th>Descripción</th><th>Fecha</th><th>Monto</th></tr></thead>
         <tbody>${filaAbsorbidos}</tbody></table>
     </div>` : ""}
@@ -308,8 +308,9 @@ export default function LiquidacionesPage() {
 
     // ── Llegada automática desde el panel de Viajes (?orderId=&driverId=) ──
     // Cuando el usuario da clic en "Generar Liquidación" dentro del detalle de
-    // un viaje, aterriza aqu闁?con el viaje y el operador ya preseleccionados.
-    // Esto dispara fetchGastos autom鐠嬶箹icamente v闁惧摳 el useEffect de abajo, as闁?    // que los anticipos/gastos del viaje se desglosan solos en la vista previa.
+    // un viaje, aterriza aquí con el viaje y el operador ya preseleccionados.
+    // Esto dispara fetchGastos automáticamente vía el useEffect de abajo, así
+    // que los anticipos/gastos del viaje se desglosan solos en la vista previa.
     useEffect(() => {
         const orderIdParam  = searchParams.get("orderId");
         const driverIdParam = searchParams.get("driverId");
@@ -528,13 +529,14 @@ export default function LiquidacionesPage() {
     const previewExtras = (Number(form.bonoCarga) || 0) + (Number(form.bonoDescarga) || 0) +
         (Number(form.bonoManiobras) || 0) + (Number(form.bonoProductividad) || 0) + previewBonoUmbral;
 
-    // Regla: Anticipos siempre se descuentan (ya se entreg鐠?el efectivo).
+    // Regla: Anticipos siempre se descuentan (ya se entregó el efectivo).
     // Gastos con ticket comprobado NO se descuentan (la empresa los absorbe).
-    // Gastos sin ticket S閼?se descuentan (se le cobran al operador).
+    // Gastos sin ticket SÍ se descuentan (se le cobran al operador).
     const previewDeduccionesGastos = form.modo === "PERIODO" ? 0 :
         gastosPorViaje.reduce((s, g) => s + (seDeduceGasto(g) ? (g.monto || 0) : 0), 0);
     const totalAbsorbidoEmpresa = form.modo === "PERIODO" ? 0 :
         gastosPorViaje.reduce((s, g) => s + (!seDeduceGasto(g) ? (g.monto || 0) : 0), 0);
+    const gastosADeducir = gastosPorViaje.filter(seDeduceGasto).length;
     const previewDescuentoPrestamo = Number(form.montoDescuentoPrestamo) || 0;
     const previewDeducciones = previewDeduccionesGastos + previewDescuentoPrestamo;
     const previewNeto = previewIngreso + previewExtras - previewDeducciones;
@@ -562,7 +564,7 @@ export default function LiquidacionesPage() {
                     </motion.button>
                 </motion.div>
 
-                {/* Secci鐠愮珱 agregada: qu閼?hace el m鐠愮珡ulo y sus pantallas */}
+                {/* Sección agregada: qué hace el módulo y sus pantallas */}
                 <ModuloShowcase />
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
@@ -687,7 +689,7 @@ export default function LiquidacionesPage() {
                                                 <option value="">Seleccionar viaje...</option>
                                                 {viajes.map(v => (
                                                     <option key={v.id} value={v.id}>
-                                                        #{v.id} -{etiquetaCliente(v.cliente) || "Sin cliente"} | {v.origen || "?"} → {v.destino || "?"} | ${(v.cost || 0).toLocaleString()}
+                                                        #{v.id} - {etiquetaCliente(v.cliente) || "Sin cliente"} | {v.origen || "?"} → {v.destino || "?"} | ${(v.cost || 0).toLocaleString()}
                                                     </option>
                                                 ))}
                                             </select>
@@ -818,7 +820,7 @@ export default function LiquidacionesPage() {
                                             <option value="">Sin préstamo / no aplicar</option>
                                             {prestamos.map(p => (
                                                 <option key={p.id} value={p.id}>
-                                                    {p.folio} -Saldo: ${(p.saldoPendiente || 0).toLocaleString()} ({p.motivo || "sin motivo"})
+                                                    {p.folio} - Saldo: ${(p.saldoPendiente || 0).toLocaleString()} ({p.motivo || "sin motivo"})
                                                 </option>
                                             ))}
                                         </select>
@@ -864,7 +866,7 @@ export default function LiquidacionesPage() {
                                         </div>
                                         <div className="flex justify-between text-sm">
                                             <span className="text-gray-400">
-                                                Deducciones {form.modo === "VIAJE" ? `(${gastosPorViaje.length} gastos` : "(gastos"}
+                                                Deducciones {form.modo === "VIAJE" ? `(${gastosADeducir} ${gastosADeducir === 1 ? "gasto" : "gastos"}` : "(gastos"}
                                                 {previewDescuentoPrestamo > 0 ? " + préstamo)" : ")"}
                                             </span>
                                             <span className="text-red-300">-${previewDeducciones.toLocaleString()}</span>
@@ -882,10 +884,10 @@ export default function LiquidacionesPage() {
                                                 return (
                                                     <div key={g.id} className="flex justify-between items-center text-xs text-gray-400">
                                                         <span className="flex items-center gap-2">
-                                                            {g.tipo} -{g.descripcion}
+                                                            {g.tipo}{g.descripcion ? ` - ${g.descripcion}` : ""}
                                                             {g.categoria !== "Anticipo" && (
                                                                 g.comprobado
-                                                                    ? <span className="px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-300 text-[10px] font-bold">棣冃?comprobado</span>
+                                                                    ? <span className="px-1.5 py-0.5 rounded-full bg-green-500/20 text-green-300 text-[10px] font-bold">🧾 comprobado</span>
                                                                     : <span className="px-1.5 py-0.5 rounded-full bg-red-500/20 text-red-300 text-[10px] font-bold">sin comprobar</span>
                                                             )}
                                                             {g.aCredito && <span className="px-1.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 text-[10px] font-bold">a crédito</span>}
@@ -936,7 +938,7 @@ export default function LiquidacionesPage() {
                             <div className="flex justify-between items-center p-6 pb-0 flex-shrink-0">
                                 <div>
                                     <h2 className="text-2xl font-black text-green-300">Registrar Pago</h2>
-                                    <p className="text-gray-400 text-sm mt-1">{liquidacionActiva.folio} -{liquidacionActiva.driverNombre}</p>
+                                    <p className="text-gray-400 text-sm mt-1">{liquidacionActiva.folio} - {liquidacionActiva.driverNombre}</p>
                                 </div>
                                 <button onClick={() => setShowPagoModal(false)} className="text-gray-400 hover:text-white text-xl"><FaTimes /></button>
                             </div>

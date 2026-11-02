@@ -92,7 +92,7 @@ export default function ReportesPage() {
                     <td>${i + 1}</td>
                     <td>#${item.id}</td>
                     <td>${etiquetaCliente(item.cliente) || "-"}</td>
-                    <td>${item.origen || "-"} →${item.destino || "-"}</td>
+                    <td>${item.origen || "-"} → ${item.destino || "-"}</td>
                     <td>${item.driverNombre || "-"}</td>
                     <td>${item.date || "-"}</td>
                     <td>$${(item.cost || 0).toLocaleString()}</td>
@@ -104,7 +104,7 @@ export default function ReportesPage() {
                     <td>${item.folio || "-"}</td>
                     <td>${item.remitenteNombre || "-"}</td>
                     <td>${item.destinatarioNombre || "-"}</td>
-                    <td>${item.lugarCarga || "-"} →${item.lugarDescarga || "-"}</td>
+                    <td>${item.lugarCarga || "-"} → ${item.lugarDescarga || "-"}</td>
                     <td>${item.fechaEmision || "-"}</td>
                     <td>${item.status || "-"}</td>
                 </tr>`;
@@ -163,7 +163,7 @@ export default function ReportesPage() {
             <thead><tr>${headers_tabla.map(h => `<th>${h}</th>`).join("")}</tr></thead>
             <tbody>${filas}</tbody>
         </table>
-        <div class="footer">Veltrax ERP v2.0 -${new Date().toLocaleDateString("es-MX")}</div>
+        <div class="footer">Veltrax ERP v2.0 - ${new Date().toLocaleDateString("es-MX")}</div>
         </body></html>`;
 
         const w = window.open("", "_blank");
@@ -321,7 +321,7 @@ export default function ReportesPage() {
                         {/* Preview */}
                         <div className="rounded-3xl bg-white/5 border border-cyan-400/10 p-8">
                             <h2 className="text-2xl font-black text-cyan-300 mb-6 flex items-center gap-3">
-                                {moduloActivo.icon} Vista Previa -{moduloActivo.label}
+                                {moduloActivo.icon} Vista Previa - {moduloActivo.label}
                                 <span className="text-sm font-normal text-gray-500">(últimos 5 registros)</span>
                             </h2>
 
@@ -345,7 +345,7 @@ export default function ReportesPage() {
                                                     {moduloActivo.key === "orders" && <>
                                                         <td className="py-3 pr-4 text-cyan-300 font-bold">#{item.id}</td>
                                                         <td className="py-3 pr-4">{etiquetaCliente(item.cliente) || "-"}</td>
-                                                        <td className="py-3 pr-4 text-gray-400 text-xs">{item.origen || "-"} →{item.destino || "-"}</td>
+                                                        <td className="py-3 pr-4 text-gray-400 text-xs">{item.origen || "-"} → {item.destino || "-"}</td>
                                                         <td className="py-3 pr-4 text-gray-400">{item.driverNombre || "-"}</td>
                                                         <td className="py-3 pr-4 text-gray-400">{item.date || "-"}</td>
                                                         <td className="py-3 pr-4 text-green-300">${(item.cost || 0).toLocaleString()}</td>
@@ -355,7 +355,7 @@ export default function ReportesPage() {
                                                         <td className="py-3 pr-4 text-cyan-300 font-bold">{item.folio}</td>
                                                         <td className="py-3 pr-4">{item.remitenteNombre || "-"}</td>
                                                         <td className="py-3 pr-4">{item.destinatarioNombre || "-"}</td>
-                                                        <td className="py-3 pr-4 text-gray-400 text-xs">{item.lugarCarga || "-"} →{item.lugarDescarga || "-"}</td>
+                                                        <td className="py-3 pr-4 text-gray-400 text-xs">{item.lugarCarga || "-"} → {item.lugarDescarga || "-"}</td>
                                                         <td className="py-3 pr-4 text-gray-400">{item.fechaEmision || "-"}</td>
                                                         <td className="py-3 pr-4"><span className="px-2 py-1 rounded-full bg-cyan-500/10 text-cyan-300 text-xs">{item.status}</span></td>
                                                     </>}

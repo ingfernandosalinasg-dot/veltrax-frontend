@@ -1666,7 +1666,7 @@ export default function ViajesPage() {
                                 <div>
                                     <div className="flex justify-between items-center mb-2">
                                         <label className="text-gray-400 text-xs flex items-center gap-2"><FaSignature /> Firma digital</label>
-                                        <button onClick={limpiarFirma} className="text-xs text-gray-500 hover:text-white">→Limpiar</button>
+                                        <button onClick={limpiarFirma} className="text-xs text-gray-500 hover:text-white">Limpiar</button>
                                     </div>
                                     <div className="relative w-full h-36 bg-white/5 border border-cyan-400/20 rounded-xl overflow-hidden touch-none">
                                         <canvas ref={canvasRef} className="w-full h-full cursor-crosshair"
@@ -1742,7 +1742,7 @@ export default function ViajesPage() {
                                     <Field label="Vehículo">
                                         <select value={form.vehicleId} onChange={set("vehicleId")} className={selectCls}>
                                             <option value="">Seleccionar vehículo...</option>
-                                            {vehicles.map(v => <option key={v.id} value={v.id}>{v.codigo ? `[${v.codigo}] ` : ""}{v.plate} -{v.brand} {v.model}{v.status ? ` (${v.status})` : ""}</option>)}
+                                            {vehicles.map(v => <option key={v.id} value={v.id}>{v.codigo ? `[${v.codigo}] ` : ""}{v.plate} - {v.brand} {v.model}{v.status ? ` (${v.status})` : ""}</option>)}
                                         </select>
                                     </Field>
                                     <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest pt-2">Detalles</p>
@@ -1890,7 +1890,7 @@ export default function ViajesPage() {
                                     <select value={formEditar.vehicleId} onChange={setE("vehicleId")} disabled={edicionCerrada || edicionGuardada}
                                         className={`${selectCls} disabled:opacity-50`}>
                                         <option value="" disabled>Sin vehículo</option>
-                                        {vehicles.map(v => <option key={v.id} value={v.id}>{v.codigo ? `[${v.codigo}] ` : ""}{v.plate} -{v.brand} {v.model}{v.status ? ` (${v.status})` : ""}</option>)}
+                                        {vehicles.map(v => <option key={v.id} value={v.id}>{v.codigo ? `[${v.codigo}] ` : ""}{v.plate} - {v.brand} {v.model}{v.status ? ` (${v.status})` : ""}</option>)}
                                     </select>
                                 </Field>
                                 {!edicionCerrada && (
@@ -1959,7 +1959,7 @@ export default function ViajesPage() {
                                 <Field label="Unidad" span2>
                                     <select value={formAsignar.unidadId} onChange={setA("unidadId")} className={selectCls}>
                                         <option value="">Sin unidad</option>
-                                        {vehicles.map(v => <option key={v.id} value={v.id}>{v.codigo ? `[${v.codigo}] ` : ""}{v.plate} -{v.brand} {v.model}{v.status ? ` (${v.status})` : ""}</option>)}
+                                        {vehicles.map(v => <option key={v.id} value={v.id}>{v.codigo ? `[${v.codigo}] ` : ""}{v.plate} - {v.brand} {v.model}{v.status ? ` (${v.status})` : ""}</option>)}
                                     </select>
                                 </Field>
                                 <Field label="Remolque 1">
@@ -2171,7 +2171,7 @@ export default function ViajesPage() {
                                             {gastoActivo?.ticketPath ? (
                                                 <div className="flex items-center justify-between gap-3 flex-wrap">
                                                     <span className="px-3 py-1.5 rounded-full text-xs font-bold bg-green-500/20 text-green-300">
-                                                         tiene ticket -no se cobra al operador
+                                                         ✓ tiene ticket - no se cobra al operador
                                                     </span>
                                                     <span className="flex gap-4">
                                                         <button onClick={() => abrirComprobante(gastoActivo, "ticket", setErrorGasto)} type="button"
