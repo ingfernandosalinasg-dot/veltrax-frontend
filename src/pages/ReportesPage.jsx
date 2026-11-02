@@ -189,7 +189,7 @@ export default function ReportesPage() {
             csv += preview.map(c => `"${c.folio||""}","${c.remitenteNombre||""}","${c.destinatarioNombre||""}","${c.lugarCarga||""}","${c.lugarDescarga||""}","${c.conductorNombre||""}","${c.vehiculoPlacas||""}","${c.fechaEmision||""}","${c.status||""}"`).join("\n");
         } else {
             csv = "ID,Operador,Viaje,Esquema,Ingreso,Deducciones,Neto,Fecha,Status\n";
-            csv += preview.map(l => `${l.id},"${l.driverNombre||""}",${l.orderId||""},"${l.esquemaPago||""}",${l.totalIngreso||0},${l.totalDeducciones||0},${l.netoAPagar||0},"${l.fechaLiquidacion||""}","${l.status||""}"`).join("\n");
+            csv += preview.map(l => `${l.id},"${l.driverNombre||""}",${l.orderId||""},"${l.esquemaPago||""}",${l.totalIngreso||0},${l.totalDeducciones||0},${l.netoAPagar||0},"${l.fechaLiquidacion||""}","${l.etapa||""}"`).join("\n");
         }
 
         const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
@@ -366,7 +366,7 @@ export default function ReportesPage() {
                                                         <td className="py-3 pr-4 text-xs"><span className="px-2 py-1 rounded-full bg-cyan-500/10 text-cyan-300">{item.esquemaPago}</span></td>
                                                         <td className="py-3 pr-4 text-green-300">${(item.totalIngreso || 0).toLocaleString()}</td>
                                                         <td className="py-3 pr-4 text-yellow-300 font-bold">${(item.netoAPagar || 0).toLocaleString()}</td>
-                                                        <td className="py-3 pr-4"><span className="px-2 py-1 rounded-full bg-cyan-500/10 text-cyan-300 text-xs">{item.status}</span></td>
+                                                        <td className="py-3 pr-4"><span className="px-2 py-1 rounded-full bg-cyan-500/10 text-cyan-300 text-xs">{item.etapa}</span></td>
                                                     </>}
                                                 </tr>
                                             ))}

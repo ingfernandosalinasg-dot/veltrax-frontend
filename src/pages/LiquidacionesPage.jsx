@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
-import { FaMoneyBillWave, FaPlus, FaTrash, FaEdit, FaTimes, FaCheck, FaFilePdf, FaTruck, FaCheckCircle, FaHandHoldingUsd, FaTrophy, FaCalendarAlt } from "react-icons/fa";
+import { FaMoneyBillWave, FaPlus, FaTrash, FaEdit, FaTimes, FaCheck, FaFilePdf, FaTruck, FaCheckCircle, FaHandHoldingUsd, FaTrophy, FaCalendarAlt, FaLock, FaLockOpen, FaBan, FaUndo } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams } from "react-router-dom";
 
@@ -19,6 +19,24 @@ const entraEnLiquidacion = (g) =>
 // salvo los a crédito (VID-K3, DEC-1024-GASTO-CREDITO).
 const seDeduceGasto = (g) => g.categoria === "Anticipo" || (!g.comprobado && !g.aCredito);
 
+// VID-M4 (DEC-1024-CICLO-LIQUIDACION): status solo dice si está abierta o cerrada;
+// autorizada y pagada son datos aparte, con quién y cuándo. El servidor revisa las
+// reglas; los botones solo ofrecen lo que se puede hacer en cada etapa.
+const TEXTO_ETAPA = { ABIERTA: "Abierta", CERRADA: "Cerrada", AUTORIZADA: "Autorizada", PAGADA: "Pagada" };
+
+const folioDe = (l) => l.folio || `#${l.id}`;
+
+const rechazo = (res, data) => data?.error || (res.status === 403
+    ? "No tienes permiso para esta acción o tu sesión expiró."
+    : `No se pudo completar la acción (error ${res.status}).`);
+
+// El viaje en el selector: folio, cliente, origen → destino y costo. La ruta, como en Viajes.
+const etiquetaViaje = (v) => {
+    const origen  = v.ruta?.origenTexto  || v.ruta?.remitente?.ciudad    || "?";
+    const destino = v.ruta?.destinoTexto || v.ruta?.destinatario?.ciudad || "?";
+    return `${v.folio || `#${v.id}`} - ${etiquetaCliente(v.cliente) || "Sin cliente"} | ${origen} → ${destino} | $${(v.cost || 0).toLocaleString()}`;
+};
+
 const emptyForm = {
     modo: "VIAJE", // VIAJE | PERIODO
     orderId: "", driverId: "", esquemaPago: "VIAJE_FIJO",
@@ -28,7 +46,7 @@ const emptyForm = {
     porcentajeFlete: "", montoFijo: "",
     bonoCarga: "", bonoDescarga: "", bonoManiobras: "", bonoProductividad: "",
     prestamoId: "", montoDescuentoPrestamo: "",
-    fechaLiquidacion: "", status: "Borrador", notas: ""
+    fechaLiquidacion: "", notas: ""
 };
 
 const inputCls  = "w-full bg-white/5 border border-cyan-400/10 rounded-xl px-5 py-3 text-white outline-none focus:border-cyan-400/40 transition-all";
@@ -39,6 +57,17 @@ function Field({ label, children, span2 = false }) {
         <div className={span2 ? "col-span-2" : ""}>
             <label className="text-gray-400 text-sm mb-2 block">{label}</label>
             {children}
+        </div>
+    );
+}
+
+// Quién y cuándo, para las columnas Autorizada y Pagada.
+function QuienYCuando({ por, en, sinDato = "-" }) {
+    if (!en) return <span className="text-gray-500 text-sm">{sinDato}</span>;
+    return (
+        <div className="text-xs whitespace-nowrap">
+            <p className="text-gray-200 font-bold">{por}</p>
+            <p className="text-gray-400">{en}</p>
         </div>
     );
 }
@@ -138,7 +167,7 @@ function generarPDFLiquidacion(liq, gastos) {
     const esPeriodo = liq.modo === "PERIODO";
 
     const html = `<html><head><meta charset="UTF-8"/>
-    <title>Liquidación #${liq.id}</title>
+    <title>Liquidación ${folioDe(liq)}</title>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
         body { font-family:Arial,sans-serif; padding:32px; color:#111; font-size:13px; }
@@ -166,9 +195,9 @@ function generarPDFLiquidacion(liq, gastos) {
     <div class="header">
         <div class="logo">VELTRAX</div>
         <div>
-            <div style="font-size:16px;font-weight:bold">Liquidación #${liq.id}</div>
+            <div style="font-size:16px;font-weight:bold">Liquidación ${folioDe(liq)}</div>
             <div style="color:#888">Fecha: ${liq.fechaLiquidacion || "-"}</div>
-            <div style="margin-top:6px"><span class="badge">${liq.status}</span></div>
+            <div style="margin-top:6px"><span class="badge">${TEXTO_ETAPA[liq.etapa] || liq.etapa || "-"}</span></div>
         </div>
     </div>
     <div class="titulo">Liquidación de Operador${esPeriodo ? " - Por Período" : ""}</div>
@@ -182,7 +211,7 @@ function generarPDFLiquidacion(liq, gastos) {
             <div class="campo"><label>Al</label><span>${liq.periodoFin || "-"}</span></div>
         </div>` : `
         <div class="sec"><h3>Viaje</h3>
-            <div class="campo"><label>ID</label><span>#${liq.orderId || "-"}</span></div>
+            <div class="campo"><label>Folio</label><span>${liq.orderFolio || `#${liq.orderId || "-"}`}</span></div>
             <div class="campo"><label>Cliente</label><span>${liq.clienteNombre || "-"}</span></div>
             <div class="campo"><label>Ruta</label><span>${liq.ordenOrigen || "-"} → ${liq.ordenDestino || "-"}</span></div>
             <div class="campo"><label>Costo flete</label><span>$${(liq.ordenCosto || 0).toLocaleString()}</span></div>
@@ -223,8 +252,8 @@ function generarPDFLiquidacion(liq, gastos) {
         <div class="total-final"><span>NETO A PAGAR AL OPERADOR</span><span>$${(liq.netoAPagar || 0).toLocaleString()}</span></div>
     </div>
     ${liq.notas ? `<div class="sec" style="margin-top:18px"><h3>Notas</h3><p>${liq.notas}</p></div>` : ""}
-    ${liq.status === "Pagada" ? `
-    <div class="sec" style="margin-top:18px; border-color:#16a34a"><h3 style="color:#16a34a"> de Pago</h3>
+    ${liq.pagadaEn ? `
+    <div class="sec" style="margin-top:18px; border-color:#16a34a"><h3 style="color:#16a34a">Datos de Pago</h3>
         <div class="campo"><label>Fecha de pago</label><span>${liq.fechaPago || "-"}</span></div>
         <div class="campo"><label>Forma de pago</label><span>${liq.formaPago || "-"}</span></div>
         ${liq.referenciaPago ? `<div class="campo"><label>Referencia</label><span>${liq.referenciaPago}</span></div>` : ""}
@@ -262,6 +291,13 @@ export default function LiquidacionesPage() {
     const [liquidacionActiva, setLiquidacionActiva] = useState(null);
     const [formPago,          setFormPago]          = useState({ fechaPago: "", formaPago: "Transferencia", referenciaPago: "" });
     const [loadingPago,       setLoadingPago]       = useState(false);
+
+    // ── Ciclo (VID-M4) ──
+    const [esAdmin]                             = useState(() => localStorage.getItem("role") === "ADMIN");
+    const [cancelandoPago,    setCancelandoPago]    = useState(null);
+    const [motivoCancelacion, setMotivoCancelacion] = useState("");
+    const [errorCancelacion,  setErrorCancelacion]  = useState("");
+    const [loadingCancelacion, setLoadingCancelacion] = useState(false);
 
     const token = localStorage.getItem("token");
     const headers = { "Content-Type": "application/json", ...(token && { Authorization: `Bearer ${token}` }) };
@@ -450,17 +486,77 @@ export default function LiquidacionesPage() {
             };
             const url    = editando ? `${API}/liquidaciones/${editando}` : `${API}/liquidaciones`;
             const method = editando ? "PUT" : "POST";
-            await fetch(url, { method, headers, body: JSON.stringify(body) });
+            const res    = await fetch(url, { method, headers, body: JSON.stringify(body) });
+            if (!res.ok) {
+                setFormError(rechazo(res, await res.json().catch(() => null)));
+                return;
+            }
             setShowModal(false);
             fetchAll();
-        } catch (e) { console.error(e); }
-        setLoading(false);
+        } catch (e) {
+            console.error(e);
+            setFormError("No se pudo conectar con el servidor. Intenta de nuevo.");
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleDelete = async (id) => {
         if (!confirm("¿Eliminar esta liquidación?")) return;
-        try { await fetch(`${API}/liquidaciones/${id}`, { method: "DELETE", headers }); fetchAll(); }
-        catch (e) { console.error(e); }
+        try {
+            const res = await fetch(`${API}/liquidaciones/${id}`, { method: "DELETE", headers });
+            if (!res.ok) alert(rechazo(res, await res.json().catch(() => null)));
+            fetchAll();
+        } catch (e) {
+            console.error(e);
+            alert("No se pudo conectar con el servidor. Intenta de nuevo.");
+        }
+    };
+
+    // VID-M4: cerrar, reabrir, autorizar y desautorizar. Al cerrar, el servidor
+    // recalcula; si el neto cambió, se avisa para que no pase inadvertido.
+    const accionCiclo = async (l, accion, pregunta) => {
+        if (!confirm(pregunta)) return;
+        try {
+            const res  = await fetch(`${API}/liquidaciones/${l.id}/${accion}`, { method: "PUT", headers });
+            const data = await res.json().catch(() => null);
+            if (!res.ok) {
+                alert(rechazo(res, data));
+            } else if (accion === "cerrar" && Math.abs((data?.netoAPagar || 0) - (l.netoAPagar || 0)) >= 0.005) {
+                alert(`Al recalcular, el neto pasó de $${(l.netoAPagar || 0).toLocaleString()} a $${(data?.netoAPagar || 0).toLocaleString()}.`);
+            }
+            fetchAll();
+        } catch (e) {
+            console.error(e);
+            alert("No se pudo conectar con el servidor. Intenta de nuevo.");
+        }
+    };
+
+    const abrirCancelarPago = (l) => {
+        setCancelandoPago(l);
+        setMotivoCancelacion("");
+        setErrorCancelacion("");
+    };
+
+    const confirmarCancelarPago = async () => {
+        setLoadingCancelacion(true);
+        setErrorCancelacion("");
+        try {
+            const res = await fetch(`${API}/liquidaciones/${cancelandoPago.id}/cancelar-pago`, {
+                method: "PUT", headers, body: JSON.stringify({ motivo: motivoCancelacion })
+            });
+            if (!res.ok) {
+                setErrorCancelacion(rechazo(res, await res.json().catch(() => null)));
+                return;
+            }
+            setCancelandoPago(null);
+            fetchAll();
+        } catch (e) {
+            console.error(e);
+            setErrorCancelacion("No se pudo conectar con el servidor. Intenta de nuevo.");
+        } finally {
+            setLoadingCancelacion(false);
+        }
     };
 
     const abrirPago = (liq) => {
@@ -541,9 +637,9 @@ export default function LiquidacionesPage() {
     const previewDeducciones = previewDeduccionesGastos + previewDescuentoPrestamo;
     const previewNeto = previewIngreso + previewExtras - previewDeducciones;
 
-    const aprobadas = liquidaciones.filter(l => l.status === "Aprobada").length;
-    const pagadas   = liquidaciones.filter(l => l.status === "Pagada").length;
-    const totalNeto = liquidaciones.reduce((s, l) => s + (l.netoAPagar || 0), 0);
+    const autorizadas = liquidaciones.filter(l => l.autorizadaEn && !l.pagadaEn).length;
+    const pagadas     = liquidaciones.filter(l => l.pagadaEn).length;
+    const porPagar    = liquidaciones.filter(l => !l.pagadaEn).reduce((s, l) => s + (l.netoAPagar || 0), 0);
 
     return (
         <div className="flex min-h-screen bg-[#020617] text-white overflow-hidden">
@@ -570,9 +666,9 @@ export default function LiquidacionesPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
                     {[
                         { label: "Total",     value: liquidaciones.length, color: "text-cyan-400",   border: "border-cyan-500/20" },
-                        { label: "Aprobadas", value: aprobadas,            color: "text-blue-400",   border: "border-blue-500/20" },
+                        { label: "Autorizadas", value: autorizadas,        color: "text-blue-400",   border: "border-blue-500/20" },
                         { label: "Pagadas",   value: pagadas,              color: "text-green-400",  border: "border-green-500/20" },
-                        { label: "Por pagar", value: `$${totalNeto.toLocaleString()}`, color: "text-yellow-400", border: "border-yellow-500/20" },
+                        { label: "Por pagar", value: `$${porPagar.toLocaleString()}`, color: "text-yellow-400", border: "border-yellow-500/20" },
                     ].map((s, i) => (
                         <motion.div key={i} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.1 }}
                             className={`rounded-3xl bg-white/5 border ${s.border} backdrop-blur-xl p-6 flex items-center gap-5`}>
@@ -589,18 +685,18 @@ export default function LiquidacionesPage() {
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="text-gray-400 border-b border-cyan-400/10 text-sm">
-                                    {["#", "Operador", "Modo", "Viaje/Período", "Cliente", "Esquema", "Ingreso", "Deducciones", "Neto a Pagar", "Status", "Acciones"]
+                                    {["Folio", "Operador", "Modo", "Viaje/Período", "Cliente", "Esquema", "Ingreso", "Deducciones", "Neto a Pagar", "Situación", "Autorizada", "Pagada", "Fecha de pago", "Acciones"]
                                         .map(h => <th key={h} className="pb-4 pr-4">{h}</th>)}
                                 </tr>
                             </thead>
                             <tbody>
                                 {liquidaciones.length === 0 && (
-                                    <tr><td colSpan={11} className="py-10 text-center text-gray-500">No hay liquidaciones registradas</td></tr>
+                                    <tr><td colSpan={14} className="py-10 text-center text-gray-500">No hay liquidaciones registradas</td></tr>
                                 )}
                                 {liquidaciones.map((l, i) => (
                                     <motion.tr key={l.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
                                         className="border-b border-cyan-400/5 hover:bg-cyan-500/5 transition-all">
-                                        <td className="py-4 pr-4 font-bold text-cyan-300">#{l.id}</td>
+                                        <td className="py-4 pr-4 font-bold text-cyan-300 whitespace-nowrap">{folioDe(l)}</td>
                                         <td className="py-4 pr-4 font-bold">{l.driverNombre || "-"}</td>
                                         <td className="py-4 pr-4">
                                             <span className={`px-2 py-1 rounded-lg text-xs font-bold ${l.modo === "PERIODO" ? "bg-purple-500/10 text-purple-300" : "bg-cyan-500/10 text-cyan-300"}`}>
@@ -608,7 +704,7 @@ export default function LiquidacionesPage() {
                                             </span>
                                         </td>
                                         <td className="py-4 pr-4 text-gray-400 text-sm">
-                                            {l.modo === "PERIODO" ? `${l.periodoInicio || "-"} → ${l.periodoFin || "-"}` : `#${l.orderId || "-"}`}
+                                            {l.modo === "PERIODO" ? `${l.periodoInicio || "-"} → ${l.periodoFin || "-"}` : (l.orderFolio || `#${l.orderId || "-"}`)}
                                         </td>
                                         <td className="py-4 pr-4 text-gray-300">{l.clienteNombre || "-"}</td>
                                         <td className="py-4 pr-4">
@@ -621,20 +717,43 @@ export default function LiquidacionesPage() {
                                         <td className="py-4 pr-4 text-yellow-300 font-black text-lg">${(l.netoAPagar || 0).toLocaleString()}</td>
                                         <td className="py-4 pr-4">
                                             <span className={`px-3 py-1 rounded-full border text-xs font-bold ${
-                                                l.status === "Pagada"   ? "text-green-300 bg-green-500/10 border-green-400/30" :
-                                                l.status === "Aprobada" ? "text-blue-300 bg-blue-500/10 border-blue-400/30" :
-                                                "text-yellow-300 bg-yellow-500/10 border-yellow-400/30"}`}>
-                                                {l.status}
+                                                l.status === "CERRADA"
+                                                    ? "text-cyan-300 bg-cyan-500/10 border-cyan-400/30"
+                                                    : "text-yellow-300 bg-yellow-500/10 border-yellow-400/30"}`}>
+                                                {TEXTO_ETAPA[l.status] || l.status}
                                             </span>
                                         </td>
+                                        {/* Una pagada de antes de VID-M4 puede no tener autorización: no se inventa. */}
+                                        <td className="py-4 pr-4"><QuienYCuando por={l.autorizadaPor} en={l.autorizadaEn} sinDato={l.pagadaEn ? "No consta" : "-"} /></td>
+                                        <td className="py-4 pr-4"><QuienYCuando por={l.pagadaPor} en={l.pagadaEn} /></td>
+                                        <td className="py-4 pr-4 text-gray-300 text-sm whitespace-nowrap">{l.fechaPago || "-"}</td>
                                         <td className="py-4">
                                             <div className="flex gap-2">
-                                                {l.status !== "Pagada" && (
+                                                {l.status === "ABIERTA" && (
+                                                    <button onClick={() => accionCiclo(l, "cerrar", `¿Cerrar ${folioDe(l)}? Se recalcula con los gastos y anticipos actuales. Hasta reabrirla no se podrá editar ni cambiar los gastos y anticipos de sus viajes.`)} className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-400/20 text-cyan-300 hover:bg-cyan-500/20 transition-all" title="Cerrar"><FaLock /></button>
+                                                )}
+                                                {l.status === "CERRADA" && !l.autorizadaEn && !l.pagadaEn && (
+                                                    <button onClick={() => accionCiclo(l, "reabrir", `¿Reabrir ${folioDe(l)}?`)} className="p-3 rounded-xl bg-yellow-500/10 border border-yellow-400/20 text-yellow-300 hover:bg-yellow-500/20 transition-all" title="Reabrir"><FaLockOpen /></button>
+                                                )}
+                                                {esAdmin && l.status === "CERRADA" && !l.autorizadaEn && !l.pagadaEn && (
+                                                    <button onClick={() => accionCiclo(l, "autorizar", `¿Autorizar ${folioDe(l)} por $${(l.netoAPagar || 0).toLocaleString()}?`)} className="p-3 rounded-xl bg-green-500/10 border border-green-400/20 text-green-300 hover:bg-green-500/20 transition-all" title="Autorizar"><FaCheckCircle /></button>
+                                                )}
+                                                {esAdmin && l.autorizadaEn && !l.pagadaEn && (
+                                                    <button onClick={() => accionCiclo(l, "desautorizar", `¿Desautorizar ${folioDe(l)}?`)} className="p-3 rounded-xl bg-orange-500/10 border border-orange-400/20 text-orange-300 hover:bg-orange-500/20 transition-all" title="Desautorizar"><FaBan /></button>
+                                                )}
+                                                {l.autorizadaEn && !l.pagadaEn && (
                                                     <button onClick={() => abrirPago(l)} className="p-3 rounded-xl bg-green-500/10 border border-green-400/20 text-green-300 hover:bg-green-500/20 transition-all" title="Registrar pago al operador"><FaHandHoldingUsd /></button>
                                                 )}
+                                                {esAdmin && l.pagadaEn && (
+                                                    <button onClick={() => abrirCancelarPago(l)} className="p-3 rounded-xl bg-orange-500/10 border border-orange-400/20 text-orange-300 hover:bg-orange-500/20 transition-all" title="Cancelar pago"><FaUndo /></button>
+                                                )}
                                                 <button onClick={() => handlePDF(l)} className="p-3 rounded-xl bg-blue-500/10 border border-blue-400/20 text-blue-400 hover:bg-blue-500/20 transition-all" title="PDF"><FaFilePdf /></button>
-                                                <button onClick={() => openEdit(l)} className="p-3 rounded-xl bg-yellow-500/10 border border-yellow-400/20 text-yellow-400 hover:bg-yellow-500/20 transition-all" title="Editar"><FaEdit /></button>
-                                                <button onClick={() => handleDelete(l.id)} className="p-3 rounded-xl bg-red-500/10 border border-red-400/20 text-red-400 hover:bg-red-500/20 transition-all" title="Eliminar"><FaTrash /></button>
+                                                {l.status === "ABIERTA" && (
+                                                    <>
+                                                        <button onClick={() => openEdit(l)} className="p-3 rounded-xl bg-yellow-500/10 border border-yellow-400/20 text-yellow-400 hover:bg-yellow-500/20 transition-all" title="Editar"><FaEdit /></button>
+                                                        <button onClick={() => handleDelete(l.id)} className="p-3 rounded-xl bg-red-500/10 border border-red-400/20 text-red-400 hover:bg-red-500/20 transition-all" title="Eliminar"><FaTrash /></button>
+                                                    </>
+                                                )}
                                             </div>
                                         </td>
                                     </motion.tr>
@@ -687,11 +806,7 @@ export default function LiquidacionesPage() {
                                         <Field label="Viaje" span2>
                                             <select value={form.orderId} onChange={set("orderId")} className={selectCls}>
                                                 <option value="">Seleccionar viaje...</option>
-                                                {viajes.map(v => (
-                                                    <option key={v.id} value={v.id}>
-                                                        #{v.id} - {etiquetaCliente(v.cliente) || "Sin cliente"} | {v.origen || "?"} → {v.destino || "?"} | ${(v.cost || 0).toLocaleString()}
-                                                    </option>
-                                                ))}
+                                                {viajes.map(v => <option key={v.id} value={v.id}>{etiquetaViaje(v)}</option>)}
                                             </select>
                                         </Field>
                                     ) : (
@@ -840,13 +955,6 @@ export default function LiquidacionesPage() {
                                     <Field label="Fecha de liquidación">
                                         <input type="date" value={form.fechaLiquidacion} onChange={set("fechaLiquidacion")} className={inputCls} />
                                     </Field>
-                                    <Field label="Status">
-                                        <select value={form.status} onChange={set("status")} className={selectCls}>
-                                            <option>Borrador</option>
-                                            <option>Aprobada</option>
-                                            <option>Pagada</option>
-                                        </select>
-                                    </Field>
                                     <Field label="Notas" span2>
                                         <textarea value={form.notas} onChange={set("notas")} rows={2} placeholder="Observaciones..." className={inputCls + " resize-none"} />
                                     </Field>
@@ -921,6 +1029,49 @@ export default function LiquidacionesPage() {
                                 <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={handleSubmit} disabled={loading}
                                     className="flex-1 py-4 rounded-2xl bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 font-bold hover:bg-cyan-500/30 transition-all flex items-center justify-center gap-3">
                                     <FaCheck /> {loading ? "Guardando..." : editando ? "Actualizar" : "Guardar Liquidación"}
+                                </motion.button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* MODAL CANCELAR PAGO (VID-M4) */}
+            <AnimatePresence>
+                {cancelandoPago && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-[70] p-6">
+                        <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
+                            className="bg-[#020617] border border-orange-400/20 rounded-3xl w-full max-w-md flex flex-col">
+                            <div className="flex justify-between items-center p-6 pb-0 flex-shrink-0">
+                                <div>
+                                    <h2 className="text-2xl font-black text-orange-300">Cancelar Pago</h2>
+                                    <p className="text-gray-400 text-sm mt-1">{folioDe(cancelandoPago)} - {cancelandoPago.driverNombre}</p>
+                                </div>
+                                <button onClick={() => setCancelandoPago(null)} className="text-gray-400 hover:text-white text-xl"><FaTimes /></button>
+                            </div>
+
+                            <div className="px-6 pt-5">
+                                <p className="text-gray-400 text-sm mb-4">
+                                    {cancelandoPago.autorizadaEn
+                                        ? "La liquidación regresa a autorizada y se quitan los datos del pago; quedan en la bitácora."
+                                        : "Esta liquidación no tiene autorización registrada: regresa a cerrada, para autorizarla o reabrirla. Los datos del pago se quitan y quedan en la bitácora."}
+                                </p>
+                                <Field label="Motivo de la cancelación *">
+                                    <textarea value={motivoCancelacion} onChange={e => setMotivoCancelacion(e.target.value)} maxLength={200} rows={3} className={inputCls + " resize-none"} />
+                                </Field>
+                                {errorCancelacion && (
+                                    <div className="mt-4 px-4 py-3 rounded-xl text-sm bg-red-500/10 border border-red-400/30 text-red-300">{errorCancelacion}</div>
+                                )}
+                            </div>
+
+                            <div className="flex gap-4 p-6">
+                                <button onClick={() => setCancelandoPago(null)}
+                                    className="flex-1 py-3 rounded-2xl border border-white/10 text-gray-400 hover:bg-white/5 transition-all font-bold">Volver</button>
+                                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                                    onClick={confirmarCancelarPago} disabled={loadingCancelacion}
+                                    className="flex-1 py-3 rounded-2xl bg-orange-500/20 border border-orange-400/30 text-orange-300 font-bold hover:bg-orange-500/30 transition-all flex items-center justify-center gap-2">
+                                    <FaUndo /> {loadingCancelacion ? "Cancelando..." : "Cancelar Pago"}
                                 </motion.button>
                             </div>
                         </motion.div>

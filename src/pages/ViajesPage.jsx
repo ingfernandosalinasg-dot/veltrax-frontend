@@ -992,7 +992,12 @@ export default function ViajesPage() {
 
     const handleEliminarGasto = async (id) => {
         if (!confirm("¿Eliminar este registro?")) return;
-        await fetch(`${API}/gastos-viaje/${id}`, { method: "DELETE", headers });
+        const res = await fetch(`${API}/gastos-viaje/${id}`, { method: "DELETE", headers });
+        // VID-M4: un viaje en una liquidación cerrada no deja borrar sus gastos.
+        if (!res.ok) {
+            alert(rechazoGasto(res, await res.json().catch(() => null)));
+            return;
+        }
         fetchGastos(viajeSeleccionado.id);
     };
 
