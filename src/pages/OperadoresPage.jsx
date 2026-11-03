@@ -219,6 +219,8 @@ export default function OperadoresPage() {
     const [errorBorrar,  setErrorBorrar]  = useState("");
     const [errorCargar,  setErrorCargar]  = useState("");
     const [estatusOperador, setEstatusOperador] = useState([]);
+    // VID-M1: los esquemas de pago, para elegir el del operador.
+    const [esquemasPago, setEsquemasPago] = useState([]);
 
     const token = localStorage.getItem("token");
     const headers = { "Content-Type": "application/json", ...(token && { Authorization: `Bearer ${token}` }) };
@@ -231,6 +233,11 @@ export default function OperadoresPage() {
         fetch(`${API}/api/estatus-operador`, { headers })
             .then(r => (r.ok ? r.json() : null))
             .then(l => { if (Array.isArray(l)) setEstatusOperador(l); })
+            .catch(() => {});
+        // VID-M1: si no cargan, el operador queda con el de por omisión.
+        fetch(`${API}/api/esquemas-pago`, { headers })
+            .then(r => (r.ok ? r.json() : null))
+            .then(l => { if (Array.isArray(l)) setEsquemasPago(l); })
             .catch(() => {});
         try {
             const res = await fetch(`${API}/drivers`, { headers });
@@ -702,6 +709,18 @@ export default function OperadoresPage() {
                                     {/* VALORES P/LIQUIDAR */}
                                     {activeTab === "valores" && (
                                         <div className="space-y-5">
+                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 rounded-2xl bg-white/5 border border-cyan-400/10">
+                                                <Field label="Esquema de pago">
+                                                    <select value={form.esquemaPagoId ?? ""} className={selectCls}
+                                                        onChange={e => { const v = e.target.value; setForm(f => ({ ...f, esquemaPagoId: v ? Number(v) : null })); }}>
+                                                        <option value="">Por omisión de la empresa{esquemasPago.find(e => e.porOmision) ? ` (${esquemasPago.find(e => e.porOmision).nombre})` : ""}</option>
+                                                        {esquemasPago.filter(e => e.activo || e.id === form.esquemaPagoId).map(e => (
+                                                            <option key={e.id} value={e.id}>{e.nombre}{e.activo ? "" : " (inactivo)"}</option>
+                                                        ))}
+                                                    </select>
+                                                </Field>
+                                                <p className="text-gray-500 text-xs self-end pb-2">Los esquemas se activan y se configuran en Esquemas de pago.</p>
+                                            </div>
                                             <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 p-4 rounded-2xl bg-white/5 border border-cyan-400/10">
                                                 <Field label="% Sencillo Cargado"><input type="number" value={valores.pctSencilloCargado} onChange={setValor("pctSencilloCargado")} className={inputCls} /></Field>
                                                 <Field label="% Sencillo Vacío"><input type="number" value={valores.pctSencilloVacio} onChange={setValor("pctSencilloVacio")} className={inputCls} /></Field>

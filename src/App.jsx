@@ -23,6 +23,7 @@ import LicitacionesPage from "./pages/LicitacionesPage";
 import CobranzaPage from "./pages/CobranzaPage";
 import PrestamosPage from "./pages/PrestamosPage";
 import UmbralesPage from "./pages/UmbralesPage";
+import EsquemasPagoPage from "./pages/EsquemasPagoPage";
 import CatalogoArticulosPage from "./pages/CatalogoArticulosPage";
 import OrdenesCompraPage from "./pages/OrdenesCompraPage";
 import CatalogosSatPage from "./pages/CatalogosSatPage";
@@ -63,6 +64,7 @@ export default function App() {
         <Route path="/cobranza"           element={<ProtectedRoute><CobranzaPage /></ProtectedRoute>} />
         <Route path="/prestamos"          element={<ProtectedRoute><PrestamosPage /></ProtectedRoute>} />
         <Route path="/umbrales"           element={<ProtectedRoute><UmbralesPage /></ProtectedRoute>} />
+        <Route path="/esquemas-pago"      element={<ProtectedRoute><EsquemasPagoPage /></ProtectedRoute>} />
         <Route path="/catalogo-articulos" element={<ProtectedRoute><CatalogoArticulosPage /></ProtectedRoute>} />
         <Route path="/ordenes-compra"     element={<ProtectedRoute><OrdenesCompraPage /></ProtectedRoute>} />
         <Route path="/catalogos-sat"      element={<ProtectedRoute><CatalogosSatPage /></ProtectedRoute>} />

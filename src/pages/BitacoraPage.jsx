@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import { API_URL } from "../config/api";
 const API = API_URL;
 
-const MODULOS = ["TODOS", "VIAJE", "CARTA_PORTE", "LIQUIDACION", "FACTURA", "CAJA"];
+const MODULOS = ["TODOS", "VIAJE", "CARTA_PORTE", "LIQUIDACION", "ESQUEMA_PAGO", "FACTURA", "CAJA"];
 
 const accionColor = (a) => {
     if (a === "CREADO")          return "text-green-300 bg-green-500/10 border-green-400/30";
