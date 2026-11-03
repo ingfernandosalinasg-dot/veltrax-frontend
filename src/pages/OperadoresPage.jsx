@@ -18,25 +18,42 @@ const TABS = [
 
 const emptyDocumento = { documento: "", nombre: "", fechaVencimiento: "", conVencimiento: true };
 
+// VID-G2: cinco combinaciones de carga; «Full Cargado/Vacío» (fullCargadoVacio)
+// es la quinta. Las claves son las de CombinacionDeCarga en el backend.
+const FILAS_TASAS = [
+    { key: "sencilloCargado",  label: "Sencillo Cargado" },
+    { key: "sencilloVacio",    label: "Sencillo Vacío" },
+    { key: "fullCargado",      label: "Full Cargado/Cargado" },
+    { key: "fullCargadoVacio", label: "Full Cargado/Vacío" },
+    { key: "fullVacio",        label: "Full Vacío/Vacío" },
+];
+
 const emptyTasa = { kms: "", mi: "" };
-const emptyTasasMoneda = () => ({
-    sencilloCargado: { sinPeligroso: { ...emptyTasa }, conPeligroso: { ...emptyTasa } },
-    sencilloVacio:   { sinPeligroso: { ...emptyTasa }, conPeligroso: { ...emptyTasa } },
-    fullCargado:     { sinPeligroso: { ...emptyTasa }, conPeligroso: { ...emptyTasa } },
-    fullVacio:       { sinPeligroso: { ...emptyTasa }, conPeligroso: { ...emptyTasa } },
-});
+const emptyTasasMoneda = () => Object.fromEntries(FILAS_TASAS.map(f =>
+    [f.key, { sinPeligroso: { ...emptyTasa }, conPeligroso: { ...emptyTasa } }]));
 const emptyValoresLiquidar = {
-    pctSencilloCargado: "", pctFullCargado: "", pctSencilloVacio: "", pctFullVacio: "",
+    pctSencilloCargado: "", pctFullCargado: "", pctSencilloVacio: "", pctFullVacio: "", pctFullCargadoVacio: "",
     sueldoSemanal: "", sueldoDiario: "", sueldoDiarioIntegrado: "", sbc: "",
     tasas: { pesos: emptyTasasMoneda(), dolares: emptyTasasMoneda() },
 };
 
-const FILAS_TASAS = [
-    { key: "sencilloCargado", label: "Sencillo Cargado" },
-    { key: "sencilloVacio",   label: "Sencillo Vacío" },
-    { key: "fullCargado",     label: "Full Cargado/Cargado" },
-    { key: "fullVacio",       label: "Full Vacío/Vacío" },
-];
+// Los factores guardados sobre la plantilla vacía, combinación por combinación:
+// a los de antes les falta la quinta, y lo que no conoce la pantalla se conserva.
+const esObjeto = (v) => v !== null && typeof v === "object" && !Array.isArray(v);
+const mezclarTasasMoneda = (guardadas) => {
+    const g = esObjeto(guardadas) ? guardadas : {};
+    const vacias = emptyTasasMoneda();
+    const mezcla = { ...g };
+    Object.keys(vacias).forEach(key => {
+        const c = esObjeto(g[key]) ? g[key] : {};
+        mezcla[key] = {
+            ...c,
+            sinPeligroso: { ...emptyTasa, ...(esObjeto(c.sinPeligroso) ? c.sinPeligroso : {}) },
+            conPeligroso: { ...emptyTasa, ...(esObjeto(c.conPeligroso) ? c.conPeligroso : {}) },
+        };
+    });
+    return mezcla;
+};
 
 const emptyForm = {
     // Encabezado general
@@ -269,7 +286,8 @@ export default function OperadoresPage() {
         setErrorGuardar("");
         try {
             const parsed = o.valoresLiquidarJson ? JSON.parse(o.valoresLiquidarJson) : emptyValoresLiquidar;
-            setValores({ ...emptyValoresLiquidar, ...parsed, tasas: { pesos: { ...emptyTasasMoneda(), ...(parsed.tasas?.pesos || {}) }, dolares: { ...emptyTasasMoneda(), ...(parsed.tasas?.dolares || {}) } } });
+            const tasas = esObjeto(parsed.tasas) ? parsed.tasas : {};
+            setValores({ ...emptyValoresLiquidar, ...parsed, tasas: { ...tasas, pesos: mezclarTasasMoneda(tasas.pesos), dolares: mezclarTasasMoneda(tasas.dolares) } });
         } catch { setValores(emptyValoresLiquidar); }
         try { setDocumentos(o.documentosJson ? JSON.parse(o.documentosJson) : []); } catch { setDocumentos([]); }
         setNuevoDoc({ ...emptyDocumento });
@@ -684,10 +702,11 @@ export default function OperadoresPage() {
                                     {/* VALORES P/LIQUIDAR */}
                                     {activeTab === "valores" && (
                                         <div className="space-y-5">
-                                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-white/5 border border-cyan-400/10">
+                                            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 p-4 rounded-2xl bg-white/5 border border-cyan-400/10">
                                                 <Field label="% Sencillo Cargado"><input type="number" value={valores.pctSencilloCargado} onChange={setValor("pctSencilloCargado")} className={inputCls} /></Field>
-                                                <Field label="% Full Cargado/Cargado"><input type="number" value={valores.pctFullCargado} onChange={setValor("pctFullCargado")} className={inputCls} /></Field>
                                                 <Field label="% Sencillo Vacío"><input type="number" value={valores.pctSencilloVacio} onChange={setValor("pctSencilloVacio")} className={inputCls} /></Field>
+                                                <Field label="% Full Cargado/Cargado"><input type="number" value={valores.pctFullCargado} onChange={setValor("pctFullCargado")} className={inputCls} /></Field>
+                                                <Field label="% Full Cargado/Vacío"><input type="number" value={valores.pctFullCargadoVacio} onChange={setValor("pctFullCargadoVacio")} className={inputCls} /></Field>
                                                 <Field label="% Full Vacío/Vacío"><input type="number" value={valores.pctFullVacio} onChange={setValor("pctFullVacio")} className={inputCls} /></Field>
                                             </div>
 

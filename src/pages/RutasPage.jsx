@@ -24,7 +24,9 @@ const TRAYECTO_SUBTABS = [
     { id: "percepciones", label: "Percepciones" },
 ];
 
-const emptyFactoresSueldos = () => ({ sencilloCargado: "", fullCargado: "", sencilloVacio: "", fullVacio: "" });
+// VID-G2: «Full Cargado/Vacío» (fullCargadoVacio) es la quinta combinación; el
+// viaje la copia con el trayecto (datosRutaJson) para las liquidaciones.
+const emptyFactoresSueldos = () => ({ sencilloCargado: "", fullCargado: "", fullCargadoVacio: "", sencilloVacio: "", fullVacio: "" });
 
 const emptyTrayecto = () => ({
     origen: "", destino: "", horas: "", km: "", millas: "",
@@ -683,15 +685,17 @@ export default function RutasPage() {
 
                                                 <div className="p-4 rounded-xl bg-cyan-500/5 border border-cyan-400/10">
                                                     <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-3">Pesos - Factores y Sueldos por tipo de carga</p>
-                                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
+                                                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-3">
                                                         <Field label="Factor Sencillo Cargado"><input type="number" value={nuevoTrayecto.factores.sencilloCargado} onChange={e => setNuevoTrayecto(t => ({ ...t, factores: { ...t.factores, sencilloCargado: e.target.value } }))} className={inputCls} /></Field>
                                                         <Field label="Factor Full Cargado/Cargado"><input type="number" value={nuevoTrayecto.factores.fullCargado} onChange={e => setNuevoTrayecto(t => ({ ...t, factores: { ...t.factores, fullCargado: e.target.value } }))} className={inputCls} /></Field>
+                                                        <Field label="Factor Full Cargado/Vacío"><input type="number" value={nuevoTrayecto.factores.fullCargadoVacio} onChange={e => setNuevoTrayecto(t => ({ ...t, factores: { ...t.factores, fullCargadoVacio: e.target.value } }))} className={inputCls} /></Field>
                                                         <Field label="Factor Sencillo Vacío"><input type="number" value={nuevoTrayecto.factores.sencilloVacio} onChange={e => setNuevoTrayecto(t => ({ ...t, factores: { ...t.factores, sencilloVacio: e.target.value } }))} className={inputCls} /></Field>
                                                         <Field label="Factor Full Vacío/Vacío"><input type="number" value={nuevoTrayecto.factores.fullVacio} onChange={e => setNuevoTrayecto(t => ({ ...t, factores: { ...t.factores, fullVacio: e.target.value } }))} className={inputCls} /></Field>
                                                     </div>
-                                                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                                    <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
                                                         <Field label="Sueldo/Comisión Sencillo Cargado"><input type="number" value={nuevoTrayecto.sueldos.sencilloCargado} onChange={e => setNuevoTrayecto(t => ({ ...t, sueldos: { ...t.sueldos, sencilloCargado: e.target.value } }))} className={inputCls} /></Field>
                                                         <Field label="Sueldo/Comisión Full Cargado/Cargado"><input type="number" value={nuevoTrayecto.sueldos.fullCargado} onChange={e => setNuevoTrayecto(t => ({ ...t, sueldos: { ...t.sueldos, fullCargado: e.target.value } }))} className={inputCls} /></Field>
+                                                        <Field label="Sueldo/Comisión Full Cargado/Vacío"><input type="number" value={nuevoTrayecto.sueldos.fullCargadoVacio} onChange={e => setNuevoTrayecto(t => ({ ...t, sueldos: { ...t.sueldos, fullCargadoVacio: e.target.value } }))} className={inputCls} /></Field>
                                                         <Field label="Sueldo/Comisión Sencillo Vacío"><input type="number" value={nuevoTrayecto.sueldos.sencilloVacio} onChange={e => setNuevoTrayecto(t => ({ ...t, sueldos: { ...t.sueldos, sencilloVacio: e.target.value } }))} className={inputCls} /></Field>
                                                         <Field label="Sueldo/Comisión Full Vacío/Vacío"><input type="number" value={nuevoTrayecto.sueldos.fullVacio} onChange={e => setNuevoTrayecto(t => ({ ...t, sueldos: { ...t.sueldos, fullVacio: e.target.value } }))} className={inputCls} /></Field>
                                                     </div>
