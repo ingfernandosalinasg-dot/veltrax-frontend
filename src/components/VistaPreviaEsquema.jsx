@@ -6,7 +6,9 @@ import { hoyMexico } from "../utils/fechas";
 
 // VID-M1, entrega 2: vista previa semanal con el esquema de pago del operador
 // (el suyo o el de por omisión). Solo calcula: no guarda nada. La semana va de
-// lunes a domingo por fecha de entrega; cualquier día elige su semana.
+// lunes a domingo; cualquier día elige su semana. Entrega 4: por fecha de entrega
+// o de salida, según el esquema; cada trayecto con su importe y su fuente, y los
+// días del sueldo diario (plantilla 8).
 
 const inputCls  = "w-full bg-white/5 border border-cyan-400/10 rounded-xl px-4 py-3 text-white outline-none focus:border-cyan-400/40 transition-all";
 const selectCls = "w-full bg-[#020617] border border-cyan-400/10 rounded-xl px-4 py-3 text-white outline-none focus:border-cyan-400/40 transition-all";
@@ -15,9 +17,15 @@ const pesos = (n) => `$${(n || 0).toLocaleString("es-MX", { minimumFractionDigit
 const km = (n) => (n || 0).toLocaleString("es-MX", { maximumFractionDigits: 2 });
 const CARGA = { CARGADO: "Cargado", VACIO: "Vacío", SIN_MARCA: "Sin marca" };
 
+// El sueldo fijo del cálculo: semanal, o diario × días.
+const etiquetaSueldo = (c) => (c.percepcionFija === "DIARIO"
+    ? `Sueldo diario${c.sueldoDiario != null ? ` ${pesos(c.sueldoDiario)}` : ""} × ${c.dias ?? 0} días`
+    : "Sueldo semanal");
+
 export default function VistaPreviaEsquema({ drivers, onClose }) {
     const [driverId, setDriverId] = useState("");
     const [semana, setSemana]     = useState(hoyMexico());
+    const [dias, setDias]         = useState("");
     const [vista, setVista]       = useState(null);
     const [error, setError]       = useState("");
     const [cargando, setCargando] = useState(false);
@@ -30,7 +38,7 @@ export default function VistaPreviaEsquema({ drivers, onClose }) {
         setCargando(true);
         try {
             const token = localStorage.getItem("token");
-            const res = await fetch(`${API_URL}/liquidaciones/preview-esquema?driverId=${driverId}&semana=${semana}`,
+            const res = await fetch(`${API_URL}/liquidaciones/preview-esquema?driverId=${driverId}&semana=${semana}${dias !== "" ? `&dias=${dias}` : ""}`,
                 { headers: token ? { Authorization: `Bearer ${token}` } : {} });
             const data = await res.json().catch(() => ({}));
             if (!res.ok) { setError(data.error || `No se pudo calcular (${res.status}).`); return; }
@@ -44,6 +52,7 @@ export default function VistaPreviaEsquema({ drivers, onClose }) {
     };
 
     const c = vista?.calculo;
+    const porSalida = vista?.periodoPor === "SALIDA";
 
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -58,7 +67,7 @@ export default function VistaPreviaEsquema({ drivers, onClose }) {
                     <button onClick={onClose} className="text-gray-400 hover:text-white text-xl"><FaTimes /></button>
                 </div>
 
-                <div className="px-6 grid grid-cols-1 md:grid-cols-3 gap-4 items-end flex-shrink-0">
+                <div className="px-6 grid grid-cols-1 md:grid-cols-4 gap-4 items-end flex-shrink-0">
                     <label className="block">
                         <span className="text-gray-400 text-sm">Operador</span>
                         <select value={driverId} onChange={e => setDriverId(e.target.value)} className={selectCls}>
@@ -69,6 +78,10 @@ export default function VistaPreviaEsquema({ drivers, onClose }) {
                     <label className="block">
                         <span className="text-gray-400 text-sm">Semana (cualquier día)</span>
                         <input type="date" value={semana} onChange={e => setSemana(e.target.value)} className={inputCls} />
+                    </label>
+                    <label className="block">
+                        <span className="text-gray-400 text-sm">Días (solo sueldo diario)</span>
+                        <input type="number" min="0" max="7" step="1" value={dias} onChange={e => setDias(e.target.value)} placeholder="0 a 7" className={inputCls} />
                     </label>
                     <button onClick={calcular} disabled={cargando}
                         className="py-3 rounded-xl bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 font-bold hover:bg-cyan-500/30 transition-all flex items-center justify-center gap-2">
@@ -97,14 +110,14 @@ export default function VistaPreviaEsquema({ drivers, onClose }) {
                             )}
 
                             <div>
-                                <h3 className="text-cyan-300 font-bold mb-2">Viajes entregados</h3>
+                                <h3 className="text-cyan-300 font-bold mb-2">{porSalida ? "Trayectos que salieron y llegaron, por viaje" : "Viajes entregados"}</h3>
                                 {c.viajes.length === 0 ? (
-                                    <p className="text-gray-500 text-sm">No hay viajes entregados por pagar en esta semana.</p>
+                                    <p className="text-gray-500 text-sm">{porSalida ? "No hay trayectos por pagar en esta semana." : "No hay viajes entregados por pagar en esta semana."}</p>
                                 ) : (
                                     <table className="w-full text-left text-sm">
                                         <thead>
                                             <tr className="text-gray-400 border-b border-cyan-400/10">
-                                                {["Viaje", "Entrega", "Km cargados", "Km vacíos", "Km sin marca", "Km que cuentan", "Meta", "Importe"]
+                                                {["Viaje", porSalida ? "Salida" : "Entrega", "Km cargados", "Km vacíos", "Km sin marca", "Km que cuentan", "Meta", "Importe"]
                                                     .map(h => <th key={h} className="pb-2 pr-3">{h}</th>)}
                                             </tr>
                                         </thead>
@@ -116,20 +129,25 @@ export default function VistaPreviaEsquema({ drivers, onClose }) {
                                                         {v.semanaAnterior && <span className="ml-2 px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 text-xs">de semana anterior</span>}
                                                         <div className="text-gray-500 text-xs mt-1">
                                                             {v.trayectos.map(t => (
-                                                                <div key={t.id}>
+                                                                <div key={`${t.id}-${t.rol}`}>
                                                                     T{t.secuencia} {t.origen} → {t.destino}: {km(t.km)} km, {CARGA[t.carga]}
+                                                                    {t.rol === "AUXILIAR" ? " (como auxiliar)" : ""}
                                                                     {!t.liquidable ? " (no liquidable)" : t.cuenta ? "" : " (no cuenta)"}
+                                                                    {t.fuente !== null && t.fuente !== undefined && (
+                                                                        <span className="text-green-300"> · {pesos(t.importe)}</span>
+                                                                    )}
+                                                                    {t.fuente && <div className="pl-4 text-gray-600">{t.fuente}</div>}
                                                                 </div>
                                                             ))}
                                                         </div>
                                                     </td>
-                                                    <td className="py-2 pr-3">{v.fechaEntrega}</td>
+                                                    <td className="py-2 pr-3">{v.fecha}</td>
                                                     <td className="py-2 pr-3">{km(v.kmCargados)}</td>
                                                     <td className="py-2 pr-3">{km(v.kmVacios)}</td>
                                                     <td className="py-2 pr-3">{km(v.kmSinMarca)}</td>
                                                     <td className="py-2 pr-3 font-bold">{km(v.kmQueCuentan)}</td>
                                                     <td className="py-2 pr-3">{v.cumpleMeta === null ? "-" : v.cumpleMeta ? "Cumple" : "No cumple"}</td>
-                                                    <td className="py-2 pr-3 text-green-300 font-bold">{pesos(v.importe)}</td>
+                                                    <td className="py-2 pr-3 text-green-300 font-bold">{pesos(v.total)}</td>
                                                 </tr>
                                             ))}
                                         </tbody>
@@ -153,8 +171,8 @@ export default function VistaPreviaEsquema({ drivers, onClose }) {
                             </div>
 
                             <div className="rounded-2xl bg-white/5 border border-cyan-400/10 p-4 text-sm space-y-1">
-                                <div className="flex justify-between"><span className="text-gray-400">Sueldo semanal</span><span>{pesos(c.sueldoSemanal)}</span></div>
-                                <div className="flex justify-between"><span className="text-gray-400">Pago por viajes</span><span>{pesos(c.totalViajes)}</span></div>
+                                <div className="flex justify-between"><span className="text-gray-400">{etiquetaSueldo(c)}</span><span>{pesos(c.sueldoFijo)}</span></div>
+                                <div className="flex justify-between"><span className="text-gray-400">{c.conceptoTrayecto === "COMISION" ? "Comisión por trayectos" : "Pago por viajes y trayectos"}</span><span>{pesos(c.totalViajes)}</span></div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-400">
                                         Comprobación: anticipos {pesos(c.totalAnticipos)} − comprobados {pesos(c.totalComprobado)}

@@ -85,7 +85,8 @@ function QuienYCuando({ por, en, sinDato = "-" }) {
     );
 }
 
-// VID-M1 (entrega 3): el PDF de una liquidación por esquema, con sus líneas.
+// VID-M1 (entrega 3): el PDF de una liquidación por esquema, con sus líneas. Entrega 4:
+// un trayecto pagado muestra su importe y de dónde salieron su base y su tasa.
 function generarPDFEsquema(liq) {
     const carga = { CARGADO: "cargado", VACIO: "vacío", SIN_MARCA: "sin marca" };
     const filas = (liq.lineas || []).map(x => `
@@ -93,8 +94,9 @@ function generarPDFEsquema(liq) {
             <td>${x.orden}</td>
             <td>${escaparHtml(x.tipo)}</td>
             <td${x.tipo === "TRAYECTO" ? ' style="padding-left:20px"' : ""}>${escaparHtml(x.concepto)}${x.tipo === "TRAYECTO"
-                ? ` · ${x.km ?? 0} km, ${carga[x.carga] || x.carga}${x.liquidable === false ? ", no liquidable" : x.cuenta ? ", cuenta" : ", no cuenta"}` : ""}</td>
-            <td style="text-align:right;color:${x.importe < 0 ? "red" : "#111"}">${x.tipo === "TRAYECTO" ? "" : conSigno(x.importe)}</td>
+                ? ` · ${x.km ?? 0} km, ${carga[x.carga] || x.carga}${x.liquidable === false ? ", no liquidable" : x.cuenta ? ", cuenta" : ", no cuenta"}` : ""}${x.fuente
+                ? `<div style="font-size:10px;color:#888">${escaparHtml(x.fuente)}</div>` : ""}</td>
+            <td style="text-align:right;color:${x.importe < 0 ? "red" : "#111"}">${x.tipo === "TRAYECTO" && !x.importe ? "" : conSigno(x.importe)}</td>
         </tr>`).join("");
     const html = `<html><head><meta charset="UTF-8"/>
     <title>Liquidación ${escaparHtml(folioDe(liq))}</title>
@@ -755,7 +757,8 @@ export default function LiquidacionesPage() {
                                                 {l.modo === "ESQUEMA" ? (l.esquemaNombre || "-") : l.esquemaPago}
                                             </span>
                                         </td>
-                                        <td className="py-4 pr-4 text-green-300 font-bold">${(l.totalIngreso || 0).toLocaleString()}</td>
+                                        {/* VID-M1 (entrega 4): el ingreso suma los bonos, para que Ingreso − Deducciones = Neto. */}
+                                        <td className="py-4 pr-4 text-green-300 font-bold">${((l.totalIngreso || 0) + (l.totalExtras || 0)).toLocaleString()}</td>
                                         <td className="py-4 pr-4 text-red-300">{conSigno(-(l.totalDeducciones || 0))}</td>
                                         <td className={`py-4 pr-4 font-black text-lg ${l.netoAPagar < 0 ? "text-red-300" : "text-yellow-300"}`}>{conSigno(l.netoAPagar)}</td>
                                         <td className="py-4 pr-4">

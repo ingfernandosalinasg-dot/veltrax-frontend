@@ -9,6 +9,8 @@ import { hoyMexico } from "../utils/fechas";
 // el esquema del operador o el de por omisión. «Calcular» muestra la vista previa;
 // «Guardar» guarda la liquidación con sus líneas. Al editar, el operador y la semana
 // no cambian: solo bonos, préstamo, fecha y notas, y las líneas se rehacen.
+// Entrega 4: los días del sueldo diario (plantilla 8) y, al calcular, el aviso si el
+// operador ya tiene liquidación en esa semana (viene entre los avisos).
 
 const inputCls  = "w-full bg-white/5 border border-cyan-400/10 rounded-xl px-4 py-3 text-white outline-none focus:border-cyan-400/40 transition-all disabled:opacity-60";
 const selectCls = "w-full bg-[#020617] border border-cyan-400/10 rounded-xl px-4 py-3 text-white outline-none focus:border-cyan-400/40 transition-all disabled:opacity-60";
@@ -25,6 +27,11 @@ const BONOS = [
 
 const numero = (v) => (v === "" || v === null || v === undefined ? null : Number(v));
 
+// El sueldo fijo del cálculo: semanal, o diario × días.
+const etiquetaSueldo = (c) => (c.percepcionFija === "DIARIO"
+    ? `Sueldo diario${c.sueldoDiario != null ? ` ${pesos(c.sueldoDiario)}` : ""} × ${c.dias ?? 0} días`
+    : "Sueldo semanal");
+
 export default function LiquidacionEsquemaModal({ drivers, liquidacion, driverInicial, onClose, onGuardada }) {
     const editando = !!liquidacion;
     const [form, setForm] = useState(() => ({
@@ -38,6 +45,7 @@ export default function LiquidacionEsquemaModal({ drivers, liquidacion, driverIn
         montoDescuentoPrestamo: liquidacion?.montoDescuentoPrestamo ?? "",
         fechaLiquidacion: liquidacion?.fechaLiquidacion || hoyMexico(),
         notas: liquidacion?.notas || "",
+        dias: liquidacion?.dias ?? "",
     }));
     // Los préstamos activos, con el operador al que pertenecen.
     const [deOperador, setDeOperador] = useState({ driverId: "", lista: [] });
@@ -72,7 +80,7 @@ export default function LiquidacionEsquemaModal({ drivers, liquidacion, driverIn
         if (!form.semana) { setError("Elige un día de la semana."); return; }
         setCargando(true);
         try {
-            const res = await fetch(`${API_URL}/liquidaciones/preview-esquema?driverId=${form.driverId}&semana=${form.semana}`, { headers });
+            const res = await fetch(`${API_URL}/liquidaciones/preview-esquema?driverId=${form.driverId}&semana=${form.semana}${form.dias !== "" ? `&dias=${form.dias}` : ""}`, { headers });
             const data = await res.json().catch(() => ({}));
             if (!res.ok) { setError(data.error || `No se pudo calcular (${res.status}).`); return; }
             setVista(data);
@@ -106,6 +114,7 @@ export default function LiquidacionEsquemaModal({ drivers, liquidacion, driverIn
                 montoDescuentoPrestamo: form.prestamoId ? numero(form.montoDescuentoPrestamo) : null,
                 fechaLiquidacion: form.fechaLiquidacion || null,
                 notas: form.notas || null,
+                dias: form.dias === "" ? null : Number(form.dias),
             };
             const url = editando ? `${API_URL}/liquidaciones/${liquidacion.id}` : `${API_URL}/liquidaciones`;
             const res = await fetch(url, { method: editando ? "PUT" : "POST", headers, body: JSON.stringify(body) });
@@ -150,7 +159,7 @@ export default function LiquidacionEsquemaModal({ drivers, liquidacion, driverIn
                 </div>
 
                 <div className="flex-1 overflow-y-auto px-6 py-4 space-y-5">
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
+                    <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
                         <label className="block md:col-span-1">
                             <span className="text-gray-400 text-sm">Operador</span>
                             <select value={form.driverId} onChange={set("driverId")} className={selectCls} disabled={editando}>
@@ -161,6 +170,10 @@ export default function LiquidacionEsquemaModal({ drivers, liquidacion, driverIn
                         <label className="block">
                             <span className="text-gray-400 text-sm">Semana (cualquier día)</span>
                             <input type="date" value={form.semana} onChange={set("semana")} className={inputCls} disabled={editando} />
+                        </label>
+                        <label className="block">
+                            <span className="text-gray-400 text-sm">Días (solo sueldo diario)</span>
+                            <input type="number" min="0" max="7" step="1" value={form.dias} onChange={set("dias")} placeholder="0 a 7" className={inputCls} />
                         </label>
                         {!editando && (
                             <button onClick={calcular} disabled={cargando}
@@ -184,20 +197,28 @@ export default function LiquidacionEsquemaModal({ drivers, liquidacion, driverIn
                                 </div>
                             )}
                             {c.viajes.length === 0
-                                ? <p className="text-gray-500">No hay viajes entregados por pagar en esta semana.</p>
+                                ? <p className="text-gray-500">{vista.periodoPor === "SALIDA" ? "No hay trayectos por pagar en esta semana." : "No hay viajes entregados por pagar en esta semana."}</p>
                                 : c.viajes.map(v => (
-                                    <div key={v.id} className="flex justify-between">
-                                        <span>
-                                            <span className="font-bold text-cyan-300">{v.folio}</span> · {v.fechaEntrega} · {km(v.kmQueCuentan)} km
-                                            {v.cumpleMeta === null ? "" : v.cumpleMeta ? " · cumple la meta" : " · no cumple la meta"}
-                                            {v.semanaAnterior && <span className="ml-2 px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 text-xs">de semana anterior</span>}
-                                        </span>
-                                        <span className="text-green-300 font-bold">{pesos(v.importe)}</span>
+                                    <div key={v.id}>
+                                        <div className="flex justify-between">
+                                            <span>
+                                                <span className="font-bold text-cyan-300">{v.folio}</span> · {vista.periodoPor === "SALIDA" ? "salida" : "entrega"} {v.fecha} · {km(v.kmQueCuentan)} km
+                                                {v.cumpleMeta === null ? "" : v.cumpleMeta ? " · cumple la meta" : " · no cumple la meta"}
+                                                {v.semanaAnterior && <span className="ml-2 px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 text-xs">de semana anterior</span>}
+                                            </span>
+                                            <span className="text-green-300 font-bold">{pesos(v.total)}</span>
+                                        </div>
+                                        {v.trayectos.filter(t => t.fuente).map(t => (
+                                            <div key={`${t.id}-${t.rol}`} className="flex justify-between pl-4 text-xs text-gray-400">
+                                                <span>T{t.secuencia} {t.origen} → {t.destino}: {t.fuente}</span>
+                                                <span>{pesos(t.importe)}</span>
+                                            </div>
+                                        ))}
                                     </div>
                                 ))}
                             <div className="border-t border-cyan-400/10 pt-2 space-y-1">
-                                <div className="flex justify-between"><span className="text-gray-400">Sueldo semanal</span><span>{pesos(c.sueldoSemanal)}</span></div>
-                                <div className="flex justify-between"><span className="text-gray-400">Pago por viajes</span><span>{pesos(c.totalViajes)}</span></div>
+                                <div className="flex justify-between"><span className="text-gray-400">{etiquetaSueldo(c)}</span><span>{pesos(c.sueldoFijo)}</span></div>
+                                <div className="flex justify-between"><span className="text-gray-400">{c.conceptoTrayecto === "COMISION" ? "Comisión por trayectos" : "Pago por viajes y trayectos"}</span><span>{pesos(c.totalViajes)}</span></div>
                                 <div className="flex justify-between">
                                     <span className="text-gray-400">Comprobación: anticipos {pesos(c.totalAnticipos)} − comprobados {pesos(c.totalComprobado)}</span>
                                     <span>{pesos(-c.diferencia)}</span>

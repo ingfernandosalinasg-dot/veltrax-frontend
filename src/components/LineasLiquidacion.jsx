@@ -5,7 +5,8 @@ import { API_URL } from "../config/api";
 
 // VID-M1, entrega 3: las líneas de una liquidación por esquema. El neto es la suma
 // de las líneas. Una abierta se puede recalcular con los datos actuales; al cerrarla,
-// sus líneas quedan fijas.
+// sus líneas quedan fijas. Entrega 4: un trayecto pagado muestra su importe y de dónde
+// salieron su base y su tasa (fuente).
 
 const pesos = (n) => `${n < 0 ? "-" : ""}$${Math.abs(n || 0).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const km = (n) => (n === null || n === undefined ? "" : `${n.toLocaleString("es-MX", { maximumFractionDigits: 2 })} km`);
@@ -87,9 +88,10 @@ export default function LineasLiquidacion({ liquidacion, onClose, onCambio }) {
                                             <span className="text-xs"> · {km(x.km)}, {CARGA[x.carga] || x.carga}
                                                 {x.liquidable === false ? ", no liquidable" : x.cuenta ? ", cuenta" : ", no cuenta"}</span>
                                         )}
+                                        {x.fuente && <div className="text-xs text-gray-500">{x.fuente}</div>}
                                     </td>
                                     <td className={`py-2 pr-3 font-bold whitespace-nowrap ${x.importe < 0 ? "text-red-300" : x.importe > 0 ? "text-green-300" : "text-gray-500"}`}>
-                                        {x.tipo === "TRAYECTO" ? "" : pesos(x.importe)}
+                                        {x.tipo === "TRAYECTO" && !x.importe ? "" : pesos(x.importe)}
                                     </td>
                                 </tr>
                             ))}
