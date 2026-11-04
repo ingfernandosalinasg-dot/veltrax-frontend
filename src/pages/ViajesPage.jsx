@@ -993,9 +993,11 @@ export default function ViajesPage() {
     const handleEliminarGasto = async (id) => {
         if (!confirm("¿Eliminar este registro?")) return;
         const res = await fetch(`${API}/gastos-viaje/${id}`, { method: "DELETE", headers });
-        // VID-M4: un viaje en una liquidación cerrada no deja borrar sus gastos.
+        // VID-M4: un viaje en una liquidación cerrada no deja borrar sus gastos. El aviso
+        // va dentro de la pantalla, no como alerta del navegador (VID-M1, nota 2).
+        setErrorComprobante("");
         if (!res.ok) {
-            alert(rechazoGasto(res, await res.json().catch(() => null)));
+            setErrorComprobante(rechazoGasto(res, await res.json().catch(() => null)));
             return;
         }
         fetchGastos(viajeSeleccionado.id);

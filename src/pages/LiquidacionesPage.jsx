@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
-import { FaMoneyBillWave, FaPlus, FaTrash, FaEdit, FaTimes, FaCheck, FaFilePdf, FaTruck, FaCheckCircle, FaHandHoldingUsd, FaTrophy, FaCalendarAlt, FaLock, FaLockOpen, FaBan, FaUndo } from "react-icons/fa";
+import { FaMoneyBillWave, FaPlus, FaTrash, FaEdit, FaTimes, FaCheck, FaFilePdf, FaCheckCircle, FaHandHoldingUsd, FaTrophy, FaCalendarAlt, FaLock, FaLockOpen, FaBan, FaUndo, FaListUl } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams } from "react-router-dom";
 
@@ -9,6 +9,8 @@ import { API_URL } from "../config/api";
 import { hoyMexico } from "../utils/fechas";
 import { etiquetaCliente } from "../utils/clientes";
 import VistaPreviaEsquema from "../components/VistaPreviaEsquema";
+import LiquidacionEsquemaModal from "../components/LiquidacionEsquemaModal";
+import LineasLiquidacion from "../components/LineasLiquidacion";
 const API = API_URL;
 
 // VID-K1: un anticipo por autorizar o cancelado no entra en la liquidación (el
@@ -26,6 +28,16 @@ const seDeduceGasto = (g) => g.categoria === "Anticipo" || (!g.comprobado && !g.
 const TEXTO_ETAPA = { ABIERTA: "Abierta", CERRADA: "Cerrada", AUTORIZADA: "Autorizada", PAGADA: "Pagada" };
 
 const folioDe = (l) => l.folio || `#${l.id}`;
+
+// VID-M1 (entrega 3): las nuevas son por esquema (ESQUEMA); las de antes, por viaje o período.
+const TEXTO_MODO = { ESQUEMA: "Esquema", PERIODO: "Período", VIAJE: "Viaje" };
+const COLOR_MODO = {
+    ESQUEMA: "bg-green-500/10 text-green-300",
+    PERIODO: "bg-purple-500/10 text-purple-300",
+    VIAJE: "bg-cyan-500/10 text-cyan-300",
+};
+const conSigno = (n) => `${n < 0 ? "-" : ""}$${Math.abs(n || 0).toLocaleString()}`;
+const escaparHtml = (t) => String(t ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
 const rechazo = (res, data) => data?.error || (res.status === 403
     ? "No tienes permiso para esta acción o tu sesión expiró."
@@ -133,6 +145,66 @@ function ModuloShowcase() {
     );
 }
 // ── Fin sección showcase ──
+
+// VID-M1 (entrega 3): el PDF de una liquidación por esquema, con sus líneas.
+function generarPDFEsquema(liq) {
+    const carga = { CARGADO: "cargado", VACIO: "vacío", SIN_MARCA: "sin marca" };
+    const filas = (liq.lineas || []).map(x => `
+        <tr${x.tipo === "TRAYECTO" ? ' style="color:#666"' : ""}>
+            <td>${x.orden}</td>
+            <td>${escaparHtml(x.tipo)}</td>
+            <td${x.tipo === "TRAYECTO" ? ' style="padding-left:20px"' : ""}>${escaparHtml(x.concepto)}${x.tipo === "TRAYECTO"
+                ? ` · ${x.km ?? 0} km, ${carga[x.carga] || x.carga}${x.liquidable === false ? ", no liquidable" : x.cuenta ? ", cuenta" : ", no cuenta"}` : ""}</td>
+            <td style="text-align:right;color:${x.importe < 0 ? "red" : "#111"}">${x.tipo === "TRAYECTO" ? "" : conSigno(x.importe)}</td>
+        </tr>`).join("");
+    const html = `<html><head><meta charset="UTF-8"/>
+    <title>Liquidación ${escaparHtml(folioDe(liq))}</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family:Arial,sans-serif; padding:32px; color:#111; font-size:13px; }
+        .header { display:flex; justify-content:space-between; align-items:center; border-bottom:3px solid #0891b2; padding-bottom:18px; margin-bottom:24px; }
+        .logo { font-size:28px; font-weight:900; color:#0891b2; letter-spacing:4px; }
+        .sec { border:1px solid #ddd; border-radius:6px; padding:12px; margin-bottom:18px; }
+        .sec h3 { font-size:11px; color:#0891b2; text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; }
+        table { width:100%; border-collapse:collapse; }
+        th { background:#e0f7fa; color:#0891b2; padding:7px; text-align:left; font-size:11px; text-transform:uppercase; }
+        td { padding:6px 7px; border-bottom:1px solid #f0f0f0; font-size:12px; }
+        .total-final { display:flex; justify-content:space-between; padding:12px 0; font-size:18px; font-weight:900; color:#0891b2; border-top:2px solid #0891b2; margin-top:10px; }
+        .badge { display:inline-block; padding:4px 12px; border-radius:20px; font-weight:bold; font-size:12px; background:#e0f7fa; color:#0891b2; }
+        .footer { display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:40px; }
+        .firma { text-align:center; }
+        .firma .linea { border-top:1px solid #333; margin-bottom:6px; margin-top:50px; }
+        .firma p { font-size:11px; color:#555; }
+    </style></head><body>
+    <div class="header">
+        <div class="logo">VELTRAX</div>
+        <div>
+            <div style="font-size:16px;font-weight:bold">Liquidación ${escaparHtml(folioDe(liq))}</div>
+            <div style="color:#888">Fecha: ${escaparHtml(liq.fechaLiquidacion || "-")}</div>
+            <div style="margin-top:6px"><span class="badge">${TEXTO_ETAPA[liq.etapa] || liq.etapa || "-"}</span></div>
+        </div>
+    </div>
+    <div class="sec"><h3>Operador y periodo</h3>
+        <p><b>${escaparHtml(liq.driverNombre || "-")}</b> · semana del ${escaparHtml(liq.periodoInicio)} al ${escaparHtml(liq.periodoFin)} · esquema ${escaparHtml(liq.esquemaNombre || "-")}</p>
+    </div>
+    <div class="sec"><h3>Líneas</h3>
+        <table><thead><tr><th>#</th><th>Tipo</th><th>Concepto</th><th style="text-align:right">Importe</th></tr></thead>
+        <tbody>${filas}</tbody></table>
+        <div class="total-final"><span>NETO ${liq.netoAPagar < 0 ? "(NEGATIVO: NO SE PAGA)" : "A PAGAR AL OPERADOR"}</span><span>${conSigno(liq.netoAPagar)}</span></div>
+    </div>
+    ${liq.notas ? `<div class="sec"><h3>Notas</h3><p>${escaparHtml(liq.notas)}</p></div>` : ""}
+    ${liq.pagadaEn ? `<div class="sec"><h3>Datos de pago</h3><p>${escaparHtml(liq.fechaPago || "-")} · ${escaparHtml(liq.formaPago || "-")}${liq.referenciaPago ? ` · ${escaparHtml(liq.referenciaPago)}` : ""}</p></div>` : ""}
+    <div class="footer">
+        <div class="firma"><div class="linea"></div><p>Firma Operador</p><p style="font-weight:bold">${escaparHtml(liq.driverNombre || "")}</p></div>
+        <div class="firma"><div class="linea"></div><p>Firma Administración</p><p style="font-weight:bold">Veltrax Logistics</p></div>
+    </div>
+    </body></html>`;
+    const w = window.open("", "_blank");
+    w.document.write(html);
+    w.document.close();
+    w.focus();
+    setTimeout(() => w.print(), 500);
+}
 
 function generarPDFLiquidacion(liq, gastos) {
     const gastosCobrados   = gastos.filter(seDeduceGasto);
@@ -300,6 +372,12 @@ export default function LiquidacionesPage() {
     const [errorCancelacion,  setErrorCancelacion]  = useState("");
     const [loadingCancelacion, setLoadingCancelacion] = useState(false);
     const [showVistaEsquema,  setShowVistaEsquema]  = useState(false); // VID-M1 E2
+    // VID-M1 E3: la liquidación por esquema (nueva o editar), sus líneas, y los
+    // avisos dentro de la pantalla en lugar de alertas del navegador (nota 2).
+    const [esquemaModal,      setEsquemaModal]      = useState(null); // { liquidacion, driverInicial }
+    const [lineasDe,          setLineasDe]          = useState(null);
+    const [aviso,             setAviso]             = useState(null); // { tipo: "error" | "ok", texto }
+    const [errorPago,         setErrorPago]         = useState("");
 
     const token = localStorage.getItem("token");
     const headers = { "Content-Type": "application/json", ...(token && { Authorization: `Bearer ${token}` }) };
@@ -350,19 +428,11 @@ export default function LiquidacionesPage() {
     // Esto dispara fetchGastos automáticamente vía el useEffect de abajo, así
     // que los anticipos/gastos del viaje se desglosan solos en la vista previa.
     useEffect(() => {
+        // VID-M1 (entrega 3): las nuevas son por esquema y semana: se abre con el operador.
         const orderIdParam  = searchParams.get("orderId");
         const driverIdParam = searchParams.get("driverId");
         if (orderIdParam) {
-            setEditando(null);
-            setForm({
-                ...emptyForm,
-                modo: "VIAJE",
-                orderId: orderIdParam,
-                driverId: driverIdParam || "",
-                fechaLiquidacion: hoyMexico(),
-            });
-            setFormError("");
-            setShowModal(true);
+            setEsquemaModal({ liquidacion: null, driverInicial: driverIdParam || "" });
             // Limpiamos los query params para que un refresh no reabra el modal solo
             setSearchParams({}, { replace: true });
         }
@@ -409,13 +479,23 @@ export default function LiquidacionesPage() {
     const set = (f) => (e) => setForm(prev => ({ ...prev, [f]: e.target.value }));
 
     const openNew = () => {
-        setEditando(null);
-        setForm({ ...emptyForm, fechaLiquidacion: hoyMexico() });
-        setFormError("");
-        setShowModal(true);
+        setAviso(null);
+        setEsquemaModal({ liquidacion: null, driverInicial: "" });
+    };
+
+    const guardadaPorEsquema = (data) => {
+        setEsquemaModal(null);
+        const avisos = data?.avisos || [];
+        setAviso({ tipo: "ok", texto: `${folioDe(data)} guardada con neto de ${conSigno(data?.netoAPagar)}.${avisos.length ? ` Avisos: ${avisos.map(a => a.texto).join(" ")}` : ""}` });
+        fetchAll();
     };
 
     const openEdit = (l) => {
+        setAviso(null);
+        if (l.modo === "ESQUEMA") {
+            setEsquemaModal({ liquidacion: l, driverInicial: "" });
+            return;
+        }
         setEditando(l.id);
         setForm({ ...emptyForm, ...l, modo: l.modo || "VIAJE" });
         setFormError("");
@@ -505,13 +585,14 @@ export default function LiquidacionesPage() {
 
     const handleDelete = async (id) => {
         if (!confirm("¿Eliminar esta liquidación?")) return;
+        setAviso(null);
         try {
             const res = await fetch(`${API}/liquidaciones/${id}`, { method: "DELETE", headers });
-            if (!res.ok) alert(rechazo(res, await res.json().catch(() => null)));
+            if (!res.ok) setAviso({ tipo: "error", texto: rechazo(res, await res.json().catch(() => null)) });
             fetchAll();
         } catch (e) {
             console.error(e);
-            alert("No se pudo conectar con el servidor. Intenta de nuevo.");
+            setAviso({ tipo: "error", texto: "No se pudo conectar con el servidor. Intenta de nuevo." });
         }
     };
 
@@ -519,18 +600,19 @@ export default function LiquidacionesPage() {
     // recalcula; si el neto cambió, se avisa para que no pase inadvertido.
     const accionCiclo = async (l, accion, pregunta) => {
         if (!confirm(pregunta)) return;
+        setAviso(null);
         try {
             const res  = await fetch(`${API}/liquidaciones/${l.id}/${accion}`, { method: "PUT", headers });
             const data = await res.json().catch(() => null);
             if (!res.ok) {
-                alert(rechazo(res, data));
+                setAviso({ tipo: "error", texto: rechazo(res, data) });
             } else if (accion === "cerrar" && Math.abs((data?.netoAPagar || 0) - (l.netoAPagar || 0)) >= 0.005) {
-                alert(`Al recalcular, el neto pasó de $${(l.netoAPagar || 0).toLocaleString()} a $${(data?.netoAPagar || 0).toLocaleString()}.`);
+                setAviso({ tipo: "ok", texto: `${folioDe(l)} cerrada. Al recalcular, el neto pasó de ${conSigno(l.netoAPagar)} a ${conSigno(data?.netoAPagar)}.` });
             }
             fetchAll();
         } catch (e) {
             console.error(e);
-            alert("No se pudo conectar con el servidor. Intenta de nuevo.");
+            setAviso({ tipo: "error", texto: "No se pudo conectar con el servidor. Intenta de nuevo." });
         }
     };
 
@@ -564,6 +646,7 @@ export default function LiquidacionesPage() {
     const abrirPago = (liq) => {
         setLiquidacionActiva(liq);
         setFormPago({ fechaPago: hoyMexico(), formaPago: "Transferencia", referenciaPago: "" });
+        setErrorPago("");
         setShowPagoModal(true);
     };
 
@@ -572,6 +655,7 @@ export default function LiquidacionesPage() {
     const registrarPagoOperador = async () => {
         if (!liquidacionActiva) return;
         setLoadingPago(true);
+        setErrorPago("");
         try {
             const res = await fetch(`${API}/liquidaciones/${liquidacionActiva.id}/pagar`, {
                 method: "POST", headers, body: JSON.stringify(formPago)
@@ -580,14 +664,20 @@ export default function LiquidacionesPage() {
                 setShowPagoModal(false);
                 fetchAll();
             } else {
-                const err = await res.json().catch(() => ({}));
-                alert(err.error || "Error al registrar el pago");
+                setErrorPago(rechazo(res, await res.json().catch(() => null)));
             }
-        } catch (e) { console.error(e); }
+        } catch (e) {
+            console.error(e);
+            setErrorPago("No se pudo conectar con el servidor. Intenta de nuevo.");
+        }
         setLoadingPago(false);
     };
 
     const handlePDF = async (liq) => {
+        if (liq.modo === "ESQUEMA") {
+            generarPDFEsquema(liq);
+            return;
+        }
         let gastos = [];
         if (liq.modo !== "PERIODO" && liq.orderId) {
             const res  = await fetch(`${API}/gastos-viaje/viaje/${liq.orderId}`, { headers });
@@ -689,6 +779,15 @@ export default function LiquidacionesPage() {
                 <motion.div initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
                     className="rounded-3xl bg-white/5 border border-cyan-400/10 backdrop-blur-xl p-8">
                     <h2 className="text-3xl font-black text-cyan-300 mb-8 flex items-center gap-3"><FaMoneyBillWave /> Liquidaciones Registradas</h2>
+                    {aviso && (
+                        <div className={`mb-6 px-5 py-3 rounded-xl text-sm font-semibold flex justify-between items-start gap-4 border ${
+                            aviso.tipo === "error"
+                                ? "bg-red-500/10 border-red-400/30 text-red-300"
+                                : "bg-cyan-500/10 border-cyan-400/30 text-cyan-200"}`}>
+                            <span>{aviso.texto}</span>
+                            <button onClick={() => setAviso(null)} className="text-gray-400 hover:text-white flex-shrink-0" title="Cerrar aviso"><FaTimes /></button>
+                        </div>
+                    )}
                     <div className="overflow-x-auto">
                         <table className="w-full text-left">
                             <thead>
@@ -707,22 +806,22 @@ export default function LiquidacionesPage() {
                                         <td className="py-4 pr-4 font-bold text-cyan-300 whitespace-nowrap">{folioDe(l)}</td>
                                         <td className="py-4 pr-4 font-bold">{l.driverNombre || "-"}</td>
                                         <td className="py-4 pr-4">
-                                            <span className={`px-2 py-1 rounded-lg text-xs font-bold ${l.modo === "PERIODO" ? "bg-purple-500/10 text-purple-300" : "bg-cyan-500/10 text-cyan-300"}`}>
-                                                {l.modo === "PERIODO" ? "Período" : "Viaje"}
+                                            <span className={`px-2 py-1 rounded-lg text-xs font-bold ${COLOR_MODO[l.modo] || COLOR_MODO.VIAJE}`}>
+                                                {TEXTO_MODO[l.modo] || "Viaje"}
                                             </span>
                                         </td>
                                         <td className="py-4 pr-4 text-gray-400 text-sm">
-                                            {l.modo === "PERIODO" ? `${l.periodoInicio || "-"} → ${l.periodoFin || "-"}` : (l.orderFolio || `#${l.orderId || "-"}`)}
+                                            {l.modo === "PERIODO" || l.modo === "ESQUEMA" ? `${l.periodoInicio || "-"} → ${l.periodoFin || "-"}` : (l.orderFolio || `#${l.orderId || "-"}`)}
                                         </td>
                                         <td className="py-4 pr-4 text-gray-300">{l.clienteNombre || "-"}</td>
                                         <td className="py-4 pr-4">
                                             <span className="px-2 py-1 rounded-lg bg-cyan-500/10 text-cyan-300 text-xs font-bold">
-                                                {l.esquemaPago}
+                                                {l.modo === "ESQUEMA" ? (l.esquemaNombre || "-") : l.esquemaPago}
                                             </span>
                                         </td>
                                         <td className="py-4 pr-4 text-green-300 font-bold">${(l.totalIngreso || 0).toLocaleString()}</td>
-                                        <td className="py-4 pr-4 text-red-300">-${(l.totalDeducciones || 0).toLocaleString()}</td>
-                                        <td className="py-4 pr-4 text-yellow-300 font-black text-lg">${(l.netoAPagar || 0).toLocaleString()}</td>
+                                        <td className="py-4 pr-4 text-red-300">{conSigno(-(l.totalDeducciones || 0))}</td>
+                                        <td className={`py-4 pr-4 font-black text-lg ${l.netoAPagar < 0 ? "text-red-300" : "text-yellow-300"}`}>{conSigno(l.netoAPagar)}</td>
                                         <td className="py-4 pr-4">
                                             <span className={`px-3 py-1 rounded-full border text-xs font-bold ${
                                                 l.status === "CERRADA"
@@ -737,8 +836,13 @@ export default function LiquidacionesPage() {
                                         <td className="py-4 pr-4 text-gray-300 text-sm whitespace-nowrap">{l.fechaPago || "-"}</td>
                                         <td className="py-4">
                                             <div className="flex gap-2">
+                                                {l.modo === "ESQUEMA" && (
+                                                    <button onClick={() => setLineasDe(l)} className="p-3 rounded-xl bg-green-500/10 border border-green-400/20 text-green-300 hover:bg-green-500/20 transition-all" title="Líneas"><FaListUl /></button>
+                                                )}
                                                 {l.status === "ABIERTA" && (
-                                                    <button onClick={() => accionCiclo(l, "cerrar", `¿Cerrar ${folioDe(l)}? Se recalcula con los gastos y anticipos actuales. Hasta reabrirla no se podrá editar ni cambiar los gastos y anticipos de sus viajes.`)} className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-400/20 text-cyan-300 hover:bg-cyan-500/20 transition-all" title="Cerrar"><FaLock /></button>
+                                                    <button onClick={() => accionCiclo(l, "cerrar", l.modo === "ESQUEMA"
+                                                        ? `¿Cerrar ${folioDe(l)}? Se recalcula por última vez y sus líneas quedan fijas. Hasta reabrirla no se podrán cambiar los trayectos, la evidencia, el estatus, los gastos ni los anticipos de sus viajes.`
+                                                        : `¿Cerrar ${folioDe(l)}? Se recalcula con los gastos y anticipos actuales. Hasta reabrirla no se podrá editar ni cambiar los trayectos, la evidencia, el estatus, los gastos ni los anticipos de sus viajes.`)} className="p-3 rounded-xl bg-cyan-500/10 border border-cyan-400/20 text-cyan-300 hover:bg-cyan-500/20 transition-all" title="Cerrar"><FaLock /></button>
                                                 )}
                                                 {l.status === "CERRADA" && !l.autorizadaEn && !l.pagadaEn && (
                                                     <button onClick={() => accionCiclo(l, "reabrir", `¿Reabrir ${folioDe(l)}?`)} className="p-3 rounded-xl bg-yellow-500/10 border border-yellow-400/20 text-yellow-300 hover:bg-yellow-500/20 transition-all" title="Reabrir"><FaLockOpen /></button>
@@ -749,8 +853,11 @@ export default function LiquidacionesPage() {
                                                 {esAdmin && l.autorizadaEn && !l.pagadaEn && (
                                                     <button onClick={() => accionCiclo(l, "desautorizar", `¿Desautorizar ${folioDe(l)}?`)} className="p-3 rounded-xl bg-orange-500/10 border border-orange-400/20 text-orange-300 hover:bg-orange-500/20 transition-all" title="Desautorizar"><FaBan /></button>
                                                 )}
-                                                {l.autorizadaEn && !l.pagadaEn && (
+                                                {l.autorizadaEn && !l.pagadaEn && l.netoAPagar >= 0 && (
                                                     <button onClick={() => abrirPago(l)} className="p-3 rounded-xl bg-green-500/10 border border-green-400/20 text-green-300 hover:bg-green-500/20 transition-all" title="Registrar pago al operador"><FaHandHoldingUsd /></button>
+                                                )}
+                                                {l.autorizadaEn && !l.pagadaEn && l.netoAPagar < 0 && (
+                                                    <button disabled className="p-3 rounded-xl bg-white/5 border border-white/10 text-gray-500 cursor-not-allowed" title="Neto negativo: no se paga hasta que exista el saldo del operador"><FaHandHoldingUsd /></button>
                                                 )}
                                                 {esAdmin && l.pagadaEn && (
                                                     <button onClick={() => abrirCancelarPago(l)} className="p-3 rounded-xl bg-orange-500/10 border border-orange-400/20 text-orange-300 hover:bg-orange-500/20 transition-all" title="Cancelar pago"><FaUndo /></button>
@@ -779,33 +886,14 @@ export default function LiquidacionesPage() {
                         <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
                             className="bg-[#020617] border border-cyan-400/20 rounded-3xl w-full max-w-3xl max-h-[92vh] flex flex-col">
                             <div className="flex justify-between items-center p-8 pb-0 flex-shrink-0">
-                                <h2 className="text-3xl font-black text-cyan-300">{editando ? "Editar Liquidación" : "Nueva Liquidación"}</h2>
+                                <h2 className="text-3xl font-black text-cyan-300">Editar Liquidación ({form.modo === "PERIODO" ? "por período" : "por viaje"}, de antes)</h2>
                                 <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-white text-2xl"><FaTimes /></button>
                             </div>
 
                             <div className="flex-1 overflow-y-auto px-8 py-6">
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
 
-                                    {/* Toggle modo VIAJE / PERIODO */}
-                                    <div className="col-span-2 flex gap-3 mb-2">
-                                        <button
-                                            onClick={() => setForm(prev => ({ ...prev, modo: "VIAJE" }))}
-                                            className={`flex-1 py-3 rounded-xl border font-bold flex items-center justify-center gap-2 transition-all ${
-                                                form.modo === "VIAJE"
-                                                    ? "bg-cyan-500/20 border-cyan-400/40 text-cyan-300"
-                                                    : "bg-white/5 border-cyan-400/10 text-gray-400 hover:bg-white/10"}`}>
-                                            <FaTruck /> Por Viaje
-                                        </button>
-                                        <button
-                                            onClick={() => setForm(prev => ({ ...prev, modo: "PERIODO" }))}
-                                            className={`flex-1 py-3 rounded-xl border font-bold flex items-center justify-center gap-2 transition-all ${
-                                                form.modo === "PERIODO"
-                                                    ? "bg-purple-500/20 border-purple-400/40 text-purple-300"
-                                                    : "bg-white/5 border-cyan-400/10 text-gray-400 hover:bg-white/10"}`}>
-                                            <FaCalendarAlt /> Por Período
-                                        </button>
-                                    </div>
-
+                                    {/* VID-M1 (entrega 3): solo se editan las de antes; su modo no cambia. */}
                                     <p className="col-span-2 text-cyan-400 text-xs font-bold uppercase tracking-widest">
                                         {form.modo === "PERIODO" ? "Datos del período" : "Datos del viaje"}
                                     </p>
@@ -1087,6 +1175,20 @@ export default function LiquidacionesPage() {
                 )}
             </AnimatePresence>
 
+            {/* LIQUIDACIÓN POR ESQUEMA (VID-M1 E3): nueva o editar una abierta */}
+            <AnimatePresence>
+                {esquemaModal && (
+                    <LiquidacionEsquemaModal drivers={drivers} liquidacion={esquemaModal.liquidacion}
+                        driverInicial={esquemaModal.driverInicial}
+                        onClose={() => setEsquemaModal(null)} onGuardada={guardadaPorEsquema} />
+                )}
+            </AnimatePresence>
+
+            {/* LÍNEAS DE UNA LIQUIDACIÓN POR ESQUEMA (VID-M1 E3) */}
+            <AnimatePresence>
+                {lineasDe && <LineasLiquidacion liquidacion={lineasDe} onClose={() => setLineasDe(null)} onCambio={fetchAll} />}
+            </AnimatePresence>
+
             {/* VISTA PREVIA CON EL ESQUEMA DE PAGO (VID-M1 E2): no guarda nada */}
             <AnimatePresence>
                 {showVistaEsquema && <VistaPreviaEsquema drivers={drivers} onClose={() => setShowVistaEsquema(false)} />}
@@ -1111,6 +1213,9 @@ export default function LiquidacionesPage() {
                                 <p className="text-gray-400 text-xs uppercase font-bold">Neto a pagar</p>
                                 <p className="text-yellow-300 font-black text-3xl">${(liquidacionActiva.netoAPagar || 0).toLocaleString()}</p>
                             </div>
+                            {errorPago && (
+                                <div className="mx-6 mb-4 px-4 py-3 rounded-xl text-sm bg-red-500/10 border border-red-400/30 text-red-300">{errorPago}</div>
+                            )}
 
                             <div className="px-6 space-y-4">
                                 <Field label="Fecha de pago">
