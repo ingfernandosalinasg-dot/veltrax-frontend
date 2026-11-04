@@ -8,6 +8,7 @@ import { useSearchParams } from "react-router-dom";
 import { API_URL } from "../config/api";
 import { hoyMexico } from "../utils/fechas";
 import { etiquetaCliente } from "../utils/clientes";
+import VistaPreviaEsquema from "../components/VistaPreviaEsquema";
 const API = API_URL;
 
 // VID-K1: un anticipo por autorizar o cancelado no entra en la liquidación (el
@@ -298,6 +299,7 @@ export default function LiquidacionesPage() {
     const [motivoCancelacion, setMotivoCancelacion] = useState("");
     const [errorCancelacion,  setErrorCancelacion]  = useState("");
     const [loadingCancelacion, setLoadingCancelacion] = useState(false);
+    const [showVistaEsquema,  setShowVistaEsquema]  = useState(false); // VID-M1 E2
 
     const token = localStorage.getItem("token");
     const headers = { "Content-Type": "application/json", ...(token && { Authorization: `Bearer ${token}` }) };
@@ -654,10 +656,16 @@ export default function LiquidacionesPage() {
                         <h1 className="text-3xl md:text-6xl font-black text-cyan-300 drop-shadow-[0_0_25px_rgba(0,255,255,0.5)]">LIQUIDACIONES</h1>
                         <p className="text-gray-400 mt-4 text-xl">Control de pagos a operadores</p>
                     </div>
-                    <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={openNew}
-                        className="flex items-center gap-3 px-8 py-4 rounded-2xl bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 font-bold text-lg hover:bg-cyan-500/20 transition-all">
-                        <FaPlus /> Nueva Liquidación
-                    </motion.button>
+                    <div className="flex flex-wrap gap-3 justify-end">
+                        <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={() => setShowVistaEsquema(true)}
+                            className="flex items-center gap-3 px-8 py-4 rounded-2xl bg-purple-500/10 border border-purple-400/30 text-purple-300 font-bold text-lg hover:bg-purple-500/20 transition-all">
+                            <FaCalendarAlt /> Vista previa (esquema)
+                        </motion.button>
+                        <motion.button whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }} onClick={openNew}
+                            className="flex items-center gap-3 px-8 py-4 rounded-2xl bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 font-bold text-lg hover:bg-cyan-500/20 transition-all">
+                            <FaPlus /> Nueva Liquidación
+                        </motion.button>
+                    </div>
                 </motion.div>
 
                 {/* Sección agregada: qué hace el módulo y sus pantallas */}
@@ -1077,6 +1085,11 @@ export default function LiquidacionesPage() {
                         </motion.div>
                     </motion.div>
                 )}
+            </AnimatePresence>
+
+            {/* VISTA PREVIA CON EL ESQUEMA DE PAGO (VID-M1 E2): no guarda nada */}
+            <AnimatePresence>
+                {showVistaEsquema && <VistaPreviaEsquema drivers={drivers} onClose={() => setShowVistaEsquema(false)} />}
             </AnimatePresence>
 
             {/* MODAL REGISTRAR PAGO AL OPERADOR */}
