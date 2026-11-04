@@ -85,67 +85,6 @@ function QuienYCuando({ por, en, sinDato = "-" }) {
     );
 }
 
-// ── Datos de la sección "showcase" del módulo ──
-const featuresModulo = [
-    "Cálculo automático",
-    "Percepciones y deducciones configurables",
-    "Descuento de préstamos",
-    "Liquidación por período",
-    "Exportación a PDF y Excel",
-    "Umbrales de rendimiento",
-];
-
-const pantallasModulo = [
-    "Generador de liquidaciones",
-    "Detalle con desglose completo",
-    "Exportación y vista de impresión",
-];
-
-function ModuloShowcase() {
-    return (
-        <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.05 }}
-            className="rounded-3xl bg-white/5 border border-cyan-400/10 backdrop-blur-xl p-8 mb-10"
-        >
-            <div className="flex items-center gap-4 mb-3">
-                <div className="w-14 h-14 rounded-2xl bg-cyan-500/10 border border-cyan-400/30 flex items-center justify-center">
-                    <FaMoneyBillWave className="text-2xl text-cyan-300" />
-                </div>
-                <h2 className="text-2xl font-black text-cyan-300">Liquidaciones</h2>
-            </div>
-            <p className="text-gray-400 max-w-2xl mb-8">
-                Calcula percepciones, deducciones, anticipos y préstamos al cierre de cada período automáticamente.
-            </p>
-
-            <p className="text-cyan-400 text-xs font-bold uppercase tracking-widest mb-4">Qué puedes hacer</p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-8">
-                {featuresModulo.map((f) => (
-                    <div key={f} className="flex items-center gap-3">
-                        <FaCheckCircle className="text-cyan-400 flex-shrink-0" />
-                        <span className="text-gray-200">{f}</span>
-                    </div>
-                ))}
-            </div>
-
-            <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-4">Pantallas del módulo</p>
-            <div className="space-y-3">
-                {pantallasModulo.map((p) => (
-                    <div
-                        key={p}
-                        className="flex items-center gap-3 px-5 py-4 rounded-2xl bg-white/[0.03] border border-cyan-400/10"
-                    >
-                        <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 flex-shrink-0" />
-                        <span className="text-gray-300">{p}</span>
-                    </div>
-                ))}
-            </div>
-        </motion.div>
-    );
-}
-// ── Fin sección showcase ──
-
 // VID-M1 (entrega 3): el PDF de una liquidación por esquema, con sus líneas.
 function generarPDFEsquema(liq) {
     const carga = { CARGADO: "cargado", VACIO: "vacío", SIN_MARCA: "sin marca" };
@@ -757,9 +696,6 @@ export default function LiquidacionesPage() {
                         </motion.button>
                     </div>
                 </motion.div>
-
-                {/* Sección agregada: qué hace el módulo y sus pantallas */}
-                <ModuloShowcase />
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
                     {[

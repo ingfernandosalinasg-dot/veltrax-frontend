@@ -39,7 +39,8 @@ export default function LiquidacionEsquemaModal({ drivers, liquidacion, driverIn
         fechaLiquidacion: liquidacion?.fechaLiquidacion || hoyMexico(),
         notas: liquidacion?.notas || "",
     }));
-    const [prestamos, setPrestamos] = useState([]);
+    // Los préstamos activos, con el operador al que pertenecen.
+    const [deOperador, setDeOperador] = useState({ driverId: "", lista: [] });
     const [vista, setVista]         = useState(null);
     const [error, setError]         = useState("");
     const [cargando, setCargando]   = useState(false);
@@ -50,15 +51,17 @@ export default function LiquidacionEsquemaModal({ drivers, liquidacion, driverIn
     const set = (campo) => (e) => setForm(prev => ({ ...prev, [campo]: e.target.value }));
 
     useEffect(() => {
-        if (!form.driverId) { setPrestamos([]); return; }
+        if (!form.driverId) return;
         let vigente = true;
-        fetch(`${API_URL}/prestamos/driver/${form.driverId}/activos`, { headers })
+        const driverId = form.driverId;
+        fetch(`${API_URL}/prestamos/driver/${driverId}/activos`, { headers })
             .then(res => (res.ok ? res.json() : []))
             .catch(() => [])
-            .then(data => { if (vigente) setPrestamos(Array.isArray(data) ? data : []); });
+            .then(data => { if (vigente) setDeOperador({ driverId, lista: Array.isArray(data) ? data : [] }); });
         return () => { vigente = false; };
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [form.driverId]);
+    const prestamos = deOperador.driverId === form.driverId ? deOperador.lista : [];
 
     // La vista previa ya no cuenta lo que está en otras liquidaciones; al editar,
     // tampoco ve lo de esta misma, así que solo se ofrece en una nueva.
