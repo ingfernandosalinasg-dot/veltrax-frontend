@@ -11,6 +11,8 @@ const API = API_URL;
 // usan, uno queda por omisión y cada operador puede tener otro (Operadores,
 // pestaña Valores p/Liquidar). Montos, umbral y opciones se cambian aquí; la
 // plantilla no. Solo ADMIN cambia; los rechazos se ven dentro de la pantalla.
+// TEC-QUINCENAL: periodo quincenal (1–15 y 16–fin de mes), sueldo quincenal y la
+// opción «Los viajes se pagan»: en su periodo o al cierre del mes (2ª quincena).
 
 const inputCls  = "w-full bg-white/5 border border-cyan-400/10 rounded-xl px-4 py-2.5 text-white outline-none focus:border-cyan-400/40 transition-all text-sm";
 const selectCls = "w-full bg-[#020617] border border-cyan-400/10 rounded-xl px-4 py-2.5 text-white outline-none focus:border-cyan-400/40 transition-all text-sm";
@@ -28,12 +30,12 @@ const PLANTILLAS = {
 };
 const PERIODOS = [
     { value: "SEMANAL", label: "Semanal (lunes a domingo)" },
-    { value: "QUINCENAL", label: "Quincenal (próximamente)", disabled: true },
+    { value: "QUINCENAL", label: "Quincenal (1 al 15 y 16 al fin de mes)" },
     { value: "MENSUAL", label: "Mensual (próximamente)", disabled: true },
     { value: "POR_VIAJE", label: "Por viaje (próximamente)", disabled: true },
 ];
 const PERIODO_POR = { ENTREGA: "Por fecha de entrega", SALIDA: "Por fecha de salida" };
-const FIJA = { NINGUNA: "Ninguno", SEMANAL: "Sueldo semanal del operador", DIARIO: "Sueldo diario × días" };
+const FIJA = { NINGUNA: "Ninguno", SEMANAL: "Sueldo semanal del operador", QUINCENAL: "Sueldo quincenal del operador", DIARIO: "Sueldo diario × días" };
 const BASES = { FLETE: "Flete (prorrateado por km)", IMPORTE_BASE: "Importe base (prorrateado por km)", KM: "Km del trayecto", TRAYECTO: "Por trayecto" };
 const TASAS = { PCT_OPERADOR: "% del operador", FACTOR_TRAYECTO: "Factor del trayecto", FACTOR_OPERADOR: "Factor del operador", SUELDO_TRAYECTO: "Sueldo del trayecto" };
 const TASAS_POR_BASE = { FLETE: ["PCT_OPERADOR"], IMPORTE_BASE: ["PCT_OPERADOR"], KM: ["FACTOR_TRAYECTO", "FACTOR_OPERADOR"], TRAYECTO: ["SUELDO_TRAYECTO"] };
@@ -41,6 +43,7 @@ const FILTROS = { CARGADOS: "Solo cargados", VACIOS: "Solo vacíos", TODOS: "Tod
 const SIN_MARCA = { NO_CUENTA: "No cuenta (por defecto)", CARGADO: "Cuenta como cargado" };
 const META_POR = { OPERADOR: "Operador: sus km (por defecto)", VIAJE: "Viaje: el total de km" };
 const AUXILIAR = { NO: "No (por defecto)", IGUAL: "Igual que el operador", PORCENTAJE: "Un porcentaje" };
+const VIAJES_SE_PAGAN = { EN_SU_PERIODO: "En su periodo (por defecto)", CIERRE_DE_MES: "Al cierre del mes (2ª quincena)" };
 
 const dinero = (n) => `$${Number(n || 0).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
@@ -50,6 +53,7 @@ function resumen(p) {
     const partes = [];
     const fija = p.percepcionFija?.tipo;
     if (fija === "SEMANAL") partes.push("Sueldo semanal");
+    if (fija === "QUINCENAL") partes.push("Sueldo quincenal");
     if (fija === "DIARIO") partes.push("Sueldo diario × días");
     const t = p.pagoPorTrayecto;
     if (t) partes.push(`${BASES[t.base]?.split(" (")[0] || t.base} × ${(t.tasas || []).map(x => TASAS[x] || x).join(" / ")}${t.concepto === "COMISION" ? " (comisión)" : ""}`);
@@ -86,6 +90,7 @@ function aFormulario(e) {
         metaPor: o.metaPor || "OPERADOR",
         auxiliar: o.auxiliar || "NO",
         auxiliarPorcentaje: o.auxiliarPorcentaje ?? "",
+        viajesSePagan: o.viajesSePagan || "EN_SU_PERIODO",
     };
 }
 
@@ -111,6 +116,7 @@ function aCuerpo(f) {
         metaPor: f.metaPor,
         auxiliar: f.auxiliar,
         auxiliarPorcentaje: f.auxiliar === "PORCENTAJE" ? texto(f.auxiliarPorcentaje) : null,
+        viajesSePagan: f.viajesSePagan,
     };
     return { nombre: f.nombre, periodo: f.periodo, periodoPor: f.periodoPor, parametros, opciones };
 }
@@ -271,6 +277,7 @@ export default function EsquemasPagoPage() {
                                         <td className="py-4 pr-4 text-sm">
                                             <p>{PERIODOS.find(p => p.value === e.periodo)?.label.split(" (")[0] || e.periodo}</p>
                                             <p className="text-gray-500 text-xs">{PERIODO_POR[e.periodoPor] || e.periodoPor}</p>
+                                            {e.opciones?.viajesSePagan === "CIERRE_DE_MES" && <p className="text-gray-500 text-xs">Viajes al cierre del mes</p>}
                                         </td>
                                         <td className="py-4 pr-4 text-gray-300">{e.operadores}</td>
                                         <td className="py-4 pr-4">
@@ -370,6 +377,7 @@ export default function EsquemasPagoPage() {
                                     {form.auxiliar === "PORCENTAJE" && (
                                         <Field label="% del auxiliar"><input type="number" value={form.auxiliarPorcentaje} onChange={set("auxiliarPorcentaje")} className={inputCls} /></Field>
                                     )}
+                                    <Field label="Los viajes se pagan (al cierre del mes: solo quincenal)"><Opciones valores={VIAJES_SE_PAGAN} value={form.viajesSePagan} onChange={set("viajesSePagan")} /></Field>
                                 </div>
 
                                 {errorGuardar && (

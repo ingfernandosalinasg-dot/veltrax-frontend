@@ -11,6 +11,8 @@ import { hoyMexico } from "../utils/fechas";
 // no cambian: solo bonos, préstamo, fecha y notas, y las líneas se rehacen.
 // Entrega 4: los días del sueldo diario (plantilla 8) y, al calcular, el aviso si el
 // operador ya tiene liquidación en esa semana (viene entre los avisos).
+// TEC-QUINCENAL: el periodo sale del esquema (semana o quincena); con «al cierre del
+// mes», la 1ª quincena dice que sus viajes se pagan en la 2ª.
 
 const inputCls  = "w-full bg-white/5 border border-cyan-400/10 rounded-xl px-4 py-3 text-white outline-none focus:border-cyan-400/40 transition-all disabled:opacity-60";
 const selectCls = "w-full bg-[#020617] border border-cyan-400/10 rounded-xl px-4 py-3 text-white outline-none focus:border-cyan-400/40 transition-all disabled:opacity-60";
@@ -27,10 +29,11 @@ const BONOS = [
 
 const numero = (v) => (v === "" || v === null || v === undefined ? null : Number(v));
 
-// El sueldo fijo del cálculo: semanal, o diario × días.
+// El sueldo fijo del cálculo: semanal o quincenal, o diario × días.
 const etiquetaSueldo = (c) => (c.percepcionFija === "DIARIO"
     ? `Sueldo diario${c.sueldoDiario != null ? ` ${pesos(c.sueldoDiario)}` : ""} × ${c.dias ?? 0} días`
-    : "Sueldo semanal");
+    : c.percepcionFija === "QUINCENAL" ? "Sueldo quincenal" : "Sueldo semanal");
+const PERIODO = { SEMANAL: "semana", QUINCENAL: "quincena" };
 
 export default function LiquidacionEsquemaModal({ drivers, liquidacion, driverInicial, onClose, onGuardada }) {
     const editando = !!liquidacion;
@@ -77,7 +80,7 @@ export default function LiquidacionEsquemaModal({ drivers, liquidacion, driverIn
         setError("");
         setVista(null);
         if (!form.driverId) { setError("Elige un operador."); return; }
-        if (!form.semana) { setError("Elige un día de la semana."); return; }
+        if (!form.semana) { setError("Elige un día del periodo."); return; }
         setCargando(true);
         try {
             const res = await fetch(`${API_URL}/liquidaciones/preview-esquema?driverId=${form.driverId}&semana=${form.semana}${form.dias !== "" ? `&dias=${form.dias}` : ""}`, { headers });
@@ -95,7 +98,7 @@ export default function LiquidacionEsquemaModal({ drivers, liquidacion, driverIn
     const guardar = async () => {
         setError("");
         if (!form.driverId) { setError("Elige un operador."); return; }
-        if (!form.semana) { setError("Elige un día de la semana."); return; }
+        if (!form.semana) { setError("Elige un día del periodo."); return; }
         if (form.prestamoId && !(Number(form.montoDescuentoPrestamo) > 0)) {
             setError("Seleccionaste un préstamo: escribe el monto a descontar (mayor a 0).");
             return;
@@ -151,8 +154,8 @@ export default function LiquidacionEsquemaModal({ drivers, liquidacion, driverIn
                         </h2>
                         <p className="text-gray-400 text-sm mt-1">
                             {editando
-                                ? `Semana del ${liquidacion.periodoInicio} al ${liquidacion.periodoFin} · esquema ${liquidacion.esquemaNombre || "-"}. Al guardar, las líneas se recalculan.`
-                                : "Por operador y semana, con el esquema de pago del operador (o el de por omisión)."}
+                                ? `Del ${liquidacion.periodoInicio} al ${liquidacion.periodoFin} · esquema ${liquidacion.esquemaNombre || "-"}. Al guardar, las líneas se recalculan.`
+                                : "Por operador y periodo (semana o quincena, según el esquema de pago del operador o el de por omisión)."}
                         </p>
                     </div>
                     <button onClick={onClose} className="text-gray-400 hover:text-white text-xl"><FaTimes /></button>
@@ -168,12 +171,12 @@ export default function LiquidacionEsquemaModal({ drivers, liquidacion, driverIn
                             </select>
                         </label>
                         <label className="block">
-                            <span className="text-gray-400 text-sm">Semana (cualquier día)</span>
+                            <span className="text-gray-400 text-sm">Periodo (cualquier día)</span>
                             <input type="date" value={form.semana} onChange={set("semana")} className={inputCls} disabled={editando} />
                         </label>
                         <label className="block">
                             <span className="text-gray-400 text-sm">Días (solo sueldo diario)</span>
-                            <input type="number" min="0" max="7" step="1" value={form.dias} onChange={set("dias")} placeholder="0 a 7" className={inputCls} />
+                            <input type="number" min="0" max="16" step="1" value={form.dias} onChange={set("dias")} placeholder="días del periodo" className={inputCls} />
                         </label>
                         {!editando && (
                             <button onClick={calcular} disabled={cargando}
@@ -186,7 +189,7 @@ export default function LiquidacionEsquemaModal({ drivers, liquidacion, driverIn
                     {c && (
                         <div className="rounded-2xl bg-white/5 border border-cyan-400/10 p-4 space-y-3 text-sm">
                             <p className="text-gray-300">
-                                <span className="font-bold text-white">{vista.operador}</span> · del {vista.semanaInicio} al {vista.semanaFin} ·
+                                <span className="font-bold text-white">{vista.operador}</span> · {PERIODO[vista.periodo] || "periodo"} del {vista.semanaInicio} al {vista.semanaFin} ·
                                 esquema <span className="text-cyan-300 font-bold">{vista.esquema?.nombre}</span>
                             </p>
                             {c.avisos.length > 0 && (
@@ -196,15 +199,18 @@ export default function LiquidacionEsquemaModal({ drivers, liquidacion, driverIn
                                     ))}
                                 </div>
                             )}
+                            {vista.viajesDiferidos && (
+                                <p className="text-cyan-300">Los viajes se pagan en la 2ª quincena, al cierre del mes, con sus anticipos y gastos: esta quincena es solo el sueldo (más bonos y préstamo).</p>
+                            )}
                             {c.viajes.length === 0
-                                ? <p className="text-gray-500">{vista.periodoPor === "SALIDA" ? "No hay trayectos por pagar en esta semana." : "No hay viajes entregados por pagar en esta semana."}</p>
+                                ? (!vista.viajesDiferidos && <p className="text-gray-500">{vista.periodoPor === "SALIDA" ? "No hay trayectos por pagar en este periodo." : "No hay viajes entregados por pagar en este periodo."}</p>)
                                 : c.viajes.map(v => (
                                     <div key={v.id}>
                                         <div className="flex justify-between">
                                             <span>
                                                 <span className="font-bold text-cyan-300">{v.folio}</span> · {vista.periodoPor === "SALIDA" ? "salida" : "entrega"} {v.fecha} · {km(v.kmQueCuentan)} km
                                                 {v.cumpleMeta === null ? "" : v.cumpleMeta ? " · cumple la meta" : " · no cumple la meta"}
-                                                {v.semanaAnterior && <span className="ml-2 px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 text-xs">de semana anterior</span>}
+                                                {v.semanaAnterior && <span className="ml-2 px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 text-xs">{vista.anterior || "de semana anterior"}</span>}
                                             </span>
                                             <span className="text-green-300 font-bold">{pesos(v.total)}</span>
                                         </div>

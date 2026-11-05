@@ -33,7 +33,7 @@ const emptyTasasMoneda = () => Object.fromEntries(FILAS_TASAS.map(f =>
     [f.key, { sinPeligroso: { ...emptyTasa }, conPeligroso: { ...emptyTasa } }]));
 const emptyValoresLiquidar = {
     pctSencilloCargado: "", pctFullCargado: "", pctSencilloVacio: "", pctFullVacio: "", pctFullCargadoVacio: "",
-    sueldoSemanal: "", sueldoDiario: "", sueldoDiarioIntegrado: "", sbc: "",
+    sueldoSemanal: "", sueldoQuincenal: "", sueldoDiario: "", sueldoDiarioIntegrado: "", sbc: "",
     tasas: { pesos: emptyTasasMoneda(), dolares: emptyTasasMoneda() },
 };
 
@@ -729,8 +729,9 @@ export default function OperadoresPage() {
                                                 <Field label="% Full Vacío/Vacío"><input type="number" value={valores.pctFullVacio} onChange={setValor("pctFullVacio")} className={inputCls} /></Field>
                                             </div>
 
-                                            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 p-4 rounded-2xl bg-white/5 border border-cyan-400/10">
+                                            <div className="grid grid-cols-1 sm:grid-cols-5 gap-3 p-4 rounded-2xl bg-white/5 border border-cyan-400/10">
                                                 <Field label="Sueldo Semanal"><input type="number" value={valores.sueldoSemanal} onChange={setValor("sueldoSemanal")} className={inputCls} /></Field>
+                                                <Field label="Sueldo Quincenal"><input type="number" value={valores.sueldoQuincenal} onChange={setValor("sueldoQuincenal")} className={inputCls} /></Field>
                                                 <Field label="Sueldo Diario"><input type="number" value={valores.sueldoDiario} onChange={setValor("sueldoDiario")} className={inputCls} /></Field>
                                                 <Field label="Sueldo Diario Integrado"><input type="number" value={valores.sueldoDiarioIntegrado} onChange={setValor("sueldoDiarioIntegrado")} className={inputCls} /></Field>
                                                 <Field label="SBC"><input type="number" value={valores.sbc} onChange={setValor("sbc")} className={inputCls} /></Field>

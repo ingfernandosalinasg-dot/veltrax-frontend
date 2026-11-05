@@ -128,7 +128,7 @@ function generarPDFEsquema(liq) {
         </div>
     </div>
     <div class="sec"><h3>Operador y periodo</h3>
-        <p><b>${escaparHtml(liq.driverNombre || "-")}</b> · semana del ${escaparHtml(liq.periodoInicio)} al ${escaparHtml(liq.periodoFin)} · esquema ${escaparHtml(liq.esquemaNombre || "-")}</p>
+        <p><b>${escaparHtml(liq.driverNombre || "-")}</b> · periodo del ${escaparHtml(liq.periodoInicio)} al ${escaparHtml(liq.periodoFin)} · esquema ${escaparHtml(liq.esquemaNombre || "-")}</p>
     </div>
     <div class="sec"><h3>Líneas</h3>
         <table><thead><tr><th>#</th><th>Tipo</th><th>Concepto</th><th style="text-align:right">Importe</th></tr></thead>
@@ -360,7 +360,7 @@ export default function LiquidacionesPage() {
     // Esto dispara fetchGastos automáticamente vía el useEffect de abajo, así
     // que los anticipos/gastos del viaje se desglosan solos en la vista previa.
     useEffect(() => {
-        // VID-M1 (entrega 3): las nuevas son por esquema y semana: se abre con el operador.
+        // VID-M1 (entrega 3): las nuevas son por esquema y periodo (semana o quincena): se abre con el operador.
         const orderIdParam  = searchParams.get("orderId");
         const driverIdParam = searchParams.get("driverId");
         if (orderIdParam) {

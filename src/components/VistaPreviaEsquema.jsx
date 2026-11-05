@@ -8,7 +8,8 @@ import { hoyMexico } from "../utils/fechas";
 // (el suyo o el de por omisión). Solo calcula: no guarda nada. La semana va de
 // lunes a domingo; cualquier día elige su semana. Entrega 4: por fecha de entrega
 // o de salida, según el esquema; cada trayecto con su importe y su fuente, y los
-// días del sueldo diario (plantilla 8).
+// días del sueldo diario (plantilla 8). TEC-QUINCENAL: el periodo sale del esquema
+// (semana o quincena); con «al cierre del mes», la 1ª quincena es solo el sueldo.
 
 const inputCls  = "w-full bg-white/5 border border-cyan-400/10 rounded-xl px-4 py-3 text-white outline-none focus:border-cyan-400/40 transition-all";
 const selectCls = "w-full bg-[#020617] border border-cyan-400/10 rounded-xl px-4 py-3 text-white outline-none focus:border-cyan-400/40 transition-all";
@@ -17,10 +18,11 @@ const pesos = (n) => `$${(n || 0).toLocaleString("es-MX", { minimumFractionDigit
 const km = (n) => (n || 0).toLocaleString("es-MX", { maximumFractionDigits: 2 });
 const CARGA = { CARGADO: "Cargado", VACIO: "Vacío", SIN_MARCA: "Sin marca" };
 
-// El sueldo fijo del cálculo: semanal, o diario × días.
+// El sueldo fijo del cálculo: semanal o quincenal, o diario × días.
 const etiquetaSueldo = (c) => (c.percepcionFija === "DIARIO"
     ? `Sueldo diario${c.sueldoDiario != null ? ` ${pesos(c.sueldoDiario)}` : ""} × ${c.dias ?? 0} días`
-    : "Sueldo semanal");
+    : c.percepcionFija === "QUINCENAL" ? "Sueldo quincenal" : "Sueldo semanal");
+const PERIODO = { SEMANAL: "semana", QUINCENAL: "quincena" };
 
 export default function VistaPreviaEsquema({ drivers, onClose }) {
     const [driverId, setDriverId] = useState("");
@@ -34,7 +36,7 @@ export default function VistaPreviaEsquema({ drivers, onClose }) {
         setError("");
         setVista(null);
         if (!driverId) { setError("Elige un operador."); return; }
-        if (!semana) { setError("Elige un día de la semana."); return; }
+        if (!semana) { setError("Elige un día del periodo."); return; }
         setCargando(true);
         try {
             const token = localStorage.getItem("token");
@@ -62,7 +64,7 @@ export default function VistaPreviaEsquema({ drivers, onClose }) {
                 <div className="flex justify-between items-center p-6 pb-4 flex-shrink-0">
                     <div>
                         <h2 className="text-2xl font-black text-cyan-300">Vista previa (esquema)</h2>
-                        <p className="text-gray-400 text-sm mt-1">Calcula la semana con el esquema de pago del operador. No guarda nada.</p>
+                        <p className="text-gray-400 text-sm mt-1">Calcula el periodo (semana o quincena) con el esquema de pago del operador. No guarda nada.</p>
                     </div>
                     <button onClick={onClose} className="text-gray-400 hover:text-white text-xl"><FaTimes /></button>
                 </div>
@@ -76,12 +78,12 @@ export default function VistaPreviaEsquema({ drivers, onClose }) {
                         </select>
                     </label>
                     <label className="block">
-                        <span className="text-gray-400 text-sm">Semana (cualquier día)</span>
+                        <span className="text-gray-400 text-sm">Periodo (cualquier día)</span>
                         <input type="date" value={semana} onChange={e => setSemana(e.target.value)} className={inputCls} />
                     </label>
                     <label className="block">
                         <span className="text-gray-400 text-sm">Días (solo sueldo diario)</span>
-                        <input type="number" min="0" max="7" step="1" value={dias} onChange={e => setDias(e.target.value)} placeholder="0 a 7" className={inputCls} />
+                        <input type="number" min="0" max="16" step="1" value={dias} onChange={e => setDias(e.target.value)} placeholder="días del periodo" className={inputCls} />
                     </label>
                     <button onClick={calcular} disabled={cargando}
                         className="py-3 rounded-xl bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 font-bold hover:bg-cyan-500/30 transition-all flex items-center justify-center gap-2">
@@ -95,7 +97,7 @@ export default function VistaPreviaEsquema({ drivers, onClose }) {
                     {c && (
                         <>
                             <div className="text-sm text-gray-300">
-                                <span className="font-bold text-white">{vista.operador}</span> · semana del {vista.semanaInicio} al {vista.semanaFin} ·
+                                <span className="font-bold text-white">{vista.operador}</span> · {PERIODO[vista.periodo] || "periodo"} del {vista.semanaInicio} al {vista.semanaFin} ·
                                 esquema <span className="text-cyan-300 font-bold">{vista.esquema?.nombre}</span>
                             </div>
 
@@ -111,8 +113,11 @@ export default function VistaPreviaEsquema({ drivers, onClose }) {
 
                             <div>
                                 <h3 className="text-cyan-300 font-bold mb-2">{porSalida ? "Trayectos que salieron y llegaron, por viaje" : "Viajes entregados"}</h3>
+                                {vista.viajesDiferidos && (
+                                    <p className="text-cyan-300 text-sm mb-2">Los viajes se pagan en la 2ª quincena, al cierre del mes, con sus anticipos y gastos: esta quincena es solo el sueldo.</p>
+                                )}
                                 {c.viajes.length === 0 ? (
-                                    <p className="text-gray-500 text-sm">{porSalida ? "No hay trayectos por pagar en esta semana." : "No hay viajes entregados por pagar en esta semana."}</p>
+                                    !vista.viajesDiferidos && <p className="text-gray-500 text-sm">{porSalida ? "No hay trayectos por pagar en este periodo." : "No hay viajes entregados por pagar en este periodo."}</p>
                                 ) : (
                                     <table className="w-full text-left text-sm">
                                         <thead>
@@ -126,7 +131,7 @@ export default function VistaPreviaEsquema({ drivers, onClose }) {
                                                 <tr key={v.id} className="border-b border-cyan-400/5 align-top">
                                                     <td className="py-2 pr-3">
                                                         <span className="font-bold text-cyan-300">{v.folio}</span>
-                                                        {v.semanaAnterior && <span className="ml-2 px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 text-xs">de semana anterior</span>}
+                                                        {v.semanaAnterior && <span className="ml-2 px-2 py-0.5 rounded bg-purple-500/10 text-purple-300 text-xs">{vista.anterior || "de semana anterior"}</span>}
                                                         <div className="text-gray-500 text-xs mt-1">
                                                             {v.trayectos.map(t => (
                                                                 <div key={`${t.id}-${t.rol}`}>
