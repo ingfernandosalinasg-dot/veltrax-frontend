@@ -4,6 +4,7 @@ import Topbar from "../components/Topbar";
 import { FaBuilding, FaSave, FaKey, FaPlug, FaUpload, FaFileAlt, FaTrash } from "react-icons/fa";
 
 import { API_URL } from "../config/api";
+import { logoEmpresa } from "../utils/logoEmpresa";
 const API = API_URL;
 const inputCls = "w-full bg-white/5 border border-cyan-400/10 rounded-xl px-4 py-3 text-white outline-none focus:border-cyan-400/40 transition-all text-sm";
 const selectCls = "w-full bg-[#020617] border border-cyan-400/10 rounded-xl px-4 py-3 text-white outline-none focus:border-cyan-400/40 transition-all text-sm";
@@ -71,8 +72,13 @@ export default function EmpresaPage() {
             })
             .catch(() => {});
 
+    // TEC-LOGO-DOCUMENTOS: la vista previa es el logo guardado en el backend, no el
+    // archivo elegido; así persiste al recargar y es el mismo que llevan los documentos.
+    const cargarLogo = () => logoEmpresa().then(url => setEmpresa(e => ({ ...e, logoUrl: url || "" })));
+
     useEffect(() => {
         cargar();
+        cargarLogo();
     }, []);
 
     const setF = k => e => setEmpresa(p => ({ ...p, [k]: e.target.value }));
@@ -109,25 +115,6 @@ export default function EmpresaPage() {
         }));
     };
 
-    const handleLogoUpload = (e) => {
-        const file = e.target.files[0];
-        if (file) {
-            if (file.size > 2 * 1024 * 1024) {
-                showMsg(false, "El logo debe pesar menos de 2MB");
-                return;
-            }
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setEmpresa(prev => ({ ...prev, logoUrl: reader.result }));
-            };
-            reader.readAsDataURL(file);
-        }
-    };
-
-    const eliminarLogo = () => {
-        setEmpresa(prev => ({ ...prev, logoUrl: "" }));
-    };
-
     const mensajeError = async (res, base) => {
         try {
             const d = await res.json();
@@ -135,6 +122,36 @@ export default function EmpresaPage() {
         } catch {
             return base;
         }
+    };
+
+    // Se guarda al elegirlo (POST /api/empresa/logo); el backend revisa que sea PNG o JPEG.
+    const handleLogoUpload = async (e) => {
+        const file = e.target.files[0];
+        e.target.value = "";
+        if (!file) return;
+        if (file.size > 2 * 1024 * 1024) {
+            showMsg(false, "El logo debe pesar menos de 2MB");
+            return;
+        }
+        const formData = new FormData();
+        formData.append("file", file);
+        setLoading(true);
+        try {
+            const res = await fetch(API + "/api/empresa/logo", {
+                method: "POST",
+                headers: { ...(token && { Authorization: "Bearer " + token }) }, // No incluir Content-Type aquí
+                body: formData
+            });
+            if (!res.ok) {
+                showMsg(false, await mensajeError(res, "No se guardó el logo."));
+            } else {
+                await Promise.all([cargarLogo(), cargar()]);
+                showMsg(true, "Logo guardado");
+            }
+        } catch {
+            showMsg(false, "Error de red: No se pudo establecer conexión con el backend");
+        }
+        setLoading(false);
     };
 
     // Guarda en 3 pasos: datos generales, configuración PAC y (si se eligieron
@@ -268,17 +285,12 @@ export default function EmpresaPage() {
                                         {isAdmin && (
                                         <div className="flex gap-2">
                                             <label className="cursor-pointer flex items-center gap-2 px-4 py-2 rounded-xl bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 hover:bg-cyan-500/30 transition-all text-xs font-bold">
-                                                <FaUpload /> Subir Logo
-                                                <input type="file" accept="image/*" onChange={handleLogoUpload} className="hidden" />
+                                                <FaUpload /> {empresa.logoUrl ? "Cambiar Logo" : "Subir Logo"}
+                                                <input type="file" accept="image/png,image/jpeg" disabled={loading} onChange={handleLogoUpload} className="hidden" />
                                             </label>
-                                            {empresa.logoUrl && (
-                                                <button type="button" onClick={eliminarLogo} className="flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 hover:bg-red-500/20 transition-all text-xs font-bold">
-                                                    <FaTrash /> Eliminar
-                                                </button>
-                                            )}
                                         </div>
                                         )}
-                                        <p className="text-gray-500 text-xs">Soporta formatos JPG, PNG. Tamaño máximo recomendado: 2MB.</p>
+                                        <p className="text-gray-500 text-xs">Formatos JPG o PNG, hasta 2MB. Se guarda al elegirlo y sale en las facturas, las cartas porte y las liquidaciones.</p>
                                     </div>
                                 </div>
                             </div>

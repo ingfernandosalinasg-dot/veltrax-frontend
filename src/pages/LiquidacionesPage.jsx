@@ -8,6 +8,7 @@ import { useSearchParams } from "react-router-dom";
 import { API_URL } from "../config/api";
 import { hoyMexico } from "../utils/fechas";
 import { etiquetaCliente } from "../utils/clientes";
+import { imprimirConLogo } from "../utils/logoEmpresa";
 import VistaPreviaEsquema from "../components/VistaPreviaEsquema";
 import LiquidacionEsquemaModal from "../components/LiquidacionEsquemaModal";
 import LineasLiquidacion from "../components/LineasLiquidacion";
@@ -87,6 +88,7 @@ function QuienYCuando({ por, en, sinDato = "-" }) {
 
 // VID-M1 (entrega 3): el PDF de una liquidación por esquema, con sus líneas. Entrega 4:
 // un trayecto pagado muestra su importe y de dónde salieron su base y su tasa.
+// TEC-LOGO-DOCUMENTOS: los dos impresos llevan el logo de Empresa; sin logo, «VELTRAX».
 function generarPDFEsquema(liq) {
     const carga = { CARGADO: "cargado", VACIO: "vacío", SIN_MARCA: "sin marca" };
     const filas = (liq.lineas || []).map(x => `
@@ -98,7 +100,7 @@ function generarPDFEsquema(liq) {
                 ? `<div style="font-size:10px;color:#888">${escaparHtml(x.fuente)}</div>` : ""}</td>
             <td style="text-align:right;color:${x.importe < 0 ? "red" : "#111"}">${x.tipo === "TRAYECTO" && !x.importe ? "" : conSigno(x.importe)}</td>
         </tr>`).join("");
-    const html = `<html><head><meta charset="UTF-8"/>
+    imprimirConLogo(encabezado => `<html><head><meta charset="UTF-8"/>
     <title>Liquidación ${escaparHtml(folioDe(liq))}</title>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
@@ -118,7 +120,7 @@ function generarPDFEsquema(liq) {
         .firma p { font-size:11px; color:#555; }
     </style></head><body>
     <div class="header">
-        <div class="logo">VELTRAX</div>
+        ${encabezado}
         <div>
             <div style="font-size:16px;font-weight:bold">Liquidación ${escaparHtml(folioDe(liq))}</div>
             <div style="color:#888">Fecha: ${escaparHtml(liq.fechaLiquidacion || "-")}</div>
@@ -139,12 +141,7 @@ function generarPDFEsquema(liq) {
         <div class="firma"><div class="linea"></div><p>Firma Operador</p><p style="font-weight:bold">${escaparHtml(liq.driverNombre || "")}</p></div>
         <div class="firma"><div class="linea"></div><p>Firma Administración</p><p style="font-weight:bold">Veltrax Logistics</p></div>
     </div>
-    </body></html>`;
-    const w = window.open("", "_blank");
-    w.document.write(html);
-    w.document.close();
-    w.focus();
-    setTimeout(() => w.print(), 500);
+    </body></html>`);
 }
 
 function generarPDFLiquidacion(liq, gastos) {
@@ -180,7 +177,7 @@ function generarPDFLiquidacion(liq, gastos) {
 
     const esPeriodo = liq.modo === "PERIODO";
 
-    const html = `<html><head><meta charset="UTF-8"/>
+    imprimirConLogo(encabezado => `<html><head><meta charset="UTF-8"/>
     <title>Liquidación ${folioDe(liq)}</title>
     <style>
         * { margin:0; padding:0; box-sizing:border-box; }
@@ -207,7 +204,7 @@ function generarPDFLiquidacion(liq, gastos) {
         .firma p { font-size:11px; color:#555; }
     </style></head><body>
     <div class="header">
-        <div class="logo">VELTRAX</div>
+        ${encabezado}
         <div>
             <div style="font-size:16px;font-weight:bold">Liquidación ${folioDe(liq)}</div>
             <div style="color:#888">Fecha: ${liq.fechaLiquidacion || "-"}</div>
@@ -276,13 +273,7 @@ function generarPDFLiquidacion(liq, gastos) {
         <div class="firma"><div class="linea"></div><p>Firma Operador</p><p style="font-weight:bold">${liq.driverNombre || ""}</p></div>
         <div class="firma"><div class="linea"></div><p>Firma Administración</p><p style="font-weight:bold">Veltrax Logistics</p></div>
     </div>
-    </body></html>`;
-
-    const w = window.open("", "_blank");
-    w.document.write(html);
-    w.document.close();
-    w.focus();
-    setTimeout(() => w.print(), 500);
+    </body></html>`);
 }
 
 export default function LiquidacionesPage() {

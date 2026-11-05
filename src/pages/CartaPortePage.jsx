@@ -7,6 +7,7 @@ import {
 } from "react-icons/fa";
 import { API_URL } from "../config/api";
 import { hoyMexico } from "../utils/fechas";
+import { imprimirConLogo } from "../utils/logoEmpresa";
 const API = API_URL;
 const estadoColor = {
     "Activa":      "text-cyan-300 bg-cyan-500/10 border-cyan-400/30",
@@ -226,7 +227,8 @@ function generarPDF(carta, mercancias = []) {
             <td>${m.marcas||"-"}</td><td>${m.estadoMercancia}</td>
             <td>${m.esPeligrosa ? "⚠️ "+m.claseONU : "No"}</td>
         </tr>`).join("");
-    const html = `<html><head><meta charset="UTF-8"/><title>Carta Porte ${carta.folio}</title>
+    // TEC-LOGO-DOCUMENTOS: el logo de Empresa en el encabezado; sin logo, «VELTRAX».
+    imprimirConLogo(encabezado => `<html><head><meta charset="UTF-8"/><title>Carta Porte ${carta.folio}</title>
     <style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Arial,sans-serif;padding:32px;color:#111;font-size:13px}
     .header{display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #0891b2;padding-bottom:18px;margin-bottom:24px}
     .logo{font-size:28px;font-weight:900;color:#0891b2;letter-spacing:4px}
@@ -243,7 +245,7 @@ function generarPDF(carta, mercancias = []) {
     .footer{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-top:40px;border-top:2px solid #eee;padding-top:20px}
     .firma{text-align:center}.firma .linea{border-top:1px solid #333;margin-bottom:6px;margin-top:50px}.firma p{font-size:11px;color:#555}
     </style></head><body>
-    <div class="header"><div class="logo">VELTRAX</div><div>
+    <div class="header">${encabezado}<div>
         <div style="font-size:16px;font-weight:bold">Folio: ${carta.folio}</div>
         <div style="color:#888">Tipo: ${carta.tipoCarta} &nbsp;|&nbsp; Emisión: ${carta.fechaEmision} &nbsp;${carta.lugarEmision||""}</div>
         <div style="margin-top:6px"><span class="estado">${carta.status}</span> <span class="estado" style="background:${carta.tipoComprobante === "Traslado" ? "#f3e8ff" : "#e0f7fa"};color:${carta.tipoComprobante === "Traslado" ? "#7e22ce" : "#0891b2"}">CFDI ${carta.tipoComprobante || "Ingreso"}</span></div>
@@ -300,12 +302,7 @@ function generarPDF(carta, mercancias = []) {
         <div class="firma"><div class="linea"></div><p>Firma Remitente</p><p style="font-weight:bold">${carta.remitenteNombre||""}</p></div>
         <div class="firma"><div class="linea"></div><p>Firma Conductor</p><p style="font-weight:bold">${carta.conductorNombre||""}</p></div>
         <div class="firma"><div class="linea"></div><p>Firma Destinatario</p><p style="font-weight:bold">${carta.destinatarioNombre||""}</p></div>
-    </div></body></html>`;
-    const w = window.open("","_blank");
-    w.document.write(html);
-    w.document.close();
-    w.focus();
-    setTimeout(() => w.print(), 500);
+    </div></body></html>`);
 }
 export default function CartaPortePage() {
     const [cartas,        setCartas]        = useState([]);
