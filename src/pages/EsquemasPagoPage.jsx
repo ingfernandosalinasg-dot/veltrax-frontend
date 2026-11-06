@@ -45,6 +45,16 @@ const META_POR = { OPERADOR: "Operador: sus km (por defecto)", VIAJE: "Viaje: el
 const AUXILIAR = { NO: "No (por defecto)", IGUAL: "Igual que el operador", PORCENTAJE: "Un porcentaje" };
 const VIAJES_SE_PAGAN = { EN_SU_PERIODO: "En su periodo (por defecto)", CIERRE_DE_MES: "Al cierre del mes (2ª quincena)" };
 
+// El nombre de la plantilla con el periodo del esquema: «Semanal + …» dice
+// «Quincenal + …» en un esquema quincenal (detalle de la prueba de TEC-QUINCENAL).
+const NOMBRE_PERIODO = { SEMANAL: "Semanal", QUINCENAL: "Quincenal", MENSUAL: "Mensual", POR_VIAJE: "Por viaje" };
+function nombrePlantilla(e) {
+    const nombre = PLANTILLAS[e.plantilla] || e.plantilla || "";
+    return nombre.startsWith("Semanal") && NOMBRE_PERIODO[e.periodo]
+        ? NOMBRE_PERIODO[e.periodo] + nombre.slice("Semanal".length)
+        : nombre;
+}
+
 const dinero = (n) => `$${Number(n || 0).toLocaleString("es-MX", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 // Resumen corto de lo que paga, para la tabla.
@@ -271,13 +281,15 @@ export default function EsquemasPagoPage() {
                                     <tr key={e.id} className="border-b border-cyan-400/5 hover:bg-cyan-500/5 transition-all align-top">
                                         <td className="py-4 pr-4">
                                             <p className="font-bold">{e.nombre}</p>
-                                            <p className="text-gray-500 text-xs">{e.clave} · {PLANTILLAS[e.plantilla] || e.plantilla}</p>
+                                            <p className="text-gray-500 text-xs">{e.clave} · {nombrePlantilla(e)}</p>
                                         </td>
                                         <td className="py-4 pr-4 text-gray-300 text-sm max-w-md">{resumen(e.parametros)}</td>
                                         <td className="py-4 pr-4 text-sm">
-                                            <p>{PERIODOS.find(p => p.value === e.periodo)?.label.split(" (")[0] || e.periodo}</p>
+                                            <p>
+                                                {PERIODOS.find(p => p.value === e.periodo)?.label.split(" (")[0] || e.periodo}
+                                                {e.opciones?.viajesSePagan === "CIERRE_DE_MES" && " · Viajes al cierre del mes"}
+                                            </p>
                                             <p className="text-gray-500 text-xs">{PERIODO_POR[e.periodoPor] || e.periodoPor}</p>
-                                            {e.opciones?.viajesSePagan === "CIERRE_DE_MES" && <p className="text-gray-500 text-xs">Viajes al cierre del mes</p>}
                                         </td>
                                         <td className="py-4 pr-4 text-gray-300">{e.operadores}</td>
                                         <td className="py-4 pr-4">
@@ -310,7 +322,7 @@ export default function EsquemasPagoPage() {
                             <div className="flex justify-between items-start p-6 pb-0">
                                 <div>
                                     <h2 className="text-2xl font-black text-cyan-300">Editar esquema</h2>
-                                    <p className="text-gray-500 text-xs mt-1">{editando.clave} · plantilla {PLANTILLAS[editando.plantilla] || editando.plantilla}</p>
+                                    <p className="text-gray-500 text-xs mt-1">{editando.clave} · plantilla {nombrePlantilla(editando)}</p>
                                 </div>
                                 <button onClick={() => setEditando(null)} className="text-gray-400 hover:text-white text-2xl"><FaTimes /></button>
                             </div>
