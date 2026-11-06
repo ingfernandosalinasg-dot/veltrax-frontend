@@ -17,6 +17,18 @@ const selectCls = "w-full bg-[#020617] border border-cyan-400/10 rounded-xl px-5
 
 const emptyForm = { name:"", email:"", password:"", role:"OPERADOR", activo:true };
 
+// TEC-CONTRASENAS: las mismas reglas básicas que PoliticaContrasena del backend.
+const AYUDA_CONTRASENA = "Mínimo 10 caracteres, con mayúscula, minúscula y número.";
+function revisarContrasena(p) {
+    if (!p) return "La contraseña es obligatoria.";
+    if (p !== p.trim()) return "La contraseña no puede empezar ni terminar con espacios.";
+    if ([...p].length < 10) return "La contraseña debe tener al menos 10 caracteres.";
+    if (!/\p{Lu}/u.test(p) || !/\p{Ll}/u.test(p) || !/\p{Nd}/u.test(p)) {
+        return "La contraseña debe tener al menos una mayúscula, una minúscula y un número.";
+    }
+    return null;
+}
+
 export default function UsuariosPage() {
     const [usuarios,  setUsuarios]  = useState([]);
     const [showModal, setShowModal] = useState(false);
@@ -51,7 +63,12 @@ export default function UsuariosPage() {
 
     const handleSubmit = async () => {
         if (!form.name || !form.email) { showMsg(false, "Nombre y email son requeridos"); return; }
-        if (!editando && (!form.password || form.password.length < 6)) { showMsg(false, "La Contraseña debe tener al menos 6 caracteres"); return; }
+        // TEC-CONTRASENAS: el aviso inmediato de las reglas básicas; el servidor
+        // revisa además el nombre, el correo y las contraseñas comunes.
+        if (!editando || form.password) {
+            const errorContrasena = revisarContrasena(form.password);
+            if (errorContrasena) { showMsg(false, errorContrasena); return; }
+        }
         setLoading(true);
         try {
             const url    = editando ? API+"/api/usuarios/"+editando : API+"/api/usuarios";
@@ -160,7 +177,8 @@ export default function UsuariosPage() {
                             </div>
                             <div>
                                 <label className="text-gray-400 text-sm mb-2 block">Contraseña {editando && <span className="text-gray-500">(dejar vacio para no cambiar)</span>}</label>
-                                <input type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} className={inputCls} placeholder={editando ? "..." : "Minimo 6 caracteres"} />
+                                <input type="password" value={form.password} onChange={e => setForm(f => ({ ...f, password: e.target.value }))} className={inputCls} placeholder={editando ? "..." : "Mínimo 10 caracteres"} />
+                                <p className="text-gray-500 text-xs mt-1">{AYUDA_CONTRASENA}</p>
                             </div>
                             <div>
                                 <label className="text-gray-400 text-sm mb-2 block">Rol</label>
