@@ -10,6 +10,7 @@ import { LineChart, Line, BarChart, Bar, XAxis, YAxis, Tooltip,
          ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
 import { API_URL } from "../config/api";
+import { COLOR_VENCIMIENTO, DOCUMENTO, textoVencimiento } from "../utils/vencimientos";
 const API = API_URL;
 const fmt  = n => "$"+Number(n||0).toLocaleString("es-MX", { minimumFractionDigits:2 });
 const fmtM = n => "$"+Number(n||0).toLocaleString("es-MX", { maximumFractionDigits:0 });
@@ -23,6 +24,54 @@ const COLOR_OTRO   = "#9ca3af";
 const MOSTRAR_PLATAFORMA = false;
 
 // Contadores de una lista oficial de estatus, con sus colores (VAC-17).
+// TEC-VENCIMIENTOS: licencias y seguros de operadores y unidades que ya
+// vencieron, tienen una fecha no válida o vencen en los próximos 30 días; los
+// 10 más urgentes. Lo calcula el servidor; una parte que no carga no se muestra.
+const URGENCIA = { VENCIDO: 0, NO_VALIDA: 1, POR_VENCER: 2 };
+function TarjetaVencimientos({ vencimientos }) {
+    const partes = [vencimientos?.operadores, vencimientos?.unidades].filter(Boolean);
+    const alertas = partes.flatMap(p => p.renglones).filter(r => r.resultado in URGENCIA)
+        .sort((a, b) => URGENCIA[a.resultado] - URGENCIA[b.resultado] || (a.dias ?? 0) - (b.dias ?? 0));
+    const suma = (campo) => partes.reduce((t, p) => t + (p[campo] || 0), 0);
+    return (
+        <motion.div initial={{ opacity:0, y:30 }} animate={{ opacity:1, y:0 }}
+            className="rounded-3xl bg-white/5 border border-yellow-400/20 p-6 mb-8">
+            <div className="flex flex-wrap items-baseline justify-between gap-3 mb-4">
+                <h3 className="text-yellow-300 font-black flex items-center gap-2"><FaClock /> Vencimientos</h3>
+                <p className="text-gray-500 text-xs">Licencias y seguros · próximos 30 días</p>
+            </div>
+            {vencimientos && partes.length === 0 && (
+                <p className="text-gray-500 text-sm">No se pudieron cargar los vencimientos.</p>
+            )}
+            {partes.length > 0 && (
+                <>
+                    <div className="flex flex-wrap gap-6 mb-4">
+                        <p><span className="text-3xl font-black text-red-400">{suma("vencidos")}</span> <span className="text-gray-400 text-sm">vencidos</span></p>
+                        <p><span className="text-3xl font-black text-yellow-400">{suma("porVencer")}</span> <span className="text-gray-400 text-sm">por vencer</span></p>
+                        {suma("noValidas") > 0 && (
+                            <p><span className="text-3xl font-black text-red-300">{suma("noValidas")}</span> <span className="text-gray-400 text-sm">con fecha no válida</span></p>
+                        )}
+                    </div>
+                    {alertas.length === 0
+                        ? <p className="text-gray-500 text-sm">Nada vence en los próximos 30 días.</p>
+                        : (
+                            <ul className="space-y-2">
+                                {alertas.slice(0, 10).map(r => (
+                                    <li key={`${r.tipo}-${r.id}-${r.documento}`} className="flex flex-wrap justify-between gap-2 text-sm border-b border-white/5 pb-2">
+                                        <span className="text-gray-300">
+                                            {r.tipo === "OPERADOR" ? "Operador" : "Unidad"} <span className="font-bold text-white">{r.nombre}</span> · {DOCUMENTO[r.documento]}
+                                        </span>
+                                        <span className={"font-bold "+COLOR_VENCIMIENTO[r.resultado]}>{r.fecha} · {textoVencimiento(r)}</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                </>
+            )}
+        </motion.div>
+    );
+}
+
 function TarjetaEstatus({ titulo, icono, resumen, porEstatus, otros, delay }) {
     return (
         <motion.div initial={{ opacity:0, y:20 }} animate={{ opacity:1, y:0 }} transition={{ delay }}
@@ -57,6 +106,7 @@ export default function DashboardPage() {
     const [tenants,      setTenants]      = useState({});
     const [bitacora,     setBitacora]     = useState([]);
     const [loading,      setLoading]      = useState(true);
+    const [vencimientos, setVencimientos] = useState(null);
 
     const token   = localStorage.getItem("token");
     const usuario = localStorage.getItem("usuario") || "Admin";
@@ -76,6 +126,12 @@ export default function DashboardPage() {
     useEffect(() => {
         const load = async () => {
             setLoading(true);
+            // TEC-VENCIMIENTOS: cada parte con el permiso de su módulo; la que no
+            // carga (por ejemplo, sin permiso) no se muestra.
+            Promise.all([
+                fetchJson(API+"/drivers/vencimientos"),
+                fetchJson(API+"/vehicles/vencimientos"),
+            ]).then(([o, u]) => setVencimientos({ operadores: o, unidades: u }));
             const [s, c, ca, l, oc, f, t, b] = await Promise.all([
                 fetchJson(API+"/dashboard/stats"),
                 fetchJson(API+"/api/cobranza/resumen"),
@@ -202,6 +258,8 @@ export default function DashboardPage() {
                         </motion.div>
                     ))}
                 </div>
+
+                <TarjetaVencimientos vencimientos={vencimientos} />
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                     <motion.div initial={{ opacity:0, x:-20 }} animate={{ opacity:1, x:0 }} transition={{ delay:0.4 }}

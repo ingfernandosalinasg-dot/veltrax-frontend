@@ -5,6 +5,7 @@ import { FaTruck, FaTools, FaCheckCircle, FaRoad, FaPlus, FaTrash, FaTimes, FaEd
 import { motion, AnimatePresence } from "framer-motion";
 
 import { API_URL } from "../config/api";
+import { COLOR_VENCIMIENTO, textoVencimiento, porRegistro, cargarVencimientos } from "../utils/vencimientos";
 const API = API_URL;
 
 const TABS = [
@@ -208,6 +209,10 @@ export default function VehiclesPage() {
     // Odómetro con el que se abrió la edición. Si el usuario no lo cambia, no se
     // envía: así se conserva el que el servidor suma con cada viaje cobrado.
     const [odometroOriginal, setOdometroOriginal] = useState(null);
+    // TEC-VENCIMIENTOS: el seguro de cada unidad, calculado en el servidor.
+    const [vencimientos, setVencimientos] = useState(null);
+    const seguroPorUnidad = Object.fromEntries(
+        Object.entries(porRegistro(vencimientos)).map(([id, docs]) => [id, docs.SEGURO]));
 
     const token = localStorage.getItem("token");
     const headers = { "Content-Type": "application/json", ...(token && { Authorization: `Bearer ${token}` }) };
@@ -227,6 +232,7 @@ export default function VehiclesPage() {
             .then(r => (r.ok ? r.json() : null))
             .then(l => { if (Array.isArray(l)) setGruposUnidad(l); })
             .catch(() => {});
+        cargarVencimientos(`${API}/vehicles/vencimientos`, headers).then(setVencimientos);
         try {
             const res = await fetch(`${API}/vehicles`, { headers });
             if (!res.ok) {
@@ -430,13 +436,13 @@ export default function VehiclesPage() {
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="text-gray-400 border-b border-cyan-400/10 text-sm">
-                                    {["Código","Placas","Marca","Modelo","Año","Tipo","Grupo","Odómetro","Config SAT","Permiso SCT","Status","Acciones"]
+                                    {["Código","Placas","Marca","Modelo","Año","Tipo","Grupo","Odómetro","Config SAT","Permiso SCT","Seguro","Status","Acciones"]
                                         .map(h => <th key={h} className="pb-4 pr-5 whitespace-nowrap">{h}</th>)}
                                 </tr>
                             </thead>
                             <tbody>
                                 {filtrados.length === 0 && (
-                                    <tr><td colSpan={12} className="py-10 text-center text-gray-500">No hay vehículos registrados</td></tr>
+                                    <tr><td colSpan={13} className="py-10 text-center text-gray-500">No hay vehículos registrados</td></tr>
                                 )}
                                 {filtrados.map((v, i) => (
                                     <motion.tr key={v.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
@@ -469,6 +475,15 @@ export default function VehiclesPage() {
                                         <td className="py-4 pr-5">
                                             {v.tipoPermiso
                                                 ? <span className="px-2 py-1 rounded-lg bg-purple-500/10 text-purple-300 text-xs font-mono font-bold">{v.tipoPermiso}</span>
+                                                : <span className="text-gray-600">-</span>}
+                                        </td>
+                                        <td className="py-4 pr-5 whitespace-nowrap">
+                                            {/* TEC-VENCIMIENTOS: el seguro de la placa mexicana, o el dato anterior si falta. */}
+                                            {seguroPorUnidad[v.id]
+                                                ? <div className={`font-bold text-sm ${COLOR_VENCIMIENTO[seguroPorUnidad[v.id].resultado]}`}>
+                                                    {seguroPorUnidad[v.id].fecha}
+                                                    <div className="text-xs font-normal">{textoVencimiento(seguroPorUnidad[v.id])}</div>
+                                                  </div>
                                                 : <span className="text-gray-600">-</span>}
                                         </td>
                                         <td className="py-4 pr-5">

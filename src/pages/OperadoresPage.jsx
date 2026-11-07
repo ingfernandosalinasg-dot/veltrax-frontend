@@ -5,6 +5,7 @@ import { FaIdCard, FaPlus, FaTrash, FaEdit, FaTimes, FaCheck, FaSearch } from "r
 import { motion, AnimatePresence } from "framer-motion";
 
 import { API_URL } from "../config/api";
+import { COLOR_VENCIMIENTO, textoVencimiento, porRegistro, cargarVencimientos } from "../utils/vencimientos";
 const API = API_URL;
 
 const TABS = [
@@ -179,9 +180,17 @@ function SatPicker({ label, tipo, value, valueDesc, onChange, placeholder, span2
     );
 }
 
-function diasParaVencer(fecha) {
-    if (!fecha) return null;
-    return Math.ceil((new Date(fecha) - new Date()) / (1000 * 60 * 60 * 24));
+// TEC-VENCIMIENTOS: la fecha y lo que dice el servidor de ella (vence en N días,
+// venció, fecha no válida), con su color; sin fecha, un guion gris.
+function CeldaVencimiento({ fecha, renglon }) {
+    if (!fecha) return <span className="text-gray-400">-</span>;
+    const color = renglon ? COLOR_VENCIMIENTO[renglon.resultado] : "text-gray-400";
+    return (
+        <div className={`font-bold text-sm ${color}`}>
+            {fecha}
+            {renglon && <div className="text-xs font-normal">{textoVencimiento(renglon)}</div>}
+        </div>
+    );
 }
 
 // Estatus de operadores (TEC-ESTADOS): la lista fija del backend,
@@ -221,6 +230,8 @@ export default function OperadoresPage() {
     const [estatusOperador, setEstatusOperador] = useState([]);
     // VID-M1: los esquemas de pago, para elegir el del operador.
     const [esquemasPago, setEsquemasPago] = useState([]);
+    // TEC-VENCIMIENTOS: licencia y seguro calculados en el servidor.
+    const [vencimientos, setVencimientos] = useState(null);
 
     const token = localStorage.getItem("token");
     const headers = { "Content-Type": "application/json", ...(token && { Authorization: `Bearer ${token}` }) };
@@ -239,6 +250,7 @@ export default function OperadoresPage() {
             .then(r => (r.ok ? r.json() : null))
             .then(l => { if (Array.isArray(l)) setEsquemasPago(l); })
             .catch(() => {});
+        cargarVencimientos(`${API}/drivers/vencimientos`, headers).then(setVencimientos);
         try {
             const res = await fetch(`${API}/drivers`, { headers });
             if (!res.ok) {
@@ -363,8 +375,11 @@ export default function OperadoresPage() {
     // Estatus de la lista (TEC-ESTADOS); uno heredado no está en ella.
     const estatusDe = (s) => estatusOperador.find(e => e.clave === s);
     const activos   = operadores.filter(o => o.status === "DISPONIBLE").length;
-    const porVencer = operadores.filter(o => { const d = diasParaVencer(o.licenseExpiration); return d !== null && d <= 30 && d >= 0; }).length;
-    const vencidos  = operadores.filter(o => { const d = diasParaVencer(o.licenseExpiration); return d !== null && d < 0; }).length;
+    // Licencias y seguros (documentos, no operadores); la fecha no válida cuenta
+    // con los vencidos, porque también hay que corregirla.
+    const vencPorOperador = porRegistro(vencimientos);
+    const porVencer = vencimientos?.porVencer ?? 0;
+    const vencidos  = (vencimientos?.vencidos ?? 0) + (vencimientos?.noValidas ?? 0);
 
     return (
         <div className="flex min-h-screen bg-[#020617] text-white overflow-hidden">
@@ -427,17 +442,16 @@ export default function OperadoresPage() {
                         <table className="w-full text-left">
                             <thead>
                                 <tr className="text-gray-400 border-b border-cyan-400/10 text-sm">
-                                    {["Nombre","RFC","Figura SAT","Licencia","Vigencia","Placas","Teléfono","Status","Acciones"]
+                                    {["Nombre","RFC","Figura SAT","Licencia","Vigencia","Seguro","Placas","Teléfono","Status","Acciones"]
                                         .map(h => <th key={h} className="pb-4 pr-5 whitespace-nowrap">{h}</th>)}
                                 </tr>
                             </thead>
                             <tbody>
                                 {filtrados.length === 0 && (
-                                    <tr><td colSpan={9} className="py-10 text-center text-gray-500">No hay operadores registrados</td></tr>
+                                    <tr><td colSpan={10} className="py-10 text-center text-gray-500">No hay operadores registrados</td></tr>
                                 )}
                                 {filtrados.map((o, i) => {
-                                    const dias = diasParaVencer(o.licenseExpiration);
-                                    const vigColor = dias === null ? "text-gray-400" : dias < 0 ? "text-red-400" : dias <= 30 ? "text-yellow-400" : "text-green-400";
+                                    const venc = vencPorOperador[o.id] || {};
                                     return (
                                         <motion.tr key={o.id} initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.04 }}
                                             className="border-b border-cyan-400/5 hover:bg-cyan-500/5 transition-all">
@@ -452,9 +466,11 @@ export default function OperadoresPage() {
                                                     : <span className="text-gray-600">-</span>}
                                             </td>
                                             <td className="py-4 pr-5 text-cyan-300 font-mono text-sm whitespace-nowrap">{o.licenseNumber || "-"}</td>
-                                            <td className={`py-4 pr-5 font-bold text-sm whitespace-nowrap ${vigColor}`}>
-                                                {o.licenseExpiration || "-"}
-                                                {dias !== null && <div className="text-xs font-normal">{dias < 0 ? "Vencida" : `${dias} días`}</div>}
+                                            <td className="py-4 pr-5 whitespace-nowrap">
+                                                <CeldaVencimiento fecha={o.licenseExpiration} renglon={venc.LICENCIA} />
+                                            </td>
+                                            <td className="py-4 pr-5 whitespace-nowrap">
+                                                <CeldaVencimiento fecha={o.vigenciaSeguro} renglon={venc.SEGURO} />
                                             </td>
                                             <td className="py-4 pr-5 text-cyan-300 font-mono text-sm whitespace-nowrap">{o.vehiculoPlacas || "-"}</td>
                                             <td className="py-4 pr-5 text-gray-400 whitespace-nowrap">{o.telefono || "-"}</td>
@@ -574,6 +590,14 @@ export default function OperadoresPage() {
                                             </Field>
                                             <Field label="Vencimiento">
                                                 <input type="date" value={form.vencimientoPasaporte} onChange={set("vencimientoPasaporte")} className={inputCls} />
+                                            </Field>
+                                            <div />
+                                            {/* TEC-VENCIMIENTOS: el seguro del operador, que ya existía en la base sin pantalla. */}
+                                            <Field label="Póliza de seguro">
+                                                <input value={form.polizaSeguro || ""} onChange={set("polizaSeguro")} className={inputCls} />
+                                            </Field>
+                                            <Field label="Vigencia del seguro">
+                                                <input type="date" value={form.vigenciaSeguro || ""} onChange={set("vigenciaSeguro")} className={inputCls} />
                                             </Field>
                                             <div />
 
