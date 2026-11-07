@@ -36,6 +36,9 @@ export default function UsuariosPage() {
     const [form,      setForm]      = useState(emptyForm);
     const [loading,   setLoading]   = useState(false);
     const [msg,       setMsg]       = useState(null);
+    // TEC-CONTRASENAS (prueba en pantalla): los avisos del alta y la edición van
+    // dentro de la ventana, que sigue abierta con los datos si algo falla.
+    const [errorModal, setErrorModal] = useState("");
 
     const token = localStorage.getItem("token");
     const myEmail = localStorage.getItem("email");
@@ -53,21 +56,25 @@ export default function UsuariosPage() {
 
     const showMsg = (ok, txt) => { setMsg({ ok, txt }); setTimeout(() => setMsg(null), 3000); };
 
-    const openNew = () => { setEditando(null); setForm(emptyForm); setShowModal(true); };
+    const openNew = () => { setEditando(null); setForm(emptyForm); setErrorModal(""); setShowModal(true); };
 
     const openEdit = (u) => {
         setEditando(u.id);
         setForm({ name: u.name, email: u.email, password: "", role: u.role, activo: u.activo !== false });
+        setErrorModal("");
         setShowModal(true);
     };
 
+    const closeModal = () => { setShowModal(false); setErrorModal(""); };
+
     const handleSubmit = async () => {
-        if (!form.name || !form.email) { showMsg(false, "Nombre y email son requeridos"); return; }
+        setErrorModal("");
+        if (!form.name || !form.email) { setErrorModal("Nombre y email son requeridos."); return; }
         // TEC-CONTRASENAS: el aviso inmediato de las reglas básicas; el servidor
         // revisa además el nombre, el correo y las contraseñas comunes.
         if (!editando || form.password) {
             const errorContrasena = revisarContrasena(form.password);
-            if (errorContrasena) { showMsg(false, errorContrasena); return; }
+            if (errorContrasena) { setErrorModal(errorContrasena); return; }
         }
         setLoading(true);
         try {
@@ -76,10 +83,17 @@ export default function UsuariosPage() {
             const body = { ...form };
             if (editando && !body.password) delete body.password;
             const res = await fetch(url, { method, headers, body: JSON.stringify(body) });
-            const data = await res.json();
-            if (!res.ok) { showMsg(false, data.error || "Error al guardar"); }
-            else { showMsg(true, editando ? "Usuario actualizado" : "Usuario creado"); setShowModal(false); fetchAll(); }
-        } catch(e) { showMsg(false, "Error de conexion"); }
+            const data = await res.json().catch(() => null);
+            if (!res.ok) {
+                setErrorModal(data?.error || (res.status === 403
+                    ? "No tienes permiso para esta acción o tu sesión expiró."
+                    : `No se pudo guardar el usuario (error ${res.status}).`));
+            } else {
+                closeModal();
+                showMsg(true, editando ? "Usuario actualizado" : "Usuario creado");
+                fetchAll();
+            }
+        } catch(e) { setErrorModal("No se pudo conectar con el servidor. Intenta de nuevo."); }
         setLoading(false);
     };
 
@@ -164,8 +178,11 @@ export default function UsuariosPage() {
                     <div className="bg-[#020617] border border-cyan-400/20 rounded-3xl w-full max-w-lg">
                         <div className="flex justify-between items-center p-8 pb-0">
                             <h2 className="text-2xl font-black text-cyan-300">{editando ? "Editar Usuario" : "Nuevo Usuario"}</h2>
-                            <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-white text-2xl"><FaTimes /></button>
+                            <button onClick={closeModal} className="text-gray-400 hover:text-white text-2xl"><FaTimes /></button>
                         </div>
+                        {errorModal && (
+                            <div className="mx-8 mt-6 px-4 py-3 rounded-xl text-sm bg-red-500/10 border border-red-400/30 text-red-300">{errorModal}</div>
+                        )}
                         <div className="p-8 space-y-4">
                             <div>
                                 <label className="text-gray-400 text-sm mb-2 block">Nombre</label>
@@ -194,7 +211,7 @@ export default function UsuariosPage() {
                             </label>
                         </div>
                         <div className="flex gap-4 p-8 pt-0">
-                            <button onClick={() => setShowModal(false)} className="flex-1 py-4 rounded-2xl border border-white/10 text-gray-400 hover:bg-white/5 transition-all font-bold">Cancelar</button>
+                            <button onClick={closeModal} className="flex-1 py-4 rounded-2xl border border-white/10 text-gray-400 hover:bg-white/5 transition-all font-bold">Cancelar</button>
                             <button onClick={handleSubmit} disabled={loading} className="flex-1 py-4 rounded-2xl bg-cyan-500/20 border border-cyan-400/30 text-cyan-300 font-bold hover:bg-cyan-500/30 transition-all flex items-center justify-center gap-3">
                                 <FaCheck /> {loading ? "Guardando..." : editando ? "Actualizar" : "Crear Usuario"}
                             </button>
